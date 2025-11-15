@@ -9,6 +9,7 @@ import cv2
 import numpy as np
 import time
 from pathlib import Path
+from typing import List
 
 # Importar módulos locales
 import sys
@@ -16,7 +17,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 
 from src.core.hand_detector import HandDetector
 from src.core.gesture_processor import GestureProcessor
-from src.core.classifier import SketchClassifier
+# from src.core.classifier import SketchClassifier  # Comentado temporalmente
 
 
 class SketchDrawer:
@@ -36,9 +37,9 @@ class SketchDrawer:
         print("Inicializando aplicación...")
         
         # Inicializar componentes
-        self.hand_detector = HandDetector(min_detection_confidence=0.7)
+        self.hand_detector = HandDetector(min_area=5000, max_area=50000)  # Ajustes para OpenCV
         self.gesture_processor = GestureProcessor(image_size=28)
-        self.classifier = SketchClassifier(model_path, model_info_path)
+        # self.classifier = SketchClassifier(model_path, model_info_path)  # Comentado temporalmente
         
         # Estado
         self.is_drawing = False
@@ -52,30 +53,40 @@ class SketchDrawer:
         self.min_points_for_gesture = 5
         
         print("✓ Aplicación inicializada correctamente\n")
-        print("Información del modelo:")
-        info = self.classifier.get_model_info()
-        for key, value in info.items():
-            print(f"  {key}: {value}")
+        # print("Información del modelo:")
+        # info = self.classifier.get_model_info()
+        # for key, value in info.items():
+        #     print(f"  {key}: {value}")
+        print("⚠ Modo debug: Clasificación deshabilitada")
         print()
     
-    def is_drawing_gesture(self, hand_landmarks) -> bool:
+    def is_drawing_gesture(self, contours: List) -> bool:
         """
         Determina si la mano está en gesto de dibujo (dedo índice extendido).
         
+        Para OpenCV, usamos heurísticas simples basadas en la forma del contorno.
+        
         Args:
-            hand_landmarks: Landmarks de MediaPipe
+            contours: Lista de contornos detectados
             
         Returns:
             True si está en gesto de dibujo
         """
-        # Dedo índice (landmark 8) debe estar extendido
-        # Pulgar (landmark 4) debe estar cerrado
+        if not contours:
+            return False
         
-        index_tip = hand_landmarks.landmark[8]
-        index_pip = hand_landmarks.landmark[6]  # PIP del índice
+        # Tomar el contorno más grande
+        largest_contour = max(contours, key=cv2.contourArea)
         
-        # Si la punta del índice está por debajo del PIP, está extendido
-        return index_tip.y < index_pip.y
+        # Calcular bounding box
+        x, y, w, h = cv2.boundingRect(largest_contour)
+        
+        # Si el contorno es más ancho que alto, probablemente es una mano abierta
+        # Si es más alto que ancho, podría ser un dedo extendido
+        aspect_ratio = w / h if h > 0 else 0
+        
+        # Aspect ratio > 1.2 sugiere mano abierta o dedo extendido
+        return aspect_ratio > 1.2
     
     def run(self):
         """Ejecuta el loop principal de la aplicación."""
@@ -107,25 +118,23 @@ class SketchDrawer:
                 height, width = frame.shape[:2]
                 
                 # Detectar manos
-                frame_rgb, landmarks, has_hands = self.hand_detector.detect(frame)
+                frame_rgb, contours, has_hands = self.hand_detector.detect(frame)
                 
                 # Procesar si hay manos detectadas
-                if has_hands and landmarks:
-                    # Tomar primera mano detectada
-                    hand = landmarks[0]
-                    
+                if has_hands and contours:
                     # Obtener posición del dedo índice
-                    index_pos = self.hand_detector.get_index_finger_tip(hand)
+                    index_pos = self.hand_detector.get_index_finger_tip(contours)
                     
-                    if index_pos and self.is_drawing_gesture(hand):
+                    if index_pos and self.is_drawing_gesture(contours):
                         # Usuario está dibujando
                         if not self.is_drawing:
                             self.is_drawing = True
                             self.gesture_processor.clear()
                             print("▶ Iniciando dibujo...")
                         
-                        # Agregar punto
-                        self.gesture_processor.add_point(index_pos, (height, width))
+                        # Agregar punto (convertir a coordenadas normalizadas)
+                        normalized_pos = (index_pos[0] / width, index_pos[1] / height)
+                        self.gesture_processor.add_point(normalized_pos, (height, width))
                         self.last_position = index_pos
                     else:
                         # Usuario dejó de dibujar
@@ -137,10 +146,9 @@ class SketchDrawer:
                 # Preparar display
                 display_frame = frame.copy()
                 
-                # Dibujar landmarks si hay manos
-                if has_hands and landmarks:
-                    frame_rgb = self.hand_detector.draw_landmarks(frame_rgb, landmarks)
-                    display_frame = cv2.cvtColor(frame_rgb, cv2.COLOR_RGB2BGR)
+                # Dibujar contornos si hay manos
+                if has_hands and contours:
+                    display_frame = self.hand_detector.draw_landmarks(display_frame, contours)
                 
                 # Dibujar puntos del gesto en progreso
                 if len(self.gesture_processor.stroke_points) > 0:
@@ -213,23 +221,12 @@ class SketchDrawer:
             print("⚠ No se pudo procesar el gesto")
             return
         
-        # Clasificar
-        predictions = self.classifier.predict(gesture_image, top_k=3)
+        # DEBUG: Solo mostrar información sin clasificar
+        print(f"✓ Imagen generada: {gesture_image.shape}")
+        print(f"  Rango de valores: [{gesture_image.min():.2f}, {gesture_image.max():.2f}]")
+        print("⚠ Clasificación deshabilitada (TensorFlow no disponible)")
         
-        # Verificar confianza
-        top_class, top_confidence = predictions[0]
-        
-        if top_confidence >= self.confidence_threshold:
-            print(f"✓ Predicción: {top_class} ({top_confidence:.1%})")
-        else:
-            print(f"⚠ Baja confianza: {top_class} ({top_confidence:.1%})")
-        
-        # Mostrar todas las predicciones
-        print("  Top 3:")
-        for i, (class_name, confidence) in enumerate(predictions):
-            print(f"    {i+1}. {class_name}: {confidence:.1%}")
-        
-        self.predictions = predictions
+        self.predictions = [("Debug", 0.5), ("Sin modelo", 0.3)]  # Predicciones dummy
         self.gesture_complete = False
         print()
     
