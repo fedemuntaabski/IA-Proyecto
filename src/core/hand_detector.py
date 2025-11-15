@@ -1,13 +1,14 @@
 """
-Detector de manos usando OpenCV (versión simplificada).
+Detector de manos usando OpenCV con técnicas avanzadas de visión.
 
-Esta versión usa técnicas básicas de visión por computadora sin dependencias
-pesadas como MediaPipe/TensorFlow.
+Esta versión combina técnicas básicas de visión por computadora con
+algoritmos avanzados como background subtraction y optical flow.
 """
 
 import cv2
 import numpy as np
 from typing import Optional, Tuple, List
+from .advanced_vision import AdvancedVisionProcessor, BackgroundSubtractionMethod, OpticalFlowMethod
 
 
 class HandDetector:
@@ -23,15 +24,17 @@ class HandDetector:
     
     def __init__(self, min_area: int = 3000, max_area: int = 30000,
                  skin_lower: Optional[Tuple[int, int, int]] = None,
-                 skin_upper: Optional[Tuple[int, int, int]] = None):
+                 skin_upper: Optional[Tuple[int, int, int]] = None,
+                 enable_advanced_vision: bool = True):
         """
-        Inicializa el detector de manos.
+        Inicializa el detector de manos con técnicas avanzadas.
         
         Args:
             min_area: Área mínima en píxeles para detección
             max_area: Área máxima en píxeles para detección
             skin_lower: Límite inferior del rango de color de piel (HSV) - opcional
             skin_upper: Límite superior del rango de color de piel (HSV) - opcional
+            enable_advanced_vision: Si True, usa algoritmos avanzados de visión
         """
         self.min_area = min_area
         self.max_area = max_area
@@ -47,29 +50,61 @@ class HandDetector:
         self.stability_threshold = 3  # Frames consecutivos para confirmar detección
         self.max_history_size = 10  # Máximo frames en historial
         
+        # Procesador avanzado de visión
+        self.enable_advanced_vision = enable_advanced_vision
+        self.vision_processor = None
+        
+        if enable_advanced_vision:
+            try:
+                self.vision_processor = AdvancedVisionProcessor(
+                    bg_method=BackgroundSubtractionMethod.MOG2,
+                    flow_method=OpticalFlowMethod.LUCAS_KANADE
+                )
+                print("✓ Procesador avanzado de visión habilitado")
+            except Exception as e:
+                print(f"⚠ Error inicializando procesador avanzado: {e}")
+                print("  Continuando con detección básica")
+                self.enable_advanced_vision = False
+        
         print(f"✓ HandDetector (OpenCV) inicializado - Rangos: {tuple(self.skin_lower)} a {tuple(self.skin_upper)}")
+        if self.enable_advanced_vision:
+            print("  Modo: Avanzado (Background Subtraction + Optical Flow)")
+        else:
+            print("  Modo: Básico (Segmentación por color)")
     
     def detect(self, frame: np.ndarray) -> Tuple[np.ndarray, Optional[List], bool]:
         """
-        Detecta manos en un frame usando segmentación de piel.
-        
+        Detecta manos en un frame usando técnicas avanzadas de visión.
+
+        Combina segmentación por color con background subtraction y optical flow
+        para una detección más robusta y precisa.
+
         Args:
             frame: Frame de OpenCV (BGR)
-            
+
         Returns:
             Tupla con (frame_rgb, contours, manos_detectadas)
         """
+        # Procesamiento avanzado si está habilitado
+        vision_result = None
+        if self.enable_advanced_vision and self.vision_processor:
+            try:
+                vision_result = self.vision_processor.process_frame(frame)
+            except Exception as e:
+                print(f"⚠ Error en procesamiento avanzado: {e}")
+                vision_result = None
+
         # Calcular brillo promedio del frame para compensación
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         avg_brightness = np.mean(gray)
-        
+
         # Aplicar compensación de iluminación si tenemos rangos calibrados
         current_lower = self.skin_lower
         current_upper = self.skin_upper
-        
+
         # Compensación simple: ajustar rango V basado en brillo
         brightness_factor = avg_brightness / 128.0  # 128 es brillo medio
-        
+
         if brightness_factor < 0.8:  # Frame oscuro
             # Expandir rango V hacia abajo
             adjusted_lower = current_lower.copy()
@@ -85,38 +120,60 @@ class HandDetector:
         else:
             adjusted_lower = current_lower
             adjusted_upper = current_upper
-        
+
         # Convertir a HSV
         hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-        
+
         # Crear máscara con rangos ajustados
         mask = cv2.inRange(hsv, adjusted_lower, adjusted_upper)
-        
+
         # Limpiar máscara
         mask = cv2.medianBlur(mask, 5)
         mask = cv2.GaussianBlur(mask, (5, 5), 0)
-        
+
         # Operaciones morfológicas para limpiar
         kernel = np.ones((3, 3), np.uint8)
         mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel, iterations=2)
         mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel, iterations=2)
-        
+
+        # Integrar resultados del procesamiento avanzado
+        if vision_result and vision_result['processing_success']:
+            fg_mask = vision_result['foreground_mask']
+            motion_analysis = vision_result['motion_analysis']
+
+            if fg_mask is not None:
+                # Combinar máscaras: usar AND entre segmentación por color y background subtraction
+                combined_mask = cv2.bitwise_and(mask, fg_mask)
+
+                # Si hay movimiento significativo, dar más peso al background subtraction
+                if motion_analysis.gesture_type in ["drawing", "pointing"]:
+                    # Usar principalmente background subtraction con algo de color
+                    combined_mask = cv2.bitwise_or(
+                        cv2.bitwise_and(mask, fg_mask),
+                        cv2.bitwise_and(mask, fg_mask, mask=fg_mask.astype(np.uint8) // 2)
+                    )
+                else:
+                    # Usar principalmente segmentación por color
+                    combined_mask = cv2.bitwise_or(mask, fg_mask.astype(np.uint8) // 4)
+
+                mask = combined_mask
+
         # Encontrar contornos
         contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        
+
         # Filtrar contornos por área
         valid_contours = []
         for cnt in contours:
             area = cv2.contourArea(cnt)
             if self.min_area < area < self.max_area:
                 valid_contours.append(cnt)
-        
-        # Aplicar filtros de estabilidad
-        stable_contours = self._filter_stable_contours(valid_contours)
-        
+
+        # Aplicar filtros de estabilidad mejorados
+        stable_contours = self._filter_stable_contours_advanced(valid_contours, vision_result)
+
         # Detectar si hay manos (usando contornos estables)
         has_hands = len(stable_contours) > 0
-        
+
         return frame, stable_contours, has_hands
     
     def _calculate_contour_similarity(self, contour1, contour2) -> float:
@@ -213,6 +270,66 @@ class HandDetector:
         
         return stable_contours
     
+    def _filter_stable_contours_advanced(self, current_contours: List, vision_result=None) -> List:
+        """
+        Filtra contornos usando estabilidad temporal mejorada con información de movimiento.
+        
+        Args:
+            current_contours: Contornos del frame actual
+            vision_result: Resultados del procesamiento avanzado de visión
+            
+        Returns:
+            Lista de contornos estables
+        """
+        # Usar filtrado básico si no hay resultados avanzados
+        if not vision_result or not vision_result['processing_success']:
+            return self._filter_stable_contours(current_contours)
+        
+        motion_analysis = vision_result['motion_analysis']
+        
+        # Si hay movimiento significativo, ser más permisivo con estabilidad
+        stability_threshold = self.stability_threshold
+        if motion_analysis.gesture_type in ["drawing", "pointing"]:
+            stability_threshold = max(1, stability_threshold - 1)  # Reducir requerimiento
+        
+        if len(self.contour_history) < stability_threshold:
+            # Agregar al historial y devolver todos (primera vez)
+            self.contour_history.append(current_contours)
+            if len(self.contour_history) > self.max_history_size:
+                self.contour_history.pop(0)
+            return current_contours
+        
+        stable_contours = []
+        
+        for current_contour in current_contours:
+            # Contar cuántos frames consecutivos tiene un contorno similar
+            consecutive_matches = 0
+            
+            for historical_contours in reversed(self.contour_history[-stability_threshold:]):
+                best_match = max(historical_contours, 
+                               key=lambda h: self._calculate_contour_similarity(current_contour, h),
+                               default=None)
+                
+                if best_match is not None:
+                    similarity = self._calculate_contour_similarity(current_contour, best_match)
+                    if similarity > 0.7:  # Umbral de similitud
+                        consecutive_matches += 1
+                    else:
+                        break
+                else:
+                    break
+            
+            # Si tiene suficientes matches consecutivos, es estable
+            if consecutive_matches >= stability_threshold - 1:
+                stable_contours.append(current_contour)
+        
+        # Actualizar historial
+        self.contour_history.append(current_contours)
+        if len(self.contour_history) > self.max_history_size:
+            self.contour_history.pop(0)
+        
+        return stable_contours
+    
     def _determine_hand_state(self, contour) -> str:
         """
         Determina el estado de la mano basado en análisis del contorno.
@@ -258,13 +375,14 @@ class HandDetector:
         except Exception:
             return "unknown"
     
-    def draw_landmarks(self, frame: np.ndarray, contours: List) -> np.ndarray:
+    def draw_landmarks(self, frame: np.ndarray, contours: List, vision_result=None) -> np.ndarray:
         """
-        Dibuja los contornos detectados con información adicional.
+        Dibuja los contornos detectados con información adicional y visualización de movimiento.
         
         Args:
             frame: Frame original
             contours: Lista de contornos
+            vision_result: Resultados del procesamiento avanzado de visión
             
         Returns:
             Frame con contornos e información dibujados
@@ -304,6 +422,27 @@ class HandDetector:
                                  8, (0, 255, 255), -1)
                         cv2.circle(frame_copy, (int(finger_tip[0]), int(finger_tip[1])), 
                                  12, (0, 255, 255), 2)
+        
+        # Agregar visualización de movimiento si está disponible
+        if vision_result and vision_result['processing_success']:
+            motion_analysis = vision_result['motion_analysis']
+            
+            # Información de movimiento
+            motion_info = f"Movimiento: {motion_analysis.gesture_type.upper()}"
+            cv2.putText(frame_copy, motion_info, (10, frame.shape[0] - 60), 
+                       cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 165, 0), 2)
+            
+            stability_info = f"Estabilidad: {motion_analysis.stability_score:.2f}"
+            cv2.putText(frame_copy, stability_info, (10, frame.shape[0] - 40), 
+                       cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 165, 0), 2)
+            
+            speed_info = f"Velocidad: {motion_analysis.average_speed:.1f}"
+            cv2.putText(frame_copy, speed_info, (10, frame.shape[0] - 20), 
+                       cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 165, 0), 2)
+            
+            # Indicador de modo avanzado
+            cv2.putText(frame_copy, "MODO AVANZADO", (frame.shape[1] - 150, 30), 
+                       cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 255), 2)
         
         return frame_copy
     
@@ -410,8 +549,18 @@ class HandDetector:
         return hand_state == "closed"
     
     def close(self):
-        """Método dummy para compatibilidad con la interfaz."""
-        pass
+        """Cierra el detector y libera recursos."""
+        if hasattr(self, 'vision_processor') and self.vision_processor:
+            try:
+                self.vision_processor.reset()
+                print("✓ Procesador de visión avanzada cerrado")
+            except Exception as e:
+                print(f"⚠ Error cerrando procesador de visión: {e}")
+        
+        # Limpiar historiales
+        self.prev_contours = []
+        self.contour_history = []
+        self.tracking_point = None
 
 
 if __name__ == "__main__":

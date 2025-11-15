@@ -18,7 +18,8 @@ sys.path.insert(0, str(Path(__file__).parent))
 from src.core.hand_detector import HandDetector
 from src.core.gesture_processor import GestureProcessor
 from src.core.calibration_manager import CalibrationManager, CalibrationUI
-# from src.core.classifier import SketchClassifier  # Comentado temporalmente
+from src.core.classifier import SketchClassifier
+from src.core.config_manager import ConfigManager
 
 
 class SketchDrawer:
@@ -36,6 +37,10 @@ class SketchDrawer:
             model_info_path: Ruta a la información del modelo
         """
         print("Inicializando aplicación...")
+        
+        # Inicializar sistema de configuración
+        self.config_manager = ConfigManager()
+        self.config = self.config_manager.get_active_config()
         
         # Inicializar sistema de calibración
         self.calibration_manager = CalibrationManager()
@@ -61,7 +66,9 @@ class SketchDrawer:
             self.hand_detector = HandDetector(min_area=5000, max_area=50000)
         
         self.gesture_processor = GestureProcessor(image_size=28)
-        # self.classifier = SketchClassifier(model_path, model_info_path)  # Comentado temporalmente
+        
+        # Inicializar clasificador con sistema de fallback
+        self.classifier = SketchClassifier(model_path, model_info_path, enable_fallback=True)
         
         # Estado
         self.is_drawing = False
@@ -70,16 +77,33 @@ class SketchDrawer:
         self.fps_counter = []
         self.gesture_complete = False
         
-        # Configuración
-        self.confidence_threshold = 0.5
-        self.min_points_for_gesture = 5
+        # Resultados del procesamiento avanzado de visión
+        self.vision_results = None
+        
+        # Configuración desde config manager
+        self.confidence_threshold = self.config.classification.confidence_threshold
+        self.min_points_for_gesture = self.config.detection.min_points_for_gesture
         
         print("✓ Aplicación inicializada correctamente\n")
-        # print("Información del modelo:")
-        # info = self.classifier.get_model_info()
-        # for key, value in info.items():
-        #     print(f"  {key}: {value}")
-        print("⚠ Modo debug: Clasificación deshabilitada")
+        
+        # Mostrar información del clasificador
+        if self.classifier.is_available():
+            print("Información del clasificador:")
+            info = self.classifier.get_model_info()
+            print(f"  Modo: {info.get('active_mode', 'desconocido')}")
+            print(f"  Clases: {info.get('num_classes', 'N/A')}")
+            print(f"  Framework: {info.get('framework', 'N/A')}")
+            if 'test_accuracy' in info:
+                print(f"  Precisión: {info['test_accuracy']}")
+        else:
+            print("⚠ Clasificador no disponible")
+        
+        # Mostrar información del detector
+        if hasattr(self.hand_detector, 'enable_advanced_vision') and self.hand_detector.enable_advanced_vision:
+            print("Detector de manos: Modo Avanzado (Background Subtraction + Optical Flow)")
+        else:
+            print("Detector de manos: Modo Básico (Segmentación por color)")
+        
         print()
     
     def is_drawing_gesture(self, contours: List) -> bool:
@@ -198,6 +222,7 @@ class SketchDrawer:
         print("Controles:")
         print("  r - Resetear dibujo")
         print("  c - Recalibrar sistema")
+        print("  p - Cambiar perfil de configuración")
         print("  q - Salir")
         print("  SPACE - Procesar dibujo actual\n")
         
@@ -213,6 +238,21 @@ class SketchDrawer:
                 
                 # Detectar manos
                 frame_rgb, contours, has_hands = self.hand_detector.detect(frame)
+                
+                # Almacenar resultados de visión para visualización
+                if hasattr(self.hand_detector, 'vision_processor') and self.hand_detector.vision_processor:
+                    # El procesamiento avanzado ya se hizo dentro de detect()
+                    # Los resultados están disponibles en el vision_processor
+                    self.vision_results = {
+                        'foreground_mask': self.hand_detector.vision_processor.frame_history[-1] if self.hand_detector.vision_processor.frame_history else None,
+                        'motion_analysis': self.hand_detector.vision_processor._analyze_motion(
+                            self.hand_detector.vision_processor.flow_history[-1] if self.hand_detector.vision_processor.flow_history else None,
+                            None
+                        ) if len(self.hand_detector.vision_processor.flow_history) > 0 else None,
+                        'processing_success': True
+                    }
+                else:
+                    self.vision_results = None
                 
                 # Procesar si hay manos detectadas
                 if has_hands and contours:
@@ -242,7 +282,7 @@ class SketchDrawer:
                 
                 # Dibujar contornos si hay manos
                 if has_hands and contours:
-                    display_frame = self.hand_detector.draw_landmarks(display_frame, contours)
+                    display_frame = self.hand_detector.draw_landmarks(display_frame, contours, self.vision_results)
                 
                 # Dibujar puntos del gesto en progreso
                 if len(self.gesture_processor.stroke_points) > 0:
@@ -270,10 +310,17 @@ class SketchDrawer:
                 cv2.putText(display_frame, f"FPS: {self.get_fps():.1f}", (200, status_y), 
                            cv2.FONT_HERSHEY_SIMPLEX, 0.6, fps_color, 2)
                 
+                # Estado del clasificador
+                classifier_status = "DISPONIBLE" if self.classifier.is_available() else "NO DISPONIBLE"
+                classifier_mode = self.classifier.mode.upper() if hasattr(self.classifier, 'mode') else "N/A"
+                classifier_color = (0, 255, 0) if self.classifier.is_available() else (0, 0, 255)
+                cv2.putText(display_frame, f"ML: {classifier_status} ({classifier_mode})", (350, status_y), 
+                           cv2.FONT_HERSHEY_SIMPLEX, 0.5, classifier_color, 2)
+                
                 # Estado de dibujo
                 draw_status = "DIBUJANDO" if self.is_drawing else "LISTO"
                 draw_color = (0, 255, 0) if self.is_drawing else (255, 165, 0)
-                cv2.putText(display_frame, f"Modo: {draw_status}", (350, status_y), 
+                cv2.putText(display_frame, f"Modo: {draw_status}", (550, status_y), 
                            cv2.FONT_HERSHEY_SIMPLEX, 0.6, draw_color, 2)
                 
                 # Información de detección mejorada
@@ -322,7 +369,13 @@ class SketchDrawer:
                 cv2.rectangle(display_frame, (10, controls_y - 10), (width-10, height-10), (30, 30, 30), -1)
                 cv2.rectangle(display_frame, (10, controls_y - 10), (width-10, height-10), (200, 200, 200), 1)
                 
-                controls_text = "CONTROLES: [ESPACIO] Procesar | [R] Reset | [C] Recalibrar | [Q] Salir"
+                # Información del perfil activo
+                active_profile = self.config_manager.get_active_profile_name()
+                profile_text = f"Perfil: {active_profile}"
+                cv2.putText(display_frame, profile_text, (20, controls_y - 15), 
+                           cv2.FONT_HERSHEY_SIMPLEX, 0.5, (150, 150, 255), 1)
+                
+                controls_text = "CONTROLES: [ESPACIO] Procesar | [R] Reset | [C] Recalibrar | [P] Cambiar perfil | [Q] Salir"
                 cv2.putText(display_frame, controls_text, (20, controls_y + 15), 
                            cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
                 
@@ -354,6 +407,9 @@ class SketchDrawer:
                     cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
                     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
                     
+                elif key == ord('p'):
+                    print("Cambiando perfil de configuración...")
+                    self.switch_profile()
                 elif key == ord(' ') and (self.gesture_complete or self.gesture_processor.stroke_points):
                     # Procesar gesto
                     self.process_gesture()
@@ -382,14 +438,92 @@ class SketchDrawer:
             print("⚠ No se pudo procesar el gesto")
             return
         
-        # DEBUG: Solo mostrar información sin clasificar
         print(f"✓ Imagen generada: {gesture_image.shape}")
         print(f"  Rango de valores: [{gesture_image.min():.2f}, {gesture_image.max():.2f}]")
-        print("⚠ Clasificación deshabilitada (TensorFlow no disponible)")
         
-        self.predictions = [("Debug", 0.5), ("Sin modelo", 0.3)]  # Predicciones dummy
+        # Verificar que el clasificador esté disponible
+        if not self.classifier.is_available():
+            print("⚠ Clasificador no disponible")
+            self.predictions = [("Sin clasificador", 0.0)]
+            self.gesture_complete = False
+            return
+        
+        try:
+            # Realizar clasificación
+            print("Clasificando...")
+            self.predictions = self.classifier.predict(gesture_image, top_k=5)
+            
+            # Mostrar resultados
+            print("Top predicciones:")
+            for i, (class_name, confidence) in enumerate(self.predictions[:3]):
+                confident_marker = "✓" if confidence >= self.confidence_threshold else "?"
+                print(f"  {i+1}. {class_name}: {confidence:.1%} {confident_marker}")
+            
+            # Verificar si la predicción es confiable
+            if self.classifier.is_confident_prediction(gesture_image, self.confidence_threshold):
+                top_class, top_confidence = self.predictions[0]
+                print(f"✓ Predicción confiable: {top_class} ({top_confidence:.1%})")
+            else:
+                print(f"? Predicción poco confiable (umbral: {self.confidence_threshold:.1%})")
+            
+        except Exception as e:
+            print(f"⚠ Error en clasificación: {e}")
+            self.predictions = [("Error", 0.0)]
+        
         self.gesture_complete = False
         print()
+    
+    def switch_profile(self):
+        """Permite cambiar el perfil de configuración activo."""
+        print("\n" + "="*50)
+        print("CAMBIO DE PERFIL DE CONFIGURACIÓN")
+        print("="*50)
+        
+        # Obtener lista de perfiles disponibles
+        profiles = self.config_manager.list_profiles()
+        
+        if not profiles:
+            print("⚠ No hay perfiles disponibles")
+            return
+        
+        print("Perfiles disponibles:")
+        for i, profile_name in enumerate(profiles, 1):
+            active_marker = " (ACTIVO)" if profile_name == self.config_manager.get_active_profile_name() else ""
+            print(f"  {i}. {profile_name}{active_marker}")
+        
+        print("\nIngresa el número del perfil (o 0 para cancelar):")
+        
+        try:
+            choice = int(input().strip())
+            
+            if choice == 0:
+                print("Operación cancelada")
+                return
+            
+            if 1 <= choice <= len(profiles):
+                selected_profile = profiles[choice - 1]
+                
+                # Cambiar perfil
+                if self.config_manager.set_active_profile(selected_profile):
+                    # Actualizar configuración local
+                    self.config = self.config_manager.get_active_config()
+                    self.confidence_threshold = self.config.classification.confidence_threshold
+                    self.min_points_for_gesture = self.config.detection.min_points_for_gesture
+                    
+                    print(f"✓ Perfil cambiado a: {selected_profile}")
+                    print(f"  Umbral de confianza: {self.confidence_threshold}")
+                    print(f"  Puntos mínimos: {self.min_points_for_gesture}")
+                else:
+                    print(f"⚠ Error al cambiar al perfil: {selected_profile}")
+            else:
+                print("⚠ Opción inválida")
+                
+        except ValueError:
+            print("⚠ Entrada inválida")
+        except KeyboardInterrupt:
+            print("\nOperación cancelada")
+        
+        print("="*50 + "\n")
     
     def get_fps(self) -> float:
         """Calcula FPS promedio."""
