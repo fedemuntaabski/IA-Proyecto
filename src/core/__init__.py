@@ -1,23 +1,19 @@
 """
 Core components del proyecto.
 """
-from .hand_detector import HandDetector
-from .gesture_processor import GestureProcessor
-from .calibration_manager import CalibrationManager, CalibrationUI
-from .config_manager import ConfigManager, DetectionConfig, UIConfig, MLConfig, PerformanceConfig
-from .advanced_vision import AdvancedVisionProcessor, BackgroundSubtractionMethod, OpticalFlowMethod
+from .detection import HandDetector, AdvancedVisionProcessor, BackgroundSubtractionMethod, OpticalFlowMethod
+from .classification import GestureProcessor, SketchClassifier
+from .config import (ConfigManager, DetectionConfig, UIConfig, MLConfig, PerformanceConfig,
+                     CalibrationManager, CalibrationUI)
+from .ui import UIManager
+from .utils import FPSCounter, calculate_average, clamp
+from .application_controller import ApplicationController
+from .frame_processor import FrameProcessor
+from .camera_manager import CameraManager
+from .i18n import i18n, _
 
-# Import opcional del clasificador (solo si TensorFlow está disponible)
-try:
-    from .classifier import SketchClassifier
-    _classifier_available = True
-except ImportError:
-    _classifier_available = False
-    SketchClassifier = None
-
-__all__ = ['HandDetector', 'GestureProcessor', 'CalibrationManager', 'CalibrationUI',
-           'ConfigManager', 'DetectionConfig', 'UIConfig', 'MLConfig', 'PerformanceConfig',
-           'AdvancedVisionProcessor', 'BackgroundSubtractionMethod', 'OpticalFlowMethod']
-
-if _classifier_available:
-    __all__.append('SketchClassifier')
+__all__ = ['HandDetector', 'AdvancedVisionProcessor', 'BackgroundSubtractionMethod', 'OpticalFlowMethod',
+           'GestureProcessor', 'SketchClassifier', 'ConfigManager', 'DetectionConfig', 'UIConfig',
+           'MLConfig', 'PerformanceConfig', 'CalibrationManager', 'CalibrationUI', 'UIManager',
+           'FPSCounter', 'calculate_average', 'clamp', 'ApplicationController', 'FrameProcessor',
+           'CameraManager', 'i18n', '_']

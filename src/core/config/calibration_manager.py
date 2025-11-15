@@ -12,6 +12,7 @@ import json
 import os
 from typing import Dict, Tuple, Optional, List
 from pathlib import Path
+from .constants import CALIBRATION_SAMPLES_SKIN, CALIBRATION_SAMPLES_BACKGROUND, CALIBRATION_CONFIG_FILE
 
 
 class CalibrationManager:
@@ -25,14 +26,14 @@ class CalibrationManager:
         calibrated_ranges: Rangos HSV calibrados
     """
 
-    def __init__(self, config_file: str = "calibration_config.json"):
+    def __init__(self, config_file: str = CALIBRATION_CONFIG_FILE):
         """
         Inicializa el administrador de calibración.
 
         Args:
             config_file: Archivo de configuración para guardar calibración
         """
-        self.config_file = Path(__file__).parent.parent / config_file
+        self.config_file = Path(__file__).parent.parent.parent / config_file
         self.skin_samples: List[np.ndarray] = []
         self.background_samples: List[np.ndarray] = []
         self.calibrated_ranges: Optional[Dict[str, Tuple]] = None
@@ -396,7 +397,7 @@ class CalibrationUI:
 
         # Instrucciones según paso actual
         if self.current_step == "skin":
-            cv2.putText(display_frame, f"Muestras de piel: {status['skin_samples_count']}/3",
+            cv2.putText(display_frame, f"Muestras de piel: {status['skin_samples_count']}/{CALIBRATION_SAMPLES_SKIN}",
                        (10, 70), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
             cv2.putText(display_frame, "1. Coloca mano en area verde y presiona ESPACIO",
                        (10, 100), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
@@ -408,7 +409,7 @@ class CalibrationUI:
                          (2*width//3, 2*height//3), (0, 255, 0), 2)
 
         elif self.current_step == "background":
-            cv2.putText(display_frame, f"Muestras de fondo: {status['background_samples_count']}/2",
+            cv2.putText(display_frame, f"Muestras de fondo: {status['background_samples_count']}/{CALIBRATION_SAMPLES_BACKGROUND}",
                        (10, 70), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
             cv2.putText(display_frame, "3. Coloca mano fuera del area y presiona ESPACIO",
                        (10, 100), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
@@ -485,5 +486,5 @@ class CalibrationUI:
     def _can_calibrate(self) -> bool:
         """Verifica si hay suficientes muestras para calibrar."""
         status = self.calibration_manager.get_calibration_status()
-        return (status['skin_samples_count'] >= 3 and
-                status['background_samples_count'] >= 2)
+        return (status['skin_samples_count'] >= CALIBRATION_SAMPLES_SKIN and
+                status['background_samples_count'] >= CALIBRATION_SAMPLES_BACKGROUND)

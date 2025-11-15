@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Dict, Any, Optional, List
 from dataclasses import dataclass, field, asdict
 from datetime import datetime
+from .constants import DEFAULT_PROFILE_NAME, PROFILE_CONFIG_DIR, ACTIVE_PROFILE_FILE
 
 
 @dataclass
@@ -89,7 +90,7 @@ class ConfigManager:
         profiles: Diccionario de perfiles disponibles
     """
 
-    def __init__(self, config_dir: str = "config"):
+    def __init__(self, config_dir: str = PROFILE_CONFIG_DIR):
         """
         Inicializa el administrador de configuración.
 
@@ -101,7 +102,7 @@ class ConfigManager:
 
         self.profiles: Dict[str, UserProfile] = {}
         self.current_profile: Optional[UserProfile] = None
-        self.default_profile_name = "default"
+        self.default_profile_name = DEFAULT_PROFILE_NAME
 
         # Cargar configuraciones existentes
         self._load_profiles()
@@ -187,7 +188,7 @@ class ConfigManager:
 
     def _load_active_profile(self) -> None:
         """Carga el perfil activo desde archivo de estado."""
-        state_file = self.config_dir / "active_profile.txt"
+        state_file = self.config_dir / ACTIVE_PROFILE_FILE
 
         if state_file.exists():
             try:
@@ -223,7 +224,7 @@ class ConfigManager:
         self.current_profile = self.profiles[profile_name]
 
         # Guardar estado
-        state_file = self.config_dir / "active_profile.txt"
+        state_file = self.config_dir / ACTIVE_PROFILE_FILE
         try:
             with open(state_file, 'w') as f:
                 f.write(profile_name)
@@ -454,30 +455,3 @@ class ConfigManager:
 
 # Instancia global para acceso fácil
 config_manager = ConfigManager()
-
-
-if __name__ == "__main__":
-    # Test del sistema de configuración
-    print("Testing ConfigManager...")
-
-    # Listar perfiles
-    print(f"Perfiles disponibles: {config_manager.list_profiles()}")
-
-    # Obtener configuración actual
-    detection = config_manager.get_detection_config()
-    ui = config_manager.get_ui_config()
-    ml = config_manager.get_ml_config()
-
-    print(f"Detección - Área mínima: {detection.min_area}")
-    print(f"UI - Tema: {ui.theme}")
-    print(f"ML - Habilitado: {ml.enabled}")
-
-    # Crear un perfil de prueba
-    config_manager.create_profile("test_profile")
-    print(f"Perfiles después de crear: {config_manager.list_profiles()}")
-
-    # Cambiar configuración
-    config_manager.update_detection_config(min_area=3000)
-    config_manager.update_ui_config(theme="light")
-
-    print("✓ ConfigManager test completado")

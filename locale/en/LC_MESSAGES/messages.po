@@ -1,0 +1,203 @@
+# English translations for Air Draw Classifier
+# Copyright (C) 2025
+# This file is distributed under the same license as the PACKAGE package.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Air Draw Classifier 1.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-11-15 19:56+0000\n"
+"PO-Revision-Date: 2025-11-15 19:56+0000\n"
+"Last-Translator: AI Assistant <ai@example.com>\n"
+"Language-Team: English <en@li.org>\n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+# UI Status Messages
+msgid "Mano detectada"
+msgstr "Hand detected"
+
+msgid "Sin detección de manos"
+msgstr "No hand detection"
+
+msgid "DIBUJANDO..."
+msgstr "DRAWING..."
+
+msgid "Listo para dibujar"
+msgstr "Ready to draw"
+
+# Help and Controls
+msgid "AYUDA & CONTROLES"
+msgstr "HELP & CONTROLS"
+
+msgid "Forzar clasificación"
+msgstr "Force classification"
+
+msgid "Limpiar dibujo"
+msgstr "Clear drawing"
+
+msgid "Salir de la app"
+msgstr "Exit app"
+
+msgid "Mostrar/ocultar ayuda"
+msgstr "Show/hide help"
+
+# Tips
+msgid "Muestra tu mano completa a la cámara"
+msgstr "Show your complete hand to the camera"
+
+msgid "Dibuja con el dedo índice extendido"
+msgstr "Draw with your index finger extended"
+
+msgid "Mantén buena iluminación para mejor detección"
+msgstr "Maintain good lighting for better detection"
+
+# Statistics
+msgid "Tiempo"
+msgstr "Time"
+
+msgid "Dibujos"
+msgstr "Drawings"
+
+msgid "Éxitos"
+msgstr "Successes"
+
+# Console Messages
+msgid "🚀 Iniciando Mini Air Draw Classifier..."
+msgstr "🚀 Starting Mini Air Draw Classifier..."
+
+msgid "✓ Componentes inicializados"
+msgstr "✓ Components initialized"
+
+msgid "✏️  Comenzando dibujo..."
+msgstr "✏️  Starting drawing..."
+
+msgid "🔍 Clasificando dibujo..."
+msgstr "🔍 Classifying drawing..."
+
+msgid "⚠ Dibujo muy corto"
+msgstr "⚠ Drawing too short"
+
+msgid "🎯 Predicción"
+msgstr "🎯 Prediction"
+
+msgid "  Otras opciones:"
+msgstr "  Other options:"
+
+msgid "⚠ No se obtuvieron predicciones"
+msgstr "⚠ No predictions obtained"
+
+msgid "⚠ Clasificador no disponible"
+msgstr "⚠ Classifier not available"
+
+msgid "📹 Iniciando cámara..."
+msgstr "📹 Starting camera..."
+
+msgid "✅ Cámara inicializada"
+msgstr "✅ Camera initialized"
+
+msgid "🎮 Controles:"
+msgstr "🎮 Controls:"
+
+msgid "ESPACIO: Forzar nueva clasificación"
+msgstr "SPACE: Force new classification"
+
+msgid "R: Limpiar dibujo actual"
+msgstr "R: Clear current drawing"
+
+msgid "H: Mostrar/ocultar ayuda"
+msgstr "H: Show/hide help"
+
+msgid "Q: Salir"
+msgstr "Q: Exit"
+
+msgid "💡 Instrucciones:"
+msgstr "💡 Instructions:"
+
+msgid "1. Muestra tu mano a la cámara"
+msgstr "1. Show your hand to the camera"
+
+msgid "2. Dibuja una figura en el aire con el dedo índice"
+msgstr "2. Draw a figure in the air with your index finger"
+
+msgid "3. La app intentará adivinar qué dibujaste"
+msgstr "3. The app will try to guess what you drew"
+
+msgid "👋 Saliendo..."
+msgstr "👋 Exiting..."
+
+msgid "🧹 Limpiando dibujo..."
+msgstr "🧹 Clearing drawing..."
+
+msgid "🔄 Forzando clasificación..."
+msgstr "🔄 Forcing classification..."
+
+msgid "Ayuda mostrada"
+msgstr "Help shown"
+
+msgid "Ayuda oculta"
+msgstr "Help hidden"
+
+msgid "❌ Error: No se pudo acceder a la cámara"
+msgstr "❌ Error: Could not access camera"
+
+msgid "⚠ Interrupción detectada"
+msgstr "⚠ Interruption detected"
+
+msgid "❌ Error en la mini-app"
+msgstr "❌ Error in mini-app"
+
+msgid "✅ Aplicación cerrada correctamente"
+msgstr "✅ Application closed correctly"
+
+# Session Statistics
+msgid "ESTADÍSTICAS DE LA SESIÓN"
+msgstr "SESSION STATISTICS"
+
+msgid "⏱️  Duración"
+msgstr "⏱️  Duration"
+
+msgid "🎨 Dibujos realizados"
+msgstr "🎨 Drawings made"
+
+msgid "✅ Predicciones exitosas"
+msgstr "✅ Successful predictions"
+
+msgid "📈 Tasa de éxito"
+msgstr "📈 Success rate"
+
+msgid "🤖 Modo clasificador"
+msgstr "🤖 Classifier mode"
+
+# Class names (examples - will be extended)
+msgid "circle"
+msgstr "circle"
+
+msgid "square"
+msgstr "square"
+
+msgid "triangle"
+msgstr "triangle"
+
+msgid "star"
+msgstr "star"
+
+msgid "heart"
+msgstr "heart"
+
+msgid "house"
+msgstr "house"
+
+msgid "car"
+msgstr "car"
+
+msgid "tree"
+msgstr "tree"
+
+msgid "sun"
+msgstr "sun"
+
+msgid "moon"
+msgstr "moon"

@@ -580,25 +580,3 @@ def create_advanced_vision_processor(bg_method: str = "mog2",
     flow_enum = OpticalFlowMethod(flow_method.lower())
 
     return AdvancedVisionProcessor(bg_method=bg_enum, flow_method=flow_enum)
-
-
-if __name__ == "__main__":
-    # Test del procesador avanzado
-    print("Testing AdvancedVisionProcessor...")
-
-    processor = AdvancedVisionProcessor()
-
-    # Crear frame de prueba
-    test_frame = np.random.randint(0, 255, (480, 640, 3), dtype=np.uint8)
-
-    # Procesar
-    result = processor.process_frame(test_frame)
-
-    print(f"Procesamiento exitoso: {result['processing_success']}")
-    if result['motion_analysis']:
-        motion = result['motion_analysis']
-        print(f"Tipo de gesto: {motion.gesture_type}")
-        print(f"Velocidad promedio: {motion.average_speed:.2f}")
-        print(f"Estabilidad: {motion.stability_score:.2f}")
-
-    print("✓ Test completado")

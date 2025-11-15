@@ -501,27 +501,3 @@ def create_classifier(model_path: str = "IA/sketch_classifier_model.keras",
     Función de compatibilidad para código existente.
     """
     return SketchClassifier(model_path, model_info_path)
-
-
-if __name__ == "__main__":
-    # Test del clasificador mejorado
-    print("Testing SketchClassifier...")
-
-    classifier = SketchClassifier()
-
-    print(f"Modo activo: {classifier.mode}")
-    print(f"Disponible: {classifier.is_available()}")
-
-    # Información del modelo
-    info = classifier.get_model_info()
-    print(f"Información del modelo: {info}")
-
-    # Test de predicción
-    test_image = np.random.rand(28, 28).astype(np.float32)
-
-    print("\nPredicciones:")
-    results = classifier.predict(test_image, top_k=5)
-    for class_name, confidence in results:
-        print(f"  {class_name}: {confidence:.2%}")
-
-    print("\n✓ Test completado")

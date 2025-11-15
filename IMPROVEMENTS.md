@@ -4,19 +4,18 @@ Este documento describe posibles mejoras y funcionalidades que se pueden impleme
 
 ## 🎯 Mejoras de Alto Impacto
 
-### 1. Interfaz Web (Flask/Django)
-- **Descripción**: Crear una interfaz web para usar la aplicación desde cualquier dispositivo
-- **Beneficios**: Acceso remoto, mejor usabilidad, integración con otros sistemas
-- **Tecnologías**: Flask, Django, WebSockets para streaming de video
-- **Complejidad**: Media-Alta
+### 1. Interfaz Gráfica Mejorada (Simple)
+- **Descripción**: Mejorar la interfaz gráfica actual de la aplicación para hacerla más intuitiva y fácil de usar, manteniendo la simplicidad sin agregar complejidad externa
+- **Beneficios**: Mejor experiencia de usuario, mayor accesibilidad, reducción de errores comunes
+- **Tecnologías**: Mejoras en la UI existente (Tkinter/Pygame), sin frameworks externos
+- **Complejidad**: Baja-Media
 - **Prioridad**: Alta
 - **Roadmap**:
-  1. **Investigación y Diseño**: Evaluar Flask vs Django, diseñar UI/UX mockups
-  2. **Backend API**: Crear endpoints REST para comunicación con la app Python
-  3. **Frontend Básico**: Implementar interfaz web con HTML/CSS/JavaScript
-  4. **Streaming de Video**: Integrar WebRTC o WebSockets para transmisión en tiempo real
-  5. **Integración Completa**: Conectar detección de manos y clasificación
-  6. **Testing y Deployment**: Pruebas cross-browser y deployment
+  1. **Análisis de UX**: Identificar puntos de mejora en la interfaz actual
+  2. **Diseño de UI**: Crear mockups simples para mejoras visuales
+  3. **Implementación**: Agregar elementos como tooltips, mejor feedback visual y navegación intuitiva
+  4. **Testing de Usabilidad**: Validar mejoras con usuarios para asegurar simplicidad
+  5. **Optimización**: Ajustar basado en feedback para mantener la interfaz ligera
 
 ### 2. Soporte Multi-Idioma
 - **Descripción**: Traducir la interfaz y las clases de clasificación al inglés y español

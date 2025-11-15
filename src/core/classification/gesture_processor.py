@@ -9,6 +9,7 @@ import cv2
 import numpy as np
 from typing import List, Tuple, Optional
 from PIL import Image, ImageDraw
+from .constants import MODEL_IMAGE_SIZE, DEFAULT_LINE_WIDTH, DEFAULT_CANVAS_SIZE
 
 
 class GestureProcessor:
@@ -21,7 +22,7 @@ class GestureProcessor:
         canvas_size: Tamaño del canvas interno de dibujo (default: 256)
     """
     
-    def __init__(self, image_size: int = 28, line_width: int = 2, canvas_size: int = 256):
+    def __init__(self, image_size: int = MODEL_IMAGE_SIZE, line_width: int = DEFAULT_LINE_WIDTH, canvas_size: int = DEFAULT_CANVAS_SIZE):
         """
         Inicializa el procesador de gestos.
         
@@ -206,22 +207,3 @@ class GestureProcessor:
             cv2.circle(frame_copy, (x1, y1), 3, (0, 0, 255), -1)
         
         return frame_copy
-
-
-if __name__ == "__main__":
-    # Test básico
-    processor = GestureProcessor()
-    
-    # Simular algunos puntos
-    test_points = [(10, 10), (20, 20), (30, 15), (40, 30), (50, 25)]
-    
-    # Convertir a imagen
-    img = processor.points_to_image(test_points)
-    
-    # Mostrar imagen
-    cv2.imshow('Gesture Image', img)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
-    
-    print(f"Image shape: {img.shape}")
-    print(f"Image range: [{img.min():.2f}, {img.max():.2f}]")
