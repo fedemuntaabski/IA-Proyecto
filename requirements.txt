@@ -1,0 +1,23 @@
+# Core dependencies para Sketch Classifier con Gestos en Tiempo Real
+
+# Deep Learning
+tensorflow>=2.10.0
+keras>=2.10.0
+
+# Computer Vision y Detección
+opencv-python>=4.8.0
+mediapipe>=0.10.0
+
+# Procesamiento numérico
+numpy>=1.24.0
+pillow>=10.0.0
+
+# Utilidades
+python-dotenv>=1.0.0
+
+# Opcional - para UI mejorada (futuro)
+# PyQt6>=6.5.0
+# streamlit>=1.28.0
+
+# Testing (opcional)
+pytest>=7.4.0
