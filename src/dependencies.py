@@ -20,7 +20,7 @@ REQUIRED_PACKAGES = {
 }
 
 OPTIONAL_PACKAGES = {
-    "tensorflow": ">=2.17.0",  # Para inferencia real
+    "tensorflow": ">=2.17.0",  # Para inferencia real, compatible con protobuf
 }
 
 
@@ -61,25 +61,18 @@ def check_package(package_name: str, version_spec: str = None) -> bool:
         return True
 
 
-def validate_compatibility():
-    """Valida compatibilidad entre paquetes críticos (protobuf con TF/MP)."""
-    print("\n[VALIDACION] Verificando compatibilidad de versiones...")
-    
+def get_package_version(package_name: str) -> str:
+    """Obtiene la versión de un paquete instalado usando pip show."""
     try:
-        # Verificar protobuf
-        protobuf_version = version("protobuf")
-        print(f"  OK: protobuf {protobuf_version} instalado")
-        
-        # Verificar combinaciones críticas
-        if check_package("tensorflow") and check_package("mediapipe"):
-            tf_version = version("tensorflow")
-            mp_version = version("mediapipe")
-            print(f"  OK: TensorFlow {tf_version} + MediaPipe {mp_version} + protobuf {protobuf_version} disponibles")
-        
-        return True
-    except Exception as e:
-        print(f"  AVISO: No se pudo validar compatibilidad completa: {e}")
-        return True  # No bloquear si falla la validación
+        result = subprocess.run([sys.executable, "-m", "pip", "show", package_name], 
+                              capture_output=True, text=True, timeout=10)
+        if result.returncode == 0:
+            for line in result.stdout.split('\n'):
+                if line.startswith('Version:'):
+                    return line.split(':')[1].strip()
+        return "desconocida"
+    except Exception:
+        return "desconocida"
 
 
 def install_packages(packages: dict, upgrade: bool = False):
@@ -128,6 +121,41 @@ def install_from_requirements():
     else:
         print("\n[AVISO] requirements.txt no encontrado, usando rangos directos")
         return False
+
+
+def get_package_version(package_name: str) -> str:
+    """Obtiene la versión de un paquete instalado usando pip show."""
+    try:
+        result = subprocess.run([sys.executable, "-m", "pip", "show", package_name], 
+                              capture_output=True, text=True, timeout=10)
+        if result.returncode == 0:
+            for line in result.stdout.split('\n'):
+                if line.startswith('Version:'):
+                    return line.split(':')[1].strip()
+        return "desconocida"
+    except Exception:
+        return "desconocida"
+
+
+def validate_compatibility():
+    """Valida compatibilidad entre paquetes críticos (protobuf con TF/MP)."""
+    print("\n[VALIDACION] Verificando compatibilidad de versiones...")
+    
+    try:
+        # Verificar protobuf
+        protobuf_version = get_package_version("protobuf")
+        print(f"  OK: protobuf {protobuf_version} instalado")
+        
+        # Verificar combinaciones críticas
+        if check_package("tensorflow") and check_package("mediapipe"):
+            tf_version = get_package_version("tensorflow")
+            mp_version = get_package_version("mediapipe")
+            print(f"  OK: TensorFlow {tf_version} + MediaPipe {mp_version} + protobuf {protobuf_version} disponibles")
+        
+        return True
+    except Exception as e:
+        print(f"  AVISO: No se pudo validar compatibilidad completa: {e}")
+        return True  # No bloquear si falla la validación
 
 
 def main():
