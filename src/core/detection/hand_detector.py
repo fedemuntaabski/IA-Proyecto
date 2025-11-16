@@ -7,8 +7,177 @@ algoritmos avanzados como background subtraction y optical flow.
 
 import cv2
 import numpy as np
-from typing import Optional, Tuple, List
+from typing import Optional, Tuple, List, Dict
+from collections import deque
 from .advanced_vision import AdvancedVisionProcessor, BackgroundSubtractionMethod, OpticalFlowMethod
+
+
+class KalmanFilter1D:
+    """Filtro de Kalman simplificado para 1D."""
+    
+    def __init__(self, process_variance: float = 0.01, measurement_variance: float = 0.1):
+        self.process_variance = process_variance
+        self.measurement_variance = measurement_variance
+        self.estimate = None
+        self.estimate_error = 1.0
+    
+    def update(self, measurement: float) -> float:
+        if self.estimate is None:
+            self.estimate = measurement
+            return measurement
+        
+        # Predicción
+        prediction = self.estimate
+        prediction_error = self.estimate_error + self.process_variance
+        
+        # Actualización
+        kalman_gain = prediction_error / (prediction_error + self.measurement_variance)
+        self.estimate = prediction + kalman_gain * (measurement - prediction)
+        self.estimate_error = (1 - kalman_gain) * prediction_error
+        
+        return self.estimate
+
+
+class ContourBuffer:
+    """Buffer circular de contornos para votación mayoritaria."""
+    
+    def __init__(self, max_size: int = 5):
+        self.buffer = deque(maxlen=max_size)
+        self.confidence_threshold = 0.6
+    
+    def add(self, contours: List) -> List:
+        """Agrega contornos al buffer y devuelve los más estables."""
+        self.buffer.append(contours)
+        
+        if len(self.buffer) < 3:
+            return contours
+        
+        # Encontrar contornos que aparecen consistentemente
+        stable_contours = []
+        
+        for ref_contour in contours:
+            matches = 0
+            for historical_contours in self.buffer:
+                for hist_contour in historical_contours:
+                    if self._contours_match(ref_contour, hist_contour):
+                        matches += 1
+                        break
+            
+            if matches / len(self.buffer) >= self.confidence_threshold:
+                stable_contours.append(ref_contour)
+        
+        return stable_contours if stable_contours else list(self.buffer[-1])
+    
+    def _contours_match(self, cnt1, cnt2) -> bool:
+        """Verifica si dos contornos son similares."""
+        area1 = cv2.contourArea(cnt1)
+        area2 = cv2.contourArea(cnt2)
+        
+        if area1 == 0 or area2 == 0:
+            return False
+        
+        area_ratio = min(area1, area2) / max(area1, area2)
+        return area_ratio > 0.7
+
+
+class HistogramAnalyzer:
+    """Analizador de histograma para compensación de iluminación."""
+    
+    def __init__(self, region_grid: int = 3):
+        self.region_grid = region_grid
+        self.histogram_cache = None
+    
+    def analyze_regions(self, frame: np.ndarray) -> Dict[str, float]:
+        """Analiza histograma por regiones del frame."""
+        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        height, width = gray.shape
+        
+        region_height = height // self.region_grid
+        region_width = width // self.region_grid
+        
+        region_stats = {
+            'global_mean': np.mean(gray),
+            'global_std': np.std(gray),
+            'regions': {}
+        }
+        
+        for i in range(self.region_grid):
+            for j in range(self.region_grid):
+                y1 = i * region_height
+                y2 = (i + 1) * region_height if i < self.region_grid - 1 else height
+                x1 = j * region_width
+                x2 = (j + 1) * region_width if j < self.region_grid - 1 else width
+                
+                region = gray[y1:y2, x1:x2]
+                key = f'region_{i}_{j}'
+                region_stats['regions'][key] = np.mean(region)
+        
+        self.histogram_cache = region_stats
+        return region_stats
+
+
+class ShadowDetector:
+    """Detector de sombras usando análisis de color."""
+    
+    def detect_shadows(self, frame: np.ndarray) -> np.ndarray:
+        """Detecta sombras y crea máscara."""
+        # Convertir a HSV
+        hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+        
+        # Sombras típicamente tienen baja saturación y bajo valor
+        lower_shadow = np.array([0, 0, 0])
+        upper_shadow = np.array([180, 255, 100])
+        
+        shadow_mask = cv2.inRange(hsv, lower_shadow, upper_shadow)
+        
+        # Aplicar morphology para limpiar
+        kernel = np.ones((3, 3), np.uint8)
+        shadow_mask = cv2.morphologyEx(shadow_mask, cv2.MORPH_CLOSE, kernel, iterations=1)
+        
+        return shadow_mask
+
+
+class AdaptiveRangeManager:
+    """Gestiona rangos HSV adaptativos basado en condiciones."""
+    
+    def __init__(self):
+        self.base_lower = None
+        self.base_upper = None
+        self.adjustment_history = deque(maxlen=10)
+    
+    def set_base_ranges(self, lower: np.ndarray, upper: np.ndarray):
+        """Establece rangos base."""
+        self.base_lower = lower.copy()
+        self.base_upper = upper.copy()
+    
+    def adjust(self, current_ranges: Tuple, histogram_stats: Dict, shadow_mask: np.ndarray) -> Tuple:
+        """Ajusta rangos basado en condiciones."""
+        current_lower, current_upper = current_ranges
+        
+        if self.base_lower is None or self.base_upper is None:
+            self.base_lower = current_lower.copy()
+            self.base_upper = current_upper.copy()
+        
+        adjusted_lower = current_lower.copy().astype(np.float32)
+        adjusted_upper = current_upper.copy().astype(np.float32)
+        
+        # Ajuste basado en brillo global
+        global_mean = histogram_stats['global_mean']
+        brightness_factor = global_mean / 128.0
+        
+        if brightness_factor < 0.7:  # Muy oscuro
+            adjusted_lower[2] = max(0, adjusted_lower[2] - 20)
+            adjusted_upper[2] = min(255, adjusted_upper[2] + 10)
+        elif brightness_factor > 1.3:  # Muy brillante
+            adjusted_lower[2] = max(0, adjusted_lower[2] + 10)
+            adjusted_upper[2] = min(255, adjusted_upper[2] - 20)
+        
+        # Ajuste basado en sombras
+        shadow_ratio = np.count_nonzero(shadow_mask) / shadow_mask.size
+        if shadow_ratio > 0.3:  # Muchas sombras
+            adjusted_lower[1] = max(0, adjusted_lower[1] - 15)  # Reducir requisito de saturación
+        
+        return (adjusted_lower.astype(np.uint8), adjusted_upper.astype(np.uint8))
 
 
 class HandDetector:
@@ -52,6 +221,16 @@ class HandDetector:
         self.tracking_point = None
         self.stability_threshold = 3  # Frames consecutivos para confirmar detección
         self.max_history_size = 10  # Máximo frames en historial
+        
+        # Estabilidad multi-frame
+        self.contour_buffer = ContourBuffer(max_size=5)
+        self.kalman_filters = {}  # Filtros Kalman por contorno
+        self.hysteresis_state = {}  # Estado de hysteresis
+        
+        # Compensación de iluminación avanzada
+        self.histogram_analyzer = HistogramAnalyzer(region_grid=3)
+        self.shadow_detector = ShadowDetector()
+        self.adaptive_ranges = AdaptiveRangeManager()
         
         # Inicializar detector apropiado
         if use_mediapipe:
@@ -136,32 +315,18 @@ class HandDetector:
                 print(f"⚠ Error en procesamiento avanzado: {e}")
                 vision_result = None
 
+        # Análisis de histograma y detección de sombras
+        histogram_stats = self.histogram_analyzer.analyze_regions(frame)
+        shadow_mask = self.shadow_detector.detect_shadows(frame)
+
         # Calcular brillo promedio del frame para compensación
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         avg_brightness = np.mean(gray)
 
-        # Aplicar compensación de iluminación si tenemos rangos calibrados
-        current_lower = self.skin_lower
-        current_upper = self.skin_upper
-
-        # Compensación simple: ajustar rango V basado en brillo
-        brightness_factor = avg_brightness / 128.0  # 128 es brillo medio
-
-        if brightness_factor < 0.8:  # Frame oscuro
-            # Expandir rango V hacia abajo
-            adjusted_lower = current_lower.copy()
-            adjusted_upper = current_upper.copy()
-            v_lower = max(0, current_lower[2] - int(15 * (1 - brightness_factor)))
-            adjusted_lower[2] = v_lower
-        elif brightness_factor > 1.2:  # Frame brillante
-            # Expandir rango V hacia arriba
-            adjusted_lower = current_lower.copy()
-            adjusted_upper = current_upper.copy()
-            v_upper = min(255, current_upper[2] + int(15 * (brightness_factor - 1)))
-            adjusted_upper[2] = v_upper
-        else:
-            adjusted_lower = current_lower
-            adjusted_upper = current_upper
+        # Obtener rangos adaptados
+        current_ranges = (self.skin_lower, self.skin_upper)
+        adjusted_ranges = self.adaptive_ranges.adjust(current_ranges, histogram_stats, shadow_mask)
+        adjusted_lower, adjusted_upper = adjusted_ranges
 
         # Convertir a HSV
         hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
@@ -210,8 +375,11 @@ class HandDetector:
             if self.min_area < area < self.max_area:
                 valid_contours.append(cnt)
 
+        # Aplicar buffer de estabilidad multi-frame
+        buffered_contours = self.contour_buffer.add(valid_contours)
+
         # Aplicar filtros de estabilidad mejorados
-        stable_contours = self._filter_stable_contours_advanced(valid_contours, vision_result)
+        stable_contours = self._filter_stable_contours_advanced(buffered_contours, vision_result)
 
         # Detectar si hay manos (usando contornos estables)
         has_hands = len(stable_contours) > 0

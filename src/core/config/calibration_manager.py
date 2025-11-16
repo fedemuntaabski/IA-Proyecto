@@ -3,7 +3,7 @@ Sistema de Calibración Automática para Detección de Manos.
 
 Este módulo implementa un sistema de calibración que permite ajustar
 automáticamente los parámetros de detección de piel basándose en
-muestras del usuario.
+muestras del usuario y condiciones de entorno.
 """
 
 import cv2
@@ -12,7 +12,154 @@ import json
 import os
 from typing import Dict, Tuple, Optional, List
 from pathlib import Path
+from datetime import datetime
+import logging
 from .constants import CALIBRATION_SAMPLES_SKIN, CALIBRATION_SAMPLES_BACKGROUND, CALIBRATION_CONFIG_FILE
+
+logger = logging.getLogger(__name__)
+
+
+class CalibrationQualityMonitor:
+    """Monitorea la calidad de detección para calibración automática."""
+    
+    def __init__(self, window_size: int = 30):
+        self.window_size = window_size
+        self.detection_quality_history = []
+        self.false_positive_count = 0
+        self.false_negative_count = 0
+        self.total_frames = 0
+        self.contour_stability_history = []
+    
+    def record_detection(self, has_hands: bool, is_correct: bool, 
+                        stability_score: float = 0.5):
+        """Registra resultado de una detección."""
+        self.total_frames += 1
+        
+        if has_hands and not is_correct:
+            self.false_positive_count += 1
+        elif not has_hands and is_correct:
+            self.false_negative_count += 1
+        
+        self.detection_quality_history.append(is_correct)
+        self.contour_stability_history.append(stability_score)
+        
+        # Mantener ventana de tamaño fijo
+        if len(self.detection_quality_history) > self.window_size:
+            self.detection_quality_history.pop(0)
+        if len(self.contour_stability_history) > self.window_size:
+            self.contour_stability_history.pop(0)
+    
+    def get_quality_score(self) -> float:
+        """Calcula score de calidad de detección (0-1)."""
+        if not self.detection_quality_history:
+            return 0.5
+        
+        accuracy = sum(self.detection_quality_history) / len(self.detection_quality_history)
+        stability = np.mean(self.contour_stability_history) if self.contour_stability_history else 0.5
+        
+        return 0.6 * accuracy + 0.4 * stability
+    
+    def get_error_rate(self) -> float:
+        """Obtiene tasa de error."""
+        if self.total_frames == 0:
+            return 0.0
+        
+        total_errors = self.false_positive_count + self.false_negative_count
+        return total_errors / self.total_frames
+    
+    def needs_recalibration(self, threshold: float = 0.7) -> bool:
+        """Determina si es necesaria recalibración."""
+        return self.get_quality_score() < threshold
+
+
+class EnvironmentProfile:
+    """Perfil de condiciones de entorno para calibración automática."""
+    
+    def __init__(self, name: str, lighting_level: str, background_type: str):
+        self.name = name
+        self.lighting_level = lighting_level  # 'dark', 'normal', 'bright'
+        self.background_type = background_type  # 'uniform', 'complex', 'moving'
+        self.optimal_ranges = {}
+        self.creation_date = datetime.now().isoformat()
+    
+    def to_dict(self) -> dict:
+        """Convierte perfil a diccionario."""
+        return {
+            'name': self.name,
+            'lighting_level': self.lighting_level,
+            'background_type': self.background_type,
+            'optimal_ranges': self.optimal_ranges,
+            'creation_date': self.creation_date
+        }
+    
+    @classmethod
+    def from_dict(cls, data: dict) -> 'EnvironmentProfile':
+        """Crea perfil desde diccionario."""
+        profile = cls(data['name'], data['lighting_level'], data['background_type'])
+        profile.optimal_ranges = data.get('optimal_ranges', {})
+        profile.creation_date = data.get('creation_date', datetime.now().isoformat())
+        return profile
+
+
+class AutoCalibrationEngine:
+    """Motor de calibración automática."""
+    
+    def __init__(self):
+        self.quality_monitor = CalibrationQualityMonitor()
+        self.environment_profiles: Dict[str, EnvironmentProfile] = {}
+        self.current_environment = None
+        self.adjustment_rate = 0.05
+        self.min_samples_for_adjustment = 20
+    
+    def detect_environment(self, frame_stats: Dict) -> Tuple[str, str]:
+        """Detecta el tipo de entorno actual."""
+        global_brightness = frame_stats.get('global_brightness', 128)
+        background_variance = frame_stats.get('background_variance', 0)
+        
+        if global_brightness < 85:
+            lighting = 'dark'
+        elif global_brightness > 170:
+            lighting = 'bright'
+        else:
+            lighting = 'normal'
+        
+        if background_variance < 500:
+            background = 'uniform'
+        elif background_variance < 2000:
+            background = 'complex'
+        else:
+            background = 'moving'
+        
+        return lighting, background
+    
+    def suggest_range_adjustment(self, current_ranges: Tuple,
+                                quality_metrics: Dict) -> Optional[Tuple]:
+        """Sugiere ajustes a los rangos HSV."""
+        if len(self.quality_monitor.detection_quality_history) < self.min_samples_for_adjustment:
+            return None
+        
+        quality_score = self.quality_monitor.get_quality_score()
+        
+        if quality_score > 0.85:
+            return None
+        
+        current_lower, current_upper = current_ranges
+        adjusted_lower = current_lower.astype(np.float32)
+        adjusted_upper = current_upper.astype(np.float32)
+        
+        fp_rate = quality_metrics.get('false_positive_rate', 0.0)
+        fn_rate = quality_metrics.get('false_negative_rate', 0.0)
+        
+        if fp_rate > 0.1:
+            adjustment = self.adjustment_rate * 10
+            adjusted_lower[1] = min(255, adjusted_lower[1] + adjustment)
+        
+        if fn_rate > 0.1:
+            adjustment = self.adjustment_rate * 10
+            adjusted_lower[1] = max(0, adjusted_lower[1] - adjustment)
+            adjusted_upper[1] = max(adjusted_upper[1] - adjustment, adjusted_lower[1])
+        
+        return (adjusted_lower.astype(np.uint8), adjusted_upper.astype(np.uint8))
 
 
 class CalibrationManager:
@@ -24,6 +171,7 @@ class CalibrationManager:
         skin_samples: Lista de muestras de piel tomadas
         background_samples: Lista de muestras de fondo tomadas
         calibrated_ranges: Rangos HSV calibrados
+        auto_calibration_engine: Motor de calibración automática
     """
 
     def __init__(self, config_file: str = CALIBRATION_CONFIG_FILE):
@@ -38,11 +186,16 @@ class CalibrationManager:
         self.background_samples: List[np.ndarray] = []
         self.calibrated_ranges: Optional[Dict[str, Tuple]] = None
         self.is_calibrated = False
+        
+        # Motor de calibración automática
+        self.auto_calibration_engine = AutoCalibrationEngine()
+        self.last_calibration_check = 0
+        self.calibration_check_interval = 60  # Segundos
 
         # Cargar configuración existente si existe
         self._load_calibration()
 
-        print("✓ CalibrationManager inicializado")
+        logger.info("✓ CalibrationManager inicializado con auto-calibración")
 
     def _load_calibration(self) -> None:
         """Carga configuración de calibración desde archivo."""
@@ -311,8 +464,70 @@ class CalibrationManager:
             'skin_samples_count': len(self.skin_samples),
             'background_samples_count': len(self.background_samples),
             'has_config_file': self.config_file.exists(),
-            'ranges_available': self.calibrated_ranges is not None
+            'ranges_available': self.calibrated_ranges is not None,
+            'quality_score': self.auto_calibration_engine.quality_monitor.get_quality_score(),
+            'needs_recalibration': self.auto_calibration_engine.quality_monitor.needs_recalibration()
         }
+    
+    def monitor_detection_quality(self, has_hands: bool, is_correct: bool,
+                                 stability_score: float = 0.5):
+        """
+        Monitorea la calidad de detección para calibración automática.
+        
+        Args:
+            has_hands: Si se detectaron manos
+            is_correct: Si la detección fue correcta
+            stability_score: Puntuación de estabilidad (0-1)
+        """
+        self.auto_calibration_engine.quality_monitor.record_detection(
+            has_hands, is_correct, stability_score
+        )
+    
+    def check_and_apply_auto_calibration(self, current_ranges: Tuple,
+                                        frame_stats: Dict) -> Optional[Tuple]:
+        """
+        Verifica si se necesita recalibración automática y aplica ajustes.
+        
+        Args:
+            current_ranges: Rangos HSV actuales
+            frame_stats: Estadísticas del frame
+        
+        Returns:
+            Rangos ajustados o None si no es necesario ajuste
+        """
+        import time
+        current_time = time.time()
+        
+        # Verificar si es momento de revisar calibración
+        if current_time - self.last_calibration_check < self.calibration_check_interval:
+            return None
+        
+        self.last_calibration_check = current_time
+        
+        monitor = self.auto_calibration_engine.quality_monitor
+        
+        if not monitor.needs_recalibration(threshold=0.75):
+            return None
+        
+        # Calcular métricas de calidad
+        quality_metrics = {
+            'false_positive_rate': monitor.false_positive_count / max(monitor.total_frames, 1),
+            'false_negative_rate': monitor.false_negative_count / max(monitor.total_frames, 1),
+            'quality_score': monitor.get_quality_score()
+        }
+        
+        logger.info(f"⚠ Recalibración automática necesaria. Calidad: {quality_metrics['quality_score']:.2f}")
+        
+        # Sugerir ajustes
+        adjusted_ranges = self.auto_calibration_engine.suggest_range_adjustment(
+            current_ranges, quality_metrics
+        )
+        
+        if adjusted_ranges:
+            logger.info(f"✓ Rangos ajustados automáticamente")
+            return adjusted_ranges
+        
+        return None
 
     def apply_illumination_compensation(self, ranges: Dict[str, Tuple],
                                        frame_brightness: float) -> Dict[str, Tuple]:

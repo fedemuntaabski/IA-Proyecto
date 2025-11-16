@@ -15,6 +15,8 @@ import queue
 import logging
 from collections import deque
 from enum import Enum
+import hashlib
+import json
 
 logger = logging.getLogger(__name__)
 
@@ -25,6 +27,116 @@ class TaskPriority(Enum):
     NORMAL = 2
     HIGH = 1
     CRITICAL = 0
+
+
+class SpecializedWorkerPool:
+    """Pool de workers especializados por tipo de tarea."""
+    
+    def __init__(self):
+        self.pools = {
+            'prediction': ThreadPoolExecutor(max_workers=2, thread_name_prefix="ML-Predict"),
+            'preprocessing': ThreadPoolExecutor(max_workers=2, thread_name_prefix="ML-Preprocess"),
+            'training': ThreadPoolExecutor(max_workers=1, thread_name_prefix="ML-Train"),
+            'general': ThreadPoolExecutor(max_workers=2, thread_name_prefix="ML-General")
+        }
+    
+    def submit(self, task_type: str, func: Callable, *args, **kwargs):
+        """Envía tarea al pool especializado."""
+        pool = self.pools.get(task_type, self.pools['general'])
+        return pool.submit(func, *args, **kwargs)
+    
+    def shutdown(self):
+        """Cierra todos los pools."""
+        for pool in self.pools.values():
+            pool.shutdown(wait=True)
+
+
+class ResultCache:
+    """Cache inteligente de resultados con expiración."""
+    
+    def __init__(self, max_size: int = 100, ttl: float = 3600.0):
+        self.cache = {}
+        self.max_size = max_size
+        self.ttl = ttl  # Time to live en segundos
+        self.timestamps = {}
+    
+    def _generate_key(self, func_name: str, args: tuple, kwargs: dict) -> str:
+        """Genera clave de cache basada en función y argumentos."""
+        try:
+            key_data = json.dumps({
+                'func': func_name,
+                'args': str(args),
+                'kwargs': str(sorted(kwargs.items()))
+            }, default=str)
+            return hashlib.md5(key_data.encode()).hexdigest()
+        except Exception:
+            return None
+    
+    def get(self, key: str) -> Optional[Any]:
+        """Obtiene valor del cache si existe y no expiró."""
+        if key not in self.cache:
+            return None
+        
+        # Verificar expiración
+        if time.time() - self.timestamps[key] > self.ttl:
+            del self.cache[key]
+            del self.timestamps[key]
+            return None
+        
+        return self.cache[key]
+    
+    def set(self, key: str, value: Any) -> None:
+        """Almacena valor en cache."""
+        if len(self.cache) >= self.max_size:
+            # Remover entrada más antigua
+            oldest_key = min(self.timestamps.keys(), key=lambda k: self.timestamps[k])
+            del self.cache[oldest_key]
+            del self.timestamps[oldest_key]
+        
+        self.cache[key] = value
+        self.timestamps[key] = time.time()
+    
+    def clear(self) -> None:
+        """Limpia todo el cache."""
+        self.cache.clear()
+        self.timestamps.clear()
+
+
+class PriorityTaskQueue:
+    """Cola de tareas con sistema de prioridades mejorado."""
+    
+    def __init__(self, max_size: int = 100):
+        self.queue = {
+            TaskPriority.CRITICAL: deque(),
+            TaskPriority.HIGH: deque(),
+            TaskPriority.NORMAL: deque(),
+            TaskPriority.LOW: deque()
+        }
+        self.max_size = max_size
+        self.total_tasks = 0
+    
+    def put(self, task_id: str, priority: TaskPriority) -> bool:
+        """Agrega tarea a la cola."""
+        if self.total_tasks >= self.max_size:
+            return False
+        
+        self.queue[priority].append(task_id)
+        self.total_tasks += 1
+        return True
+    
+    def get_next(self) -> Optional[str]:
+        """Obtiene la siguiente tarea según prioridad."""
+        for priority in [TaskPriority.CRITICAL, TaskPriority.HIGH, TaskPriority.NORMAL, TaskPriority.LOW]:
+            if self.queue[priority]:
+                task_id = self.queue[priority].popleft()
+                self.total_tasks -= 1
+                return task_id
+        
+        return None
+    
+    def size(self) -> int:
+        """Retorna tamaño total de la cola."""
+        return self.total_tasks
 
 class AsyncProcessor:
     """
@@ -42,16 +154,22 @@ class AsyncProcessor:
             max_workers: Número máximo de hilos de trabajo
         """
         self.max_workers = max_workers
-        self.executor = ThreadPoolExecutor(max_workers=max_workers, thread_name_prefix="ML-Worker")
+        
+        # Pool de workers especializados
+        self.worker_pool = SpecializedWorkerPool()
+        self.executor = self.worker_pool.pools['general']
+        
         self.loop = None
         self.tasks = {}
         self.task_counter = 0
         
-        # Manejo de prioridades mejorado
-        self.priority_queue = deque()  # Para tareas con prioridad
-        self.task_priority = {}  # Mapeo de task_id a prioridad
-        self.max_queue_size = 100  # Límite de tareas en cola
+        # Cola de prioridades mejorada
+        self.priority_queue = PriorityTaskQueue(max_size=100)
+        self.task_priority = {}
 
+        # Cache inteligente de resultados
+        self.result_cache = ResultCache(max_size=100, ttl=3600.0)
+        
         # Cola para resultados
         self.result_queue = queue.Queue()
 
@@ -61,16 +179,17 @@ class AsyncProcessor:
             'completed_tasks': 0,
             'failed_tasks': 0,
             'cancelled_tasks': 0,
+            'cached_results': 0,
             'average_execution_time': 0.0,
             'peak_active_tasks': 0,
-            'execution_times': deque(maxlen=100)  # Últimas 100 ejecuciones
+            'execution_times': deque(maxlen=100)
         }
 
         # Estado
         self.running = False
         self.worker_thread = None
 
-        logger.info(f"✓ AsyncProcessor inicializado con {max_workers} workers")
+        logger.info(f"✓ AsyncProcessor inicializado con {max_workers} workers (pool especializado)")
 
     def start(self) -> None:
         """Inicia el procesador asíncrono."""
@@ -88,21 +207,24 @@ class AsyncProcessor:
             return
 
         self.running = False
-        self.executor.shutdown(wait=True)
+        self.worker_pool.shutdown()
 
         if self.worker_thread and self.worker_thread.is_alive():
             self.worker_thread.join(timeout=5.0)
 
         logger.info("✓ AsyncProcessor detenido")
 
-    def submit_task(self, func: Callable, *args, priority: TaskPriority = TaskPriority.NORMAL, **kwargs) -> str:
+    def submit_task(self, func: Callable, *args, priority: TaskPriority = TaskPriority.NORMAL, 
+                   task_type: str = 'general', use_cache: bool = True, **kwargs) -> str:
         """
-        Envía una tarea para ejecución asíncrona con soporte a prioridades.
+        Envía una tarea para ejecución asíncrona con soporte a prioridades y cache.
 
         Args:
             func: Función a ejecutar
             *args: Argumentos posicionales
             priority: Prioridad de la tarea
+            task_type: Tipo de tarea (prediction, preprocessing, training, general)
+            use_cache: Si usar cache para resultados
             **kwargs: Argumentos nombrados
 
         Returns:
@@ -111,16 +233,29 @@ class AsyncProcessor:
         if not self.running:
             raise RuntimeError("AsyncProcessor no está ejecutándose")
 
-        # Verificar límite de cola
-        if len(self.tasks) >= self.max_queue_size:
-            logger.warning(f"⚠ Cola de tareas llena ({len(self.tasks)}/{self.max_queue_size})")
-            return None
+        # Verificar cache si está habilitado
+        if use_cache:
+            cache_key = self.result_cache._generate_key(func.__name__, args, kwargs)
+            if cache_key:
+                cached_result = self.result_cache.get(cache_key)
+                if cached_result is not None:
+                    # Crear pseudo-task para cache hit
+                    task_id = f"task_{self.task_counter}_cached"
+                    self.task_counter += 1
+                    self.tasks[task_id] = {
+                        'result': cached_result,
+                        'cached': True,
+                        'func_name': func.__name__
+                    }
+                    self.stats['cached_results'] += 1
+                    logger.debug(f"✓ Cache hit para {func.__name__}")
+                    return task_id
 
         task_id = f"task_{self.task_counter}"
         self.task_counter += 1
 
-        # Crear future
-        future = self.executor.submit(func, *args, **kwargs)
+        # Enviar al pool especializado
+        future = self.worker_pool.submit(task_type, func, *args, **kwargs)
 
         # Almacenar información de la tarea
         start_time = time.time()
@@ -129,13 +264,17 @@ class AsyncProcessor:
             'submitted_at': start_time,
             'func_name': func.__name__,
             'priority': priority,
-            'execution_time': None
+            'execution_time': None,
+            'cached': False,
+            'cache_key': cache_key if use_cache else None,
+            'use_cache': use_cache
         }
         
         self.task_priority[task_id] = priority
+        self.priority_queue.put(task_id, priority)
         self.stats['total_tasks'] += 1
 
-        logger.debug(f"✓ Tarea {task_id} enviada: {func.__name__} (prioridad: {priority.name})")
+        logger.debug(f"✓ Tarea {task_id} enviada: {func.__name__} (prioridad: {priority.name}, tipo: {task_type})")
         return task_id
 
     def get_task_result(self, task_id: str, timeout: float = 0.1) -> Optional[Any]:
@@ -153,6 +292,13 @@ class AsyncProcessor:
             return None
 
         task_info = self.tasks[task_id]
+        
+        # Manejo de cache hit
+        if task_info.get('cached', False):
+            result = task_info['result']
+            del self.tasks[task_id]
+            return result
+
         future = task_info['future']
 
         try:
@@ -169,6 +315,10 @@ class AsyncProcessor:
                 # Actualizar promedio
                 if self.stats['execution_times']:
                     self.stats['average_execution_time'] = sum(self.stats['execution_times']) / len(self.stats['execution_times'])
+                
+                # Guardar en cache si está habilitado
+                if task_info['use_cache'] and task_info['cache_key']:
+                    self.result_cache.set(task_info['cache_key'], result)
                 
                 # Limpiar tarea completada
                 del self.tasks[task_id]
@@ -200,7 +350,12 @@ class AsyncProcessor:
         if task_id not in self.tasks:
             return True
 
-        return self.tasks[task_id]['future'].done()
+        task_info = self.tasks[task_id]
+        
+        if task_info.get('cached', False):
+            return True
+
+        return task_info['future'].done()
 
     def cancel_task(self, task_id: str) -> bool:
         """
@@ -215,7 +370,13 @@ class AsyncProcessor:
         if task_id not in self.tasks:
             return False
 
-        future = self.tasks[task_id]['future']
+        task_info = self.tasks[task_id]
+        
+        if task_info.get('cached', False):
+            del self.tasks[task_id]
+            return True
+
+        future = task_info['future']
         cancelled = future.cancel()
 
         if cancelled:
@@ -250,6 +411,16 @@ class AsyncProcessor:
             return None
 
         task_info = self.tasks[task_id]
+        
+        if task_info.get('cached', False):
+            return {
+                'task_id': task_id,
+                'func_name': task_info['func_name'],
+                'done': True,
+                'cached': True,
+                'success': True
+            }
+
         future = task_info['future']
 
         info = {
@@ -258,12 +429,12 @@ class AsyncProcessor:
             'submitted_at': task_info['submitted_at'],
             'running_time': time.time() - task_info['submitted_at'],
             'done': future.done(),
-            'cancelled': future.cancelled()
+            'cancelled': future.cancelled(),
+            'cached': False
         }
 
         if future.done() and not future.cancelled():
             try:
-                # Intentar obtener excepción si hubo error
                 future.exception(timeout=0.001)
                 info['success'] = True
             except Exception:
@@ -279,9 +450,7 @@ class AsyncProcessor:
             Diccionario con estadísticas mejoradas
         """
         active_tasks = len(self.tasks)
-        completed_tasks = self.stats['completed_tasks']
         
-        # Actualizar pico de tareas activas
         if active_tasks > self.stats['peak_active_tasks']:
             self.stats['peak_active_tasks'] = active_tasks
 
@@ -290,13 +459,21 @@ class AsyncProcessor:
             'max_workers': self.max_workers,
             'active_tasks': active_tasks,
             'total_tasks_submitted': self.stats['total_tasks'],
-            'completed_tasks': completed_tasks,
+            'completed_tasks': self.stats['completed_tasks'],
             'failed_tasks': self.stats['failed_tasks'],
             'cancelled_tasks': self.stats['cancelled_tasks'],
+            'cached_results': self.stats['cached_results'],
             'peak_active_tasks': self.stats['peak_active_tasks'],
             'average_execution_time': self.stats['average_execution_time'],
-            'queue_size_ratio': active_tasks / self.max_queue_size,
-            'task_info': {tid: self.get_task_info(tid) for tid in self.tasks.keys()}
+            'cache_stats': {
+                'size': len(self.result_cache.cache),
+                'max_size': self.result_cache.max_size,
+                'ttl': self.result_cache.ttl
+            },
+            'queue_stats': {
+                'pending': self.priority_queue.size(),
+                'max_size': self.priority_queue.max_size
+            }
         }
 
     def _worker_loop(self) -> None:
@@ -309,7 +486,6 @@ class AsyncProcessor:
                 while not self.result_queue.empty():
                     try:
                         result = self.result_queue.get_nowait()
-                        # Aquí se podría manejar callbacks si fuera necesario
                     except queue.Empty:
                         break
 
@@ -366,7 +542,12 @@ class MLAsyncProcessor:
         def _predict_task():
             return classifier.predict(image, top_k)
 
-        return self.async_processor.submit_task(_predict_task)
+        return self.async_processor.submit_task(
+            _predict_task, 
+            priority=TaskPriority.HIGH,
+            task_type='prediction',
+            use_cache=True
+        )
 
     def preprocess_async(self, preprocessor_func: Callable, data: Any) -> str:
         """
@@ -382,7 +563,12 @@ class MLAsyncProcessor:
         def _preprocess_task():
             return preprocessor_func(data)
 
-        return self.async_processor.submit_task(_preprocess_task)
+        return self.async_processor.submit_task(
+            _preprocess_task,
+            priority=TaskPriority.NORMAL,
+            task_type='preprocessing',
+            use_cache=True
+        )
 
     def batch_predict_async(self, classifier, images: List[Any], batch_size: int = 4) -> List[str]:
         """
@@ -408,7 +594,12 @@ class MLAsyncProcessor:
                     results.append(result)
                 return results
 
-            task_id = self.async_processor.submit_task(_batch_predict_task)
+            task_id = self.async_processor.submit_task(
+                _batch_predict_task,
+                priority=TaskPriority.HIGH,
+                task_type='prediction',
+                use_cache=True
+            )
             task_ids.append(task_id)
 
         return task_ids

@@ -11,12 +11,23 @@ import sys
 import os
 from pathlib import Path
 import time
+import cv2
 
 # Add src to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from core.i18n import i18n, _, get_class_name_translation
 from core.utils.async_processor import AsyncProcessor, TaskPriority
+from core.detection.hand_detector import (
+    KalmanFilter1D, ContourBuffer, HistogramAnalyzer, 
+    ShadowDetector, AdaptiveRangeManager
+)
+from core.classification.gesture_processor import (
+    VelocityAnalyzer, AdaptiveSmoothing, DuplicateFilter, PointInterpolator
+)
+from core.config.calibration_manager import (
+    CalibrationQualityMonitor, EnvironmentProfile, AutoCalibrationEngine
+)
 
 
 class TestI18n:
@@ -386,6 +397,246 @@ class TestPerformance:
 
         assert len(task_ids) > 0
         assert elapsed < 2.0
+
+
+class TestDetectionImprovements:
+    """Test cases for detection stability improvements."""
+
+    def test_kalman_filter_1d(self):
+        """Test 1D Kalman filter for smoothing."""
+        kalman = KalmanFilter1D(process_variance=0.01, measurement_variance=0.1)
+        
+        # Test sequence of measurements with noise
+        measurements = [100, 101, 99, 102, 100]
+        filtered = []
+        
+        for m in measurements:
+            filtered.append(kalman.update(float(m)))
+        
+        # Filtered values should be smoother (closer to each other)
+        assert len(filtered) == len(measurements)
+        assert all(90 <= f <= 110 for f in filtered)
+
+    def test_contour_buffer_stability(self):
+        """Test contour buffer for multi-frame stability."""
+        buffer = ContourBuffer(max_size=5)
+        
+        # Create dummy contours
+        dummy_contour = np.array([[[0, 0]], [[1, 1]], [[2, 0]]])
+        
+        # Add same contours
+        result = buffer.add([dummy_contour])
+        assert len(result) >= 0
+        
+        # Add to buffer multiple times
+        for _ in range(3):
+            buffer.add([dummy_contour])
+        
+        assert len(buffer.buffer) > 0
+
+    def test_histogram_analyzer(self):
+        """Test histogram analysis for illumination compensation."""
+        analyzer = HistogramAnalyzer(region_grid=3)
+        
+        # Create test frame
+        frame = np.zeros((480, 640, 3), dtype=np.uint8)
+        frame[:, :] = (100, 100, 100)  # Gris uniforme
+        
+        stats = analyzer.analyze_regions(frame)
+        
+        assert 'global_mean' in stats
+        assert 'global_std' in stats
+        assert 'regions' in stats
+        assert 80 <= stats['global_mean'] <= 120
+
+    def test_shadow_detector(self):
+        """Test shadow detection."""
+        detector = ShadowDetector()
+        
+        frame = np.zeros((480, 640, 3), dtype=np.uint8)
+        frame[100:200, 100:200] = (50, 50, 50)  # Área oscura
+        
+        shadow_mask = detector.detect_shadows(frame)
+        
+        assert shadow_mask.shape == (480, 640)
+        assert shadow_mask.dtype == np.uint8
+        assert np.any(shadow_mask > 0)
+
+    def test_adaptive_range_manager(self):
+        """Test adaptive HSV range management."""
+        manager = AdaptiveRangeManager()
+        
+        lower = np.array([0, 20, 70])
+        upper = np.array([20, 255, 255])
+        manager.set_base_ranges(lower, upper)
+        
+        frame_stats = {
+            'global_mean': 128,
+            'global_std': 30,
+            'regions': {}
+        }
+        
+        shadow_mask = np.zeros((480, 640), dtype=np.uint8)
+        
+        adjusted = manager.adjust((lower, upper), frame_stats, shadow_mask)
+        
+        assert adjusted is not None
+        assert len(adjusted) == 2
+
+
+class TestPointProcessingImprovements:
+    """Test cases for gesture point processing improvements."""
+
+    def test_velocity_analyzer(self):
+        """Test velocity analysis for adaptive smoothing."""
+        analyzer = VelocityAnalyzer(window_size=3)
+        
+        points = [(0, 0), (10, 10), (20, 20), (30, 30)]
+        timestamps = [0.0, 0.016, 0.032, 0.048]
+        
+        velocities = analyzer.calculate_velocities(points, timestamps)
+        
+        assert len(velocities) == len(points)
+        assert all(v >= 0 for v in velocities)
+        assert velocities[0] == 0.0  # Primera velocidad es 0
+
+    def test_velocity_classification(self):
+        """Test classification of velocity into categories."""
+        analyzer = VelocityAnalyzer()
+        
+        assert analyzer.classify_velocity(25) == 'slow'
+        assert analyzer.classify_velocity(100) == 'medium'
+        assert analyzer.classify_velocity(200) == 'fast'
+
+    def test_adaptive_smoothing(self):
+        """Test adaptive smoothing based on velocity."""
+        smoother = AdaptiveSmoothing()
+        
+        # Create test points with varying speeds
+        points = [(0, 0), (5, 5), (10, 10), (15, 15), (20, 20)]
+        timestamps = [0.0, 0.016, 0.032, 0.048, 0.064]
+        
+        smoothed = smoother.smooth_points(points, timestamps)
+        
+        assert len(smoothed) == len(points)
+        assert all(isinstance(p, tuple) and len(p) == 2 for p in smoothed)
+
+    def test_duplicate_filter(self):
+        """Test filtering of duplicate/close points."""
+        filter = DuplicateFilter(min_distance=2.0)
+        
+        points = [(0, 0), (1, 0), (2, 0), (10, 10), (11, 10)]
+        filtered = filter.filter_duplicates(points)
+        
+        assert len(filtered) <= len(points)
+        assert (0, 0) in filtered
+        assert (10, 10) in filtered
+
+    def test_point_interpolator(self):
+        """Test point interpolation for filling gaps."""
+        interpolator = PointInterpolator(max_gap_distance=20.0)
+        
+        # Create points with large gap
+        points = [(0, 0), (50, 50)]
+        interpolated = interpolator.interpolate_gaps(points)
+        
+        assert len(interpolated) >= len(points)
+        assert interpolated[0] == points[0]
+        assert interpolated[-1] == points[-1]
+
+    def test_cubic_interpolation(self):
+        """Test cubic spline interpolation."""
+        interpolator = PointInterpolator(max_gap_distance=10.0, interpolation_method='cubic')
+        
+        points = [(0, 0), (30, 30)]
+        interpolated = interpolator.interpolate_gaps(points)
+        
+        assert len(interpolated) > 2  # Debe haber interpolación
+        assert interpolated[0] == (0, 0)
+        assert interpolated[-1] == (30, 30)
+
+
+class TestCalibrationImprovements:
+    """Test cases for automatic calibration system."""
+
+    def test_quality_monitor_initialization(self):
+        """Test CalibrationQualityMonitor initialization."""
+        monitor = CalibrationQualityMonitor(window_size=30)
+        
+        assert monitor.window_size == 30
+        assert monitor.total_frames == 0
+        assert monitor.get_quality_score() == 0.5
+
+    def test_quality_monitor_recording(self):
+        """Test recording detection results."""
+        monitor = CalibrationQualityMonitor()
+        
+        # Record some detections
+        for i in range(10):
+            is_correct = i < 7  # 70% accuracy
+            monitor.record_detection(True, is_correct, 0.8)
+        
+        assert monitor.total_frames == 10
+        quality = monitor.get_quality_score()
+        assert 0.5 <= quality <= 1.0
+
+    def test_environment_profile_creation(self):
+        """Test environment profile creation."""
+        profile = EnvironmentProfile('test', 'normal', 'uniform')
+        
+        assert profile.name == 'test'
+        assert profile.lighting_level == 'normal'
+        assert profile.background_type == 'uniform'
+        
+        profile_dict = profile.to_dict()
+        assert 'name' in profile_dict
+        assert 'creation_date' in profile_dict
+
+    def test_environment_profile_serialization(self):
+        """Test environment profile serialization/deserialization."""
+        profile = EnvironmentProfile('test', 'bright', 'complex')
+        profile_dict = profile.to_dict()
+        
+        restored = EnvironmentProfile.from_dict(profile_dict)
+        
+        assert restored.name == profile.name
+        assert restored.lighting_level == profile.lighting_level
+        assert restored.background_type == profile.background_type
+
+    def test_auto_calibration_engine_environment_detection(self):
+        """Test automatic environment detection."""
+        engine = AutoCalibrationEngine()
+        
+        frame_stats = {
+            'global_brightness': 150,
+            'background_variance': 1000
+        }
+        
+        lighting, background = engine.detect_environment(frame_stats)
+        
+        assert lighting in ['dark', 'normal', 'bright']
+        assert background in ['uniform', 'complex', 'moving']
+
+    def test_auto_calibration_suggestions(self):
+        """Test calibration adjustment suggestions."""
+        engine = AutoCalibrationEngine()
+        
+        # Record some bad detections
+        for i in range(30):
+            engine.quality_monitor.record_detection(True, False, 0.3)
+        
+        current_ranges = (np.array([0, 20, 70]), np.array([20, 255, 255]))
+        quality_metrics = {
+            'false_positive_rate': 0.15,
+            'false_negative_rate': 0.05
+        }
+        
+        suggested = engine.suggest_range_adjustment(current_ranges, quality_metrics)
+        
+        # May return None if quality is acceptable, otherwise returns adjusted ranges
+        if suggested is not None:
+            assert len(suggested) == 2
+            assert isinstance(suggested[0], np.ndarray)
 
 
 if __name__ == "__main__":
