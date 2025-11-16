@@ -25,7 +25,8 @@ class HandDetector:
     def __init__(self, min_area: int = 3000, max_area: int = 30000,
                  skin_lower: Optional[Tuple[int, int, int]] = None,
                  skin_upper: Optional[Tuple[int, int, int]] = None,
-                 enable_advanced_vision: bool = True):
+                 enable_advanced_vision: bool = True,
+                 use_mediapipe: bool = False):
         """
         Inicializa el detector de manos con técnicas avanzadas.
         
@@ -35,9 +36,11 @@ class HandDetector:
             skin_lower: Límite inferior del rango de color de piel (HSV) - opcional
             skin_upper: Límite superior del rango de color de piel (HSV) - opcional
             enable_advanced_vision: Si True, usa algoritmos avanzados de visión
+            use_mediapipe: Si True, usa MediaPipe en lugar de OpenCV
         """
         self.min_area = min_area
         self.max_area = max_area
+        self.use_mediapipe = use_mediapipe
         
         # Rangos HSV para detección de piel (usar valores por defecto o personalizados)
         self.skin_lower = np.array(skin_lower if skin_lower else [0, 20, 70], dtype=np.uint8)
@@ -50,6 +53,31 @@ class HandDetector:
         self.stability_threshold = 3  # Frames consecutivos para confirmar detección
         self.max_history_size = 10  # Máximo frames en historial
         
+        # Inicializar detector apropiado
+        if use_mediapipe:
+            try:
+                from .mediapipe_hand_detector import MediaPipeHandDetector
+                self.detector = MediaPipeHandDetector(
+                    min_area=min_area,
+                    max_area=max_area
+                )
+                self.enable_advanced_vision = False  # MediaPipe no necesita visión avanzada
+                print("✓ HandDetector usando MediaPipe Hands")
+            except ImportError as e:
+                print(f"⚠ MediaPipe no disponible: {e}")
+                print("  Cambiando a detector OpenCV...")
+                self.use_mediapipe = False
+                self._init_opencv_detector(enable_advanced_vision)
+        else:
+            self._init_opencv_detector(enable_advanced_vision)
+    
+    def _init_opencv_detector(self, enable_advanced_vision: bool):
+        """
+        Inicializa el detector OpenCV tradicional.
+        
+        Args:
+            enable_advanced_vision: Si usar algoritmos avanzados
+        """
         # Procesador avanzado de visión
         self.enable_advanced_vision = enable_advanced_vision
         self.vision_processor = None
@@ -74,10 +102,24 @@ class HandDetector:
     
     def detect(self, frame: np.ndarray) -> Tuple[np.ndarray, Optional[List], bool]:
         """
-        Detecta manos en un frame usando técnicas avanzadas de visión.
+        Detecta manos en un frame usando el detector configurado.
 
-        Combina segmentación por color con background subtraction y optical flow
-        para una detección más robusta y precisa.
+        Args:
+            frame: Frame de OpenCV (BGR)
+
+        Returns:
+            Tupla con (frame_rgb, contours, manos_detectadas)
+        """
+        if self.use_mediapipe and hasattr(self, 'detector'):
+            # Usar MediaPipe detector
+            return self.detector.detect(frame)
+        else:
+            # Usar detector OpenCV tradicional
+            return self._detect_opencv(frame)
+    
+    def _detect_opencv(self, frame: np.ndarray) -> Tuple[np.ndarray, Optional[List], bool]:
+        """
+        Detección de manos usando el detector OpenCV tradicional.
 
         Args:
             frame: Frame de OpenCV (BGR)
@@ -387,6 +429,25 @@ class HandDetector:
         Returns:
             Frame con contornos e información dibujados
         """
+        if self.use_mediapipe and hasattr(self, 'detector'):
+            # Usar MediaPipe detector
+            return self.detector.draw_landmarks(frame, contours, vision_result)
+        else:
+            # Usar implementación OpenCV tradicional
+            return self._draw_landmarks_opencv(frame, contours, vision_result)
+    
+    def _draw_landmarks_opencv(self, frame: np.ndarray, contours: List, vision_result=None) -> np.ndarray:
+        """
+        Dibuja los contornos detectados usando OpenCV tradicional.
+        
+        Args:
+            frame: Frame original
+            contours: Lista de contornos
+            vision_result: Resultados del procesamiento avanzado de visión
+            
+        Returns:
+            Frame con contornos e información dibujados
+        """
         frame_copy = frame.copy()
         
         if contours:
@@ -457,6 +518,23 @@ class HandDetector:
         Returns:
             Tupla (x, y) en píxeles o None
         """
+        if self.use_mediapipe and hasattr(self, 'detector'):
+            # Usar MediaPipe detector
+            return self.detector.get_index_finger_tip(contours)
+        else:
+            # Usar implementación OpenCV tradicional
+            return self._get_index_finger_tip_opencv(contours)
+    
+    def _get_index_finger_tip_opencv(self, contours: List) -> Optional[Tuple[float, float]]:
+        """
+        Obtiene la posición aproximada del "dedo índice" usando OpenCV tradicional.
+        
+        Args:
+            contours: Lista de contornos detectados
+            
+        Returns:
+            Tupla (x, y) en píxeles o None
+        """
         if not contours:
             return None
         
@@ -476,6 +554,23 @@ class HandDetector:
     def is_drawing_gesture(self, contours: List) -> bool:
         """
         Determina si la mano está en gesto de dibujo usando análisis avanzado.
+        
+        Args:
+            contours: Lista de contornos detectados
+            
+        Returns:
+            True si está en gesto de dibujo
+        """
+        if self.use_mediapipe and hasattr(self, 'detector'):
+            # Usar MediaPipe detector
+            return self.detector.is_drawing_gesture(contours)
+        else:
+            # Usar implementación OpenCV tradicional
+            return self._is_drawing_gesture_opencv(contours)
+    
+    def _is_drawing_gesture_opencv(self, contours: List) -> bool:
+        """
+        Determina si la mano está en gesto de dibujo usando análisis OpenCV tradicional.
         
         Args:
             contours: Lista de contornos detectados
@@ -512,6 +607,23 @@ class HandDetector:
         Returns:
             Tupla (x, y) en píxeles o None
         """
+        if self.use_mediapipe and hasattr(self, 'detector'):
+            # Usar MediaPipe detector
+            return self.detector.get_thumb_tip(contours)
+        else:
+            # Usar implementación OpenCV tradicional
+            return self._get_thumb_tip_opencv(contours)
+    
+    def _get_thumb_tip_opencv(self, contours: List) -> Optional[Tuple[float, float]]:
+        """
+        Obtiene la posición aproximada del "pulgar" usando OpenCV tradicional.
+        
+        Args:
+            contours: Lista de contornos detectados
+            
+        Returns:
+            Tupla (x, y) en píxeles o None
+        """
         if not contours:
             return None
         
@@ -537,6 +649,23 @@ class HandDetector:
         Returns:
             True si detecta puño, False en caso contrario
         """
+        if self.use_mediapipe and hasattr(self, 'detector'):
+            # Usar MediaPipe detector
+            return self.detector.is_fist(contours)
+        else:
+            # Usar implementación OpenCV tradicional
+            return self._is_fist_opencv(contours)
+    
+    def _is_fist_opencv(self, contours: List) -> bool:
+        """
+        Detecta si la mano está cerrada (puño) usando análisis OpenCV tradicional.
+        
+        Args:
+            contours: Lista de contornos detectados
+            
+        Returns:
+            True si detecta puño, False en caso contrario
+        """
         if not contours:
             return False
         
@@ -550,6 +679,15 @@ class HandDetector:
     
     def close(self):
         """Cierra el detector y libera recursos."""
+        # Cerrar detector MediaPipe si existe
+        if self.use_mediapipe and hasattr(self, 'detector'):
+            try:
+                self.detector.close()
+                print("✓ MediaPipe detector cerrado")
+            except Exception as e:
+                print(f"⚠ Error cerrando MediaPipe detector: {e}")
+        
+        # Cerrar procesador de visión avanzada
         if hasattr(self, 'vision_processor') and self.vision_processor:
             try:
                 self.vision_processor.reset()
