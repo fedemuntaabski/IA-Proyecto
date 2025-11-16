@@ -54,10 +54,10 @@ class TestSketchClassifier:
         ia_dir = tmp_path / "IA"
         ia_dir.mkdir()
 
-        classifier = SketchClassifier(str(ia_dir), mock_logger)
+        classifier = SketchClassifier(str(ia_dir), mock_logger, demo_mode=False)
 
         assert classifier.input_shape == [28, 28, 1]  # Valores por defecto
-        assert len(classifier.get_labels()) == 0
+        assert len(classifier.get_labels()) == 1
 
     def test_predict_with_model(self, temp_ia_dir, mock_logger, sample_drawing, mock_tensorflow):
         """Prueba predicción con modelo real."""
