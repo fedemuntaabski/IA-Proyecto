@@ -75,14 +75,18 @@ class TestPictionaryLiveIntegration:
             assert result
 
     def test_validate_setup_camera_fail(self, ia_dir, mock_logger):
-        """Prueba que falla la inicialización cuando la cámara falla."""
+        """Prueba validación con cámara fallida - ahora continúa con fallbacks."""
         with patch('cv2.VideoCapture') as mock_cap_class:
             mock_cap = Mock()
             mock_cap.isOpened.return_value = False
             mock_cap_class.return_value = mock_cap
 
-            with pytest.raises(RuntimeError, match="Validación de setup fallida"):
-                PictionaryLive(str(ia_dir), 0, False, False)
+            # Ahora no lanza RuntimeError, continúa con fallbacks
+            app = PictionaryLive(str(ia_dir), 0, False, False)
+            
+            # Verificar que se inicializó pero con warnings
+            assert app is not None
+            mock_logger.warning.assert_called_with("Validación de setup incompleta - continuando con fallbacks")
 
     def test_run_dry_run(self, ia_dir, mock_logger, caplog):
         """Prueba modo dry-run."""
@@ -189,13 +193,17 @@ class TestPictionaryLiveIntegration:
             assert app.cap == mock_cap
 
     def test_camera_init_failure(self, ia_dir, mock_logger):
-        """Prueba que falla la inicialización cuando la cámara falla."""
+        """Prueba inicialización con cámara fallida - continúa con fallbacks."""
         mock_cap = Mock()
         mock_cap.isOpened.return_value = False
 
         with patch('cv2.VideoCapture', return_value=mock_cap):
-            with pytest.raises(RuntimeError, match="Validación de setup fallida"):
-                PictionaryLive(str(ia_dir), 0, False, False)
+            # Ahora no lanza RuntimeError, continúa con fallbacks
+            app = PictionaryLive(str(ia_dir), 0, False, False)
+            
+            # Verificar que se inicializó pero con warnings
+            assert app is not None
+            mock_logger.warning.assert_called_with("Validación de setup incompleta - continuando con fallbacks")
 
     def test_save_screenshot(self, ia_dir, mock_logger, tmp_path):
         """Prueba guardar captura de pantalla."""

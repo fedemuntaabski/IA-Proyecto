@@ -11,7 +11,7 @@ from typing import Optional
 
 from config import (
     MEDIAPIPE_CONFIG, CAMERA_CONFIG, STROKE_CONFIG, MODEL_CONFIG,
-    UI_CONFIG, LOGGING_CONFIG, DETECTION_CONFIG
+    UI_CONFIG, LOGGING_CONFIG, DETECTION_CONFIG, PERFORMANCE_CONFIG
 )
 from hand_detector import HandDetector
 from stroke_manager import StrokeAccumulator
@@ -58,7 +58,9 @@ class PictionaryLive:
     def _init_components(self):
         """Inicializa componentes con manejo de errores y fallbacks."""
         try:
-            self.hand_detector = HandDetector(MEDIAPIPE_CONFIG["hands"], self.logger)
+            # Combinar configuraciones para hand detector
+            hand_config = {**MEDIAPIPE_CONFIG["hands"], **DETECTION_CONFIG, **PERFORMANCE_CONFIG}
+            self.hand_detector = HandDetector(hand_config, self.logger)
         except Exception as e:
             self.logger.error(f"Error al inicializar HandDetector: {e}")
             self.hand_detector = None
@@ -70,11 +72,11 @@ class PictionaryLive:
             self.stroke_accumulator = None
         
         try:
-            self.classifier = SketchClassifier(self.ia_dir, self.logger, demo_mode=MODEL_CONFIG["demo_mode"])
+            self.classifier = SketchClassifier(self.ia_dir, self.logger, demo_mode=MODEL_CONFIG["demo_mode"], config=MODEL_CONFIG)
         except Exception as e:
             self.logger.error(f"Error al inicializar SketchClassifier: {e}")
             # Fallback a modo demo
-            self.classifier = SketchClassifier(self.ia_dir, self.logger, demo_mode=True)
+            self.classifier = SketchClassifier(self.ia_dir, self.logger, demo_mode=True, config=MODEL_CONFIG)
         
         try:
             input_shape = self.classifier.get_input_shape() if self.classifier else [28, 28, 1]

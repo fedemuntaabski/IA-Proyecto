@@ -27,7 +27,7 @@ except Exception as e:
 class SketchClassifier:
     """Carga y realiza inferencia con el modelo de clasificación de sketches."""
     
-    def __init__(self, ia_dir: str, logger: logging.Logger, demo_mode: bool = True):
+    def __init__(self, ia_dir: str, logger: logging.Logger, demo_mode: bool = True, config: Dict[str, Any] = None):
         """
         Inicializa el clasificador.
         
@@ -35,19 +35,24 @@ class SketchClassifier:
             ia_dir: Ruta a la carpeta IA con modelo
             logger: Logger
             demo_mode: Usar predicciones demo si no está disponible TensorFlow
+            config: Configuración del modelo
         """
         self.ia_dir = Path(ia_dir)
         self.logger = logger
         self.demo_mode = demo_mode
+        self.config = config or {}
         
         self.model = None
         self.input_shape = [28, 28, 1]
         self.labels = []
+        self.use_quantized = self.config.get("use_quantized_model", True)
+        self.prefer_gpu = self.config.get("prefer_gpu", True)
         
         try:
             if not self.ia_dir.exists():
                 self.logger.warning(f"Carpeta IA no encontrada: {ia_dir} - usando modo demo")
                 self.demo_mode = True
+                self.labels = ["demo"]  # Etiqueta por defecto para demo
                 return
             
             # Cargar metadata con fallback
@@ -91,31 +96,82 @@ class SketchClassifier:
             return False
     
     def _load_model(self) -> bool:
-        """Carga el modelo Keras."""
+        """Carga el modelo Keras con optimizaciones de rendimiento."""
         if not TENSORFLOW_AVAILABLE:
             self.logger.info("TensorFlow no disponible, usando modo demo")
             return False
         
-        # Intentar keras primero, luego h5
-        model_paths = [
+        # Configurar dispositivo
+        device = self._get_device()
+        self.logger.info(f"Usando dispositivo para inferencia: {device}")
+        
+        # Intentar modelos en orden de preferencia: cuantizado primero, luego normal
+        model_paths = []
+        if self.use_quantized:
+            model_paths.extend([
+                self.ia_dir / "sketch_classifier_model_quantized.tflite",
+                self.ia_dir / "sketch_classifier_model_quantized.keras",
+                self.ia_dir / "sketch_classifier_model_quantized.h5",
+            ])
+        
+        # Modelos normales
+        model_paths.extend([
             self.ia_dir / "sketch_classifier_model.keras",
             self.ia_dir / "sketch_classifier_model.h5",
-        ]
+        ])
         
         for model_path in model_paths:
             if model_path.exists():
                 try:
-                    if keras:
-                        self.model = keras.models.load_model(model_path)
+                    if model_path.suffix == ".tflite":
+                        # Modelo cuantizado TFLite
+                        self.model = self._load_tflite_model(model_path, device)
                     else:
-                        self.model = tf.keras.models.load_model(model_path)
-                    self.logger.info(f"Modelo cargado: {model_path.name}")
+                        # Modelo Keras normal
+                        with tf.device(device):
+                            if keras:
+                                self.model = keras.models.load_model(model_path)
+                            else:
+                                self.model = tf.keras.models.load_model(model_path)
+                    
+                    model_type = "cuantizado (TFLite)" if "quantized" in model_path.name else "normal"
+                    self.logger.info(f"Modelo {model_type} cargado: {model_path.name}")
                     return True
                 except Exception as e:
                     self.logger.warning(f"Error al cargar {model_path.name}: {e}")
         
         self.logger.info("No se encontró modelo, usando predicciones demo")
         return False
+    
+    def _get_device(self) -> str:
+        """Determina el dispositivo óptimo para inferencia."""
+        if not TENSORFLOW_AVAILABLE or not self.prefer_gpu:
+            return "/CPU:0"
+        
+        try:
+            gpus = tf.config.list_physical_devices('GPU')
+            if gpus and len(gpus) > 0:
+                # Verificar que la GPU esté disponible
+                tf.config.experimental.set_memory_growth(gpus[0], True)
+                self.logger.info(f"GPU disponible: {gpus[0].name}")
+                return "/GPU:0"
+            else:
+                self.logger.info("GPU no disponible, usando CPU")
+                return "/CPU:0"
+        except Exception as e:
+            self.logger.warning(f"Error configurando GPU: {e}, usando CPU")
+            return "/CPU:0"
+    
+    def _load_tflite_model(self, model_path: Path, device: str):
+        """Carga modelo TFLite cuantizado."""
+        try:
+            interpreter = tf.lite.Interpreter(model_path=str(model_path))
+            interpreter.allocate_tensors()
+            self.logger.info("Modelo TFLite cargado exitosamente")
+            return interpreter
+        except Exception as e:
+            self.logger.error(f"Error cargando modelo TFLite: {e}")
+            raise
     
     def predict(self, drawing: np.ndarray) -> Tuple[str, float, List[Tuple[str, float]]]:
         """
@@ -130,28 +186,10 @@ class SketchClassifier:
         try:
             # Si tenemos modelo real
             if self.model is not None and TENSORFLOW_AVAILABLE:
-                # Agregar batch dimension si es necesario
-                if len(drawing.shape) == 3:
-                    drawing = np.expand_dims(drawing, axis=0)
-                
-                # Predicción
-                predictions = self.model.predict(drawing, verbose=0)
-                probs = predictions[0]
-                
-                # Top-1
-                top1_idx = np.argmax(probs)
-                top1_label = self.labels[top1_idx] if top1_idx < len(self.labels) else "Unknown"
-                top1_prob = float(probs[top1_idx])
-                
-                # Top-3
-                top3_indices = np.argsort(probs)[-3:][::-1]
-                top3 = [
-                    (self.labels[idx] if idx < len(self.labels) else "Unknown", float(probs[idx]))
-                    for idx in top3_indices
-                ]
-                
-                return top1_label, top1_prob, top3
-            
+                if hasattr(self.model, 'invoke'):  # Es un modelo TFLite
+                    return self._predict_tflite(drawing)
+                else:  # Modelo Keras normal
+                    return self._predict_keras(drawing)
             else:
                 # Modo demo: predicción aleatoria
                 return self._demo_predict()
@@ -159,6 +197,75 @@ class SketchClassifier:
         except Exception as e:
             self.logger.error(f"Error en predicción: {e}")
             return self._demo_predict()
+    
+    def _predict_keras(self, drawing: np.ndarray) -> Tuple[str, float, List[Tuple[str, float]]]:
+        """Predicción con modelo Keras."""
+        # Agregar batch dimension si es necesario
+        if len(drawing.shape) == 3:
+            drawing = np.expand_dims(drawing, axis=0)
+        
+        # Predicción
+        predictions = self.model.predict(drawing, verbose=0)
+        probs = predictions[0]
+        
+        # Top-1
+        top1_idx = np.argmax(probs)
+        top1_label = self.labels[top1_idx] if top1_idx < len(self.labels) else "Unknown"
+        top1_prob = float(probs[top1_idx])
+        
+        # Top-3
+        top3_indices = np.argsort(probs)[-3:][::-1]
+        top3 = [
+            (self.labels[idx] if idx < len(self.labels) else "Unknown", float(probs[idx]))
+            for idx in top3_indices
+        ]
+        
+        return top1_label, top1_prob, top3
+    
+    def _predict_tflite(self, drawing: np.ndarray) -> Tuple[str, float, List[Tuple[str, float]]]:
+        """Predicción con modelo TFLite cuantizado."""
+        try:
+            interpreter = self.model
+            
+            # Obtener detalles de entrada/salida
+            input_details = interpreter.get_input_details()
+            output_details = interpreter.get_output_details()
+            
+            # Preparar input
+            if len(drawing.shape) == 3:
+                drawing = np.expand_dims(drawing, axis=0)
+            
+            # Asegurar tipo correcto
+            input_dtype = input_details[0]['dtype']
+            drawing = drawing.astype(input_dtype)
+            
+            # Set input tensor
+            interpreter.set_tensor(input_details[0]['index'], drawing)
+            
+            # Invoke
+            interpreter.invoke()
+            
+            # Get output
+            output_data = interpreter.get_tensor(output_details[0]['index'])
+            probs = output_data[0]
+            
+            # Top-1
+            top1_idx = np.argmax(probs)
+            top1_label = self.labels[top1_idx] if top1_idx < len(self.labels) else "Unknown"
+            top1_prob = float(probs[top1_idx])
+            
+            # Top-3
+            top3_indices = np.argsort(probs)[-3:][::-1]
+            top3 = [
+                (self.labels[idx] if idx < len(self.labels) else "Unknown", float(probs[idx]))
+                for idx in top3_indices
+            ]
+            
+            return top1_label, top1_prob, top3
+            
+        except Exception as e:
+            self.logger.error(f"Error en predicción TFLite: {e}")
+            raise
     
     def _demo_predict(self) -> Tuple[str, float, List[Tuple[str, float]]]:
         """Retorna predicción demo aleatoria."""

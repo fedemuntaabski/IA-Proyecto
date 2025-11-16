@@ -37,7 +37,7 @@ class TestHandDetector:
             detector = hand_detector.HandDetector(hand_config, mock_logger)
 
             assert detector.hands_detector is None
-            mock_logger.warning.assert_called_with("MediaPipe no disponible. Funcionando en modo demo.")
+            mock_logger.warning.assert_called_with("MediaPipe no disponible - funcionando en modo sin detección")
 
     def test_init_with_mediapipe(self, hand_config, mock_logger):
         """Prueba inicialización con MediaPipe disponible."""

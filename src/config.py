@@ -51,6 +51,8 @@ STROKE_CONFIG = {
 MODEL_CONFIG = {
     "input_shape": [28, 28, 1],
     "demo_mode": True,             # Funcionar sin modelo TensorFlow
+    "use_quantized_model": True,   # Intentar cargar modelo cuantizado para mejor performance
+    "prefer_gpu": True,            # Usar GPU si está disponible
 }
 
 # ============================================================================
@@ -84,6 +86,7 @@ LOGGING_CONFIG = {
 DETECTION_CONFIG = {
     "hand_index_finger_id": 8,     # ID del dedo índice en landmarks
     "hand_landmark_count": 21,     # Total de landmarks en mano
+    "processing_resolution": 320,  # Resolución para procesamiento de detección (altura)
 }
 
 # ============================================================================
@@ -94,4 +97,5 @@ PERFORMANCE_CONFIG = {
     "skip_frames": 0,              # No saltar frames (mantener todos)
     "thread_workers": 1,           # Una CPU thread para detectar
     "enable_profiling": False,     # Desactivar profiling por defecto
+    "async_processing": True,      # Procesar detección de manos de forma asíncrona
 }

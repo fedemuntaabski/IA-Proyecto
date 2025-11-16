@@ -8,7 +8,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
 import pytest
 import time
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 from stroke_manager import StrokeAccumulator
 

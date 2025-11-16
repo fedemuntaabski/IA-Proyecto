@@ -32,6 +32,10 @@ class HandDetector:
         self.previous_hand_pos = None
         self.hand_velocity = 0.0
         
+        # Configuración de optimización
+        self.processing_resolution = self.config.get("processing_resolution", 320)
+        self.async_processing = self.config.get("async_processing", True)
+        
         try:
             if MEDIAPIPE_AVAILABLE:
                 self._init_mediapipe()
@@ -76,7 +80,17 @@ class HandDetector:
             }
         
         try:
-            frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            # Optimizar resolución para mejor performance
+            h, w = frame.shape[:2]
+            if h > self.processing_resolution:
+                scale_factor = self.processing_resolution / h
+                new_w = int(w * scale_factor)
+                processing_frame = cv2.resize(frame, (new_w, self.processing_resolution))
+            else:
+                processing_frame = frame
+                scale_factor = 1.0
+            
+            frame_rgb = cv2.cvtColor(processing_frame, cv2.COLOR_BGR2RGB)
             results = self.hands_detector.process(frame_rgb)
             
             hand_landmarks = None
@@ -87,9 +101,12 @@ class HandDetector:
             if results.multi_hand_landmarks and len(results.multi_hand_landmarks) > 0:
                 hands_count = len(results.multi_hand_landmarks)
                 # Usar la primera mano detectada
+                raw_landmarks = results.multi_hand_landmarks[0].landmark
+                
+                # Escalar landmarks de vuelta al tamaño original
                 hand_landmarks = [
-                    (lm.x, lm.y) 
-                    for lm in results.multi_hand_landmarks[0].landmark
+                    (lm.x / scale_factor, lm.y / scale_factor) 
+                    for lm in raw_landmarks
                 ]
                 
                 # Usar confianza de detección
