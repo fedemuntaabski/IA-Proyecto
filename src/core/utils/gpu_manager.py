@@ -87,7 +87,7 @@ class GPUManager:
         try:
             import tensorflow as tf
 
-            # Configurar crecimiento de memoria
+            # Configurar crecimiento de memoria (memory growth)
             for gpu in tf.config.list_physical_devices('GPU'):
                 try:
                     tf.config.experimental.set_memory_growth(gpu, True)
@@ -95,12 +95,20 @@ class GPUManager:
                 except RuntimeError as e:
                     logger.warning(f"⚠ No se pudo configurar crecimiento de memoria: {e}")
 
-            # Configurar política de memoria
+            # Configurar política de memoria de bajo latency para inferencia en tiempo real
+            for gpu in tf.config.list_physical_devices('GPU'):
+                try:
+                    tf.config.experimental.enable_memory_inlining(gpu)
+                    logger.info(f"✓ Memory inlining habilitado para {gpu.name}")
+                except (AttributeError, RuntimeError) as e:
+                    logger.debug(f"Memory inlining no disponible: {e}")
+
+            # Configurar dispositivo visible - usar GPU primaria
             if hasattr(tf.config.experimental, 'set_visible_devices'):
                 gpus = tf.config.list_physical_devices('GPU')
                 if gpus:
                     try:
-                        tf.config.set_visible_devices(gpus[0], 'GPU')  # Usar primera GPU
+                        tf.config.set_visible_devices(gpus[0], 'GPU')
                         logger.info("✓ GPU primaria configurada como visible")
                     except RuntimeError as e:
                         logger.warning(f"⚠ Error configurando dispositivo visible: {e}")
@@ -164,10 +172,10 @@ class GPUManager:
 
     def optimize_for_inference(self) -> None:
         """
-        Optimiza TensorFlow para inferencia rápida.
+        Optimiza TensorFlow para inferencia rápida con bajo latency.
 
         Configura opciones específicas para mejorar el rendimiento
-        de las operaciones de predicción.
+        de las operaciones de predicción en tiempo real.
         """
         if not self.tensorflow_available:
             return
@@ -175,27 +183,41 @@ class GPUManager:
         try:
             import tensorflow as tf
 
-            # Configuraciones de optimización
-            tf.config.optimizer.set_jit(True)  # XLA compilation
-            tf.config.optimizer.set_experimental_options({
-                'auto_mixed_precision': True,
-                'layout_optimizer': True,
-                'constant_folding': True,
-                'shape_optimization': True,
-                'remapping': True,
-                'arithmetic_optimization': True,
-                'dependency_optimization': True,
-                'loop_optimization': True,
-                'function_optimization': True,
-                'debug_stripper': True,
-                'disable_model_pruning': False,
-                'scoped_allocator_optimization': True,
-                'pin_to_host_optimization': True,
-                'implementation_selector': True,
-                'disable_meta_optimizer': False,
-            })
+            # Deshabilitar eager execution en ciertas situaciones para mejor rendimiento
+            # tf.config.run_functions_eagerly(False)
 
-            logger.info("✓ Optimizaciones de inferencia aplicadas")
+            # Configuraciones de optimización avanzadas
+            try:
+                tf.config.optimizer.set_jit(True)  # XLA compilation para optimización
+                logger.info("✓ XLA compilation habilitado")
+            except:
+                pass
+
+            # Configurar opciones de optimización del compilador
+            try:
+                opts = tf.config.optimizer.get_experimental_options()
+                opts.update({
+                    'auto_mixed_precision': True,  # Usar precisión mixta
+                    'layout_optimizer': True,
+                    'constant_folding': True,
+                    'shape_optimization': True,
+                    'remapping': True,
+                    'arithmetic_optimization': True,
+                    'dependency_optimization': True,
+                    'loop_optimization': True,
+                    'function_optimization': True,
+                    'debug_stripper': True,
+                    'scoped_allocator_optimization': True,
+                    'pin_to_host_optimization': True,
+                    'implementation_selector': True,
+                    'disable_meta_optimizer': False,
+                })
+                tf.config.optimizer.set_experimental_options(opts)
+                logger.info("✓ Optimizaciones de compilador aplicadas")
+            except Exception as e:
+                logger.debug(f"Algunas optimizaciones no disponibles: {e}")
+
+            logger.info("✓ Optimizaciones de inferencia completadas")
 
         except Exception as e:
             logger.warning(f"⚠ Error aplicando optimizaciones: {e}")
@@ -282,7 +304,7 @@ class GPUManager:
 
     def benchmark_gpu(self, duration_seconds: int = 5) -> Dict[str, Any]:
         """
-        Ejecuta un benchmark simple de GPU.
+        Ejecuta un benchmark simple de GPU para medir rendimiento.
 
         Args:
             duration_seconds: Duración del benchmark en segundos
@@ -300,7 +322,7 @@ class GPUManager:
 
             start_time = time.time()
 
-            # Benchmark simple: multiplicación de matrices
+            # Benchmark simple: multiplicación de matrices en GPU
             operations = 0
             while time.time() - start_time < duration_seconds:
                 # Crear matrices aleatorias
@@ -328,6 +350,53 @@ class GPUManager:
         except Exception as e:
             logger.error(f"Error en benchmark: {e}")
             return {'status': 'error', 'error': str(e)}
+
+    def quantize_model_recommendation(self) -> Dict[str, Any]:
+        """
+        Proporciona recomendaciones para cuantización de modelos.
+
+        Returns:
+            Recomendaciones y beneficios de cuantización
+        """
+        return {
+            'status': 'recommended',
+            'quantization_types': {
+                'int8': {
+                    'description': 'Cuantización a 8 bits (enteros)',
+                    'speed_improvement': '2-4x más rápido',
+                    'memory_reduction': '4x menor',
+                    'accuracy_loss': 'Mínimo (0.5-2%)',
+                    'recommended_for': 'Inferencia en tiempo real'
+                },
+                'float16': {
+                    'description': 'Precisión de media (16 bits)',
+                    'speed_improvement': '1.5-2x más rápido',
+                    'memory_reduction': '2x menor',
+                    'accuracy_loss': 'Muy mínimo (<0.5%)',
+                    'recommended_for': 'GPU moderna con soporte FP16'
+                },
+                'dynamic_range_quantization': {
+                    'description': 'Cuantización dinámica sin calibración',
+                    'speed_improvement': '1.5-3x más rápido',
+                    'memory_reduction': '3-4x menor',
+                    'accuracy_loss': 'Bajo (1-3%)',
+                    'recommended_for': 'Rápida implementación sin reentrenamiento'
+                }
+            },
+            'implementation_code': """
+# Cuantización con TensorFlow Lite
+import tensorflow as tf
+
+converter = tf.lite.TFLiteConverter.from_saved_model(saved_model_dir)
+converter.optimizations = [tf.lite.Optimize.DEFAULT]
+tflite_quant_model = converter.convert()
+
+# O con post-training quantization
+converter.target_spec.supported_ops = [
+    tf.lite.OpsSet.TFLITE_BUILTINS_INT8
+]
+            """
+        }
 
 
 # Instancia global

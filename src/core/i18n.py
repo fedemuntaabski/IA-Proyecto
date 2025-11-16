@@ -2,13 +2,17 @@
 Internationalization (i18n) module for Air Draw Classifier.
 
 Provides multi-language support using gettext for UI text translation.
+Soporta español, inglés y puede extenderse fácilmente a otros idiomas.
 """
 
 import gettext
 import locale
 import os
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Dict, List
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class I18nManager:
@@ -16,6 +20,7 @@ class I18nManager:
     Manager for internationalization support.
 
     Handles language detection, translation loading, and text translation.
+    Soporta carga dinámica de idiomas y fallback automático.
     """
 
     def __init__(self, locale_dir: str = "locale"):
@@ -28,6 +33,20 @@ class I18nManager:
         self.locale_dir = Path(locale_dir)
         self.current_translator = None
         self.current_language = None
+        self.fallback_language = 'en'
+        
+        # Diccionario de traducciones en memoria para uso offline
+        self.translation_cache: Dict[str, Dict[str, str]] = {}
+        
+        # Idiomas soportados
+        self.supported_languages = {
+            'es': 'Español',
+            'en': 'English',
+            'fr': 'Français',
+            'de': 'Deutsch',
+            'it': 'Italiano',
+            'pt': 'Português'
+        }
 
         # Detect system language
         self.system_language = self._detect_system_language()
@@ -89,17 +108,17 @@ class I18nManager:
             self.current_translator = translator
             self.current_language = language_code
 
-            print(f"✓ Language loaded: {language_code}")
+            logger.info(f"✓ Idioma cargado: {language_code} ({self.supported_languages.get(language_code, 'Desconocido')})")
             return True
 
         except FileNotFoundError:
-            print(f"⚠ Translation file not found for language: {language_code}")
+            logger.warning(f"⚠ Archivo de traducción no encontrado para: {language_code}")
             # Fallback to English
-            if language_code != 'en':
-                return self.load_language('en')
+            if language_code != self.fallback_language:
+                return self.load_language(self.fallback_language)
             return False
         except Exception as e:
-            print(f"⚠ Error loading language {language_code}: {e}")
+            logger.error(f"⚠ Error cargando idioma {language_code}: {e}")
             return False
 
     def get_text(self, message: str) -> str:
@@ -125,14 +144,28 @@ class I18nManager:
         Get list of available languages.
 
         Returns:
-            List of language codes
+            List of language codes with traducciones disponibles
         """
         available = []
         if self.locale_dir.exists():
             for item in self.locale_dir.iterdir():
                 if item.is_dir() and (item / 'LC_MESSAGES' / 'messages.mo').exists():
                     available.append(item.name)
-        return available
+        
+        # Retornar idiomas soportados que existen en locale_dir
+        return [lang for lang in self.supported_languages.keys() if lang in available or lang == 'en']
+
+    def get_language_name(self, language_code: str) -> str:
+        """
+        Get the full name of a language.
+
+        Args:
+            language_code: Language code
+
+        Returns:
+            Full language name
+        """
+        return self.supported_languages.get(language_code, language_code)
 
     def auto_detect_and_load(self) -> bool:
         """
@@ -154,6 +187,44 @@ class I18nManager:
             Translated class name
         """
         return self.get_text(english_name)
+
+    def format_message(self, template: str, **kwargs) -> str:
+        """
+        Format a message with variables (similar to f-strings for translations).
+
+        Args:
+            template: Template string con placeholders {variable}
+            **kwargs: Variables para reemplazar en el template
+
+        Returns:
+            Mensaje formateado y traducido
+        """
+        try:
+            translated = self.get_text(template)
+            return translated.format(**kwargs)
+        except KeyError as e:
+            logger.warning(f"Variable de traducción no proporcionada: {e}")
+            return template
+
+    def get_supported_languages(self) -> Dict[str, str]:
+        """
+        Get all supported languages.
+
+        Returns:
+            Diccionario de {code: nombre}
+        """
+        return self.supported_languages.copy()
+
+    def add_supported_language(self, language_code: str, language_name: str) -> None:
+        """
+        Add a new supported language.
+
+        Args:
+            language_code: Código del idioma (ej: 'it')
+            language_name: Nombre completo del idioma
+        """
+        self.supported_languages[language_code] = language_name
+        logger.info(f"✓ Idioma añadido: {language_code} - {language_name}")
 
 
 # Global instance

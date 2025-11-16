@@ -18,11 +18,13 @@ from .classification import GestureProcessor, SketchClassifier
 from .config import ConfigManager
 from .frame_processor import FrameProcessor
 from .i18n import i18n, _
-from .ui import UIManager
+from .ui.ui_manager import UIManager
 from .utils import (MIN_POINTS_FOR_CLASSIFICATION, DEFAULT_CONFIDENCE_THRESHOLD,
                     DEFAULT_RESOLUTION_WIDTH, DEFAULT_RESOLUTION_HEIGHT, DEFAULT_TARGET_FPS)
 from .utils.async_processor import async_processor
 from .utils.analytics import analytics_tracker
+from .utils.feedback_manager import feedback_manager
+from .utils.model_retrainer import ModelRetrainer
 
 
 class ApplicationController:
@@ -94,6 +96,15 @@ class ApplicationController:
             self.app_config
         )
 
+        # Inicializar reentrenador de modelos
+        feedback_file = "src/core/utils/feedback_data.json"
+        self.model_retrainer = ModelRetrainer(
+            feedback_file=feedback_file,
+            model_path=model_path,
+            classifier=self.classifier
+        )
+        print("✓ Model Retraining Pipeline inicializado")
+
         # Inicializar UI
         self.ui_manager = UIManager()
 
@@ -105,6 +116,9 @@ class ApplicationController:
         self.frame_count = 0
         self.fps_start_time = time.time()
         self.current_fps = 0.0
+
+        # Estado de mouse para feedback
+        self.last_mouse_click = None
 
         print("✓ Componentes inicializados")
         print(f"  Detector de manos: {'Avanzado' if self.hand_detector.enable_advanced_vision else 'Básico'}")
@@ -158,7 +172,8 @@ class ApplicationController:
         app_state.update({
             'has_hands': len(self.frame_processor.gesture_processor.stroke_points) > 0 or
                         app_state.get('has_hands', False),
-            'session_time': time.time() - self.session_start_time
+            'session_time': time.time() - self.session_start_time,
+            'current_gesture_image': self.frame_processor.gesture_processor.get_gesture_image_for_feedback()
         })
 
         # Actualizar UI con FPS
@@ -197,10 +212,25 @@ class ApplicationController:
             self.frame_processor.clear_drawing()
         elif key == ord(' ') and len(self.frame_processor.gesture_processor.stroke_points) > 0:
             self.frame_processor.force_classification()
+        elif key == ord('c') or key == ord('C'):
+            self.ui_manager.toggle_feedback_mode()
+            status = _("activado") if self.ui_manager.feedback_mode else _("desactivado")
+            print(f"📝 Modo feedback {status}")
+        elif hasattr(self.ui_manager, 'handle_feedback_key') and self.ui_manager.handle_feedback_key(key):
+            # Tecla manejada por el sistema de feedback
+            pass
         elif key == ord('h'):
             self.ui_manager.toggle_help()
             status = _("mostrada") if self.ui_manager.show_help else _("oculta")
             print(f"{'👁️' if self.ui_manager.show_help else '🙈'} {_('Ayuda')} {status}")
+        elif key == ord('p') or key == ord('P'):
+            self.ui_manager.toggle_user_profile()
+            status = _("mostrado") if self.ui_manager.show_user_profile else _("oculto")
+            print(f"👤 {_('Perfil de usuario')} {status}")
+        elif key == 27:  # ESC key
+            if self.ui_manager.show_user_profile:
+                self.ui_manager.toggle_user_profile()
+                print(f"👤 {_('Perfil de usuario oculto')}")
 
         return False
 

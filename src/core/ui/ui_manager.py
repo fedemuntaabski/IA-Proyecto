@@ -62,7 +62,7 @@ class UIManager:
             _("¡Excelente! Presiona H para ver más controles")
         ]
 
-        # Temas disponibles
+        # Temas disponibles mejorados
         self.available_themes = {
             'default': self.theme.copy(),
             'dark': {
@@ -86,6 +86,28 @@ class UIManager:
                 'text_error': (255, 0, 0),
                 'text_info': (0, 255, 255),
                 'accent': (255, 0, 255)
+            },
+            'ocean': {
+                'bg_primary': (40, 20, 10),
+                'bg_secondary': (60, 40, 20),
+                'border': (150, 100, 50),
+                'text_primary': (200, 180, 150),
+                'text_success': (100, 200, 150),
+                'text_warning': (200, 150, 100),
+                'text_error': (200, 100, 100),
+                'text_info': (150, 180, 200),
+                'accent': (100, 200, 255)
+            },
+            'neon': {
+                'bg_primary': (10, 10, 20),
+                'bg_secondary': (20, 20, 40),
+                'border': (100, 50, 200),
+                'text_primary': (50, 255, 150),
+                'text_success': (0, 255, 100),
+                'text_warning': (255, 100, 0),
+                'text_error': (255, 0, 100),
+                'text_info': (0, 200, 255),
+                'accent': (200, 50, 255)
             }
         }
         self.current_theme = 'default'
@@ -564,7 +586,7 @@ class UIManager:
             key: Código de tecla presionada
 
         Returns:
-            Acción a realizar ('space', 'r', 'q', 'h', 't', 'f1', 'f2', 'f3', etc.)
+            Acción a realizar ('space', 'r', 'q', 'h', 't', 'f1', 'f2', 'f3', 'f4', 'f5', etc.)
         """
         key_char = chr(key).lower() if key < 256 else ''
 
@@ -584,6 +606,10 @@ class UIManager:
             return 'f2'
         elif key == 114:  # F3
             return 'f3'
+        elif key == 115:  # F4
+            return 'f4'
+        elif key == 116:  # F5
+            return 'f5'
         elif key == 27:  # ESC
             return 'escape'
 
@@ -609,6 +635,10 @@ class UIManager:
             self.switch_theme('dark')
         elif action == 'f3':
             self.switch_theme('high_contrast')
+        elif action == 'f4':
+            self.switch_theme('ocean')
+        elif action == 'f5':
+            self.switch_theme('neon')
         elif action == 'escape':
             if self.tutorial_active:
                 self.end_tutorial()
@@ -634,3 +664,72 @@ class UIManager:
             info_parts.append(f"Tooltip: {self.tooltip_text}")
 
         return ". ".join(info_parts)
+
+    def get_available_themes(self) -> List[str]:
+        """Retorna lista de temas disponibles."""
+        return list(self.available_themes.keys())
+
+    def draw_status_indicator(self, frame: np.ndarray, status: str, position: Tuple[int, int],
+                             status_color: Optional[Tuple[int, int, int]] = None) -> None:
+        """
+        Dibuja un indicador de estado personalizado.
+
+        Args:
+            frame: Frame donde dibujar
+            status: Texto del estado
+            position: Posición (x, y)
+            status_color: Color BGR (usa color_info por defecto)
+        """
+        if status_color is None:
+            status_color = self.theme['text_info']
+
+        # Fondo redondeado simulado
+        text_size = cv2.getTextSize(status, cv2.FONT_HERSHEY_SIMPLEX, 0.5, 1)[0]
+        padding = 8
+        bg_width = text_size[0] + padding * 2
+        bg_height = text_size[1] + padding * 2
+
+        x, y = position
+        cv2.rectangle(frame, (x, y), (x + bg_width, y + bg_height),
+                     self.theme['bg_secondary'], -1)
+        cv2.rectangle(frame, (x, y), (x + bg_width, y + bg_height),
+                     status_color, 1)
+
+        cv2.putText(frame, status, (x + padding, y + padding + text_size[1]),
+                   cv2.FONT_HERSHEY_SIMPLEX, 0.5, status_color, 1)
+
+    def draw_progress_bar(self, frame: np.ndarray, progress: float, position: Tuple[int, int],
+                         width: int = 200, height: int = 20) -> None:
+        """
+        Dibuja una barra de progreso mejorada.
+
+        Args:
+            frame: Frame donde dibujar
+            progress: Valor de progreso (0.0-1.0)
+            position: Posición (x, y) superior izquierda
+            width: Ancho de la barra
+            height: Alto de la barra
+        """
+        x, y = position
+        progress = max(0.0, min(1.0, progress))
+
+        # Fondo
+        cv2.rectangle(frame, (x, y), (x + width, y + height),
+                     self.theme['bg_secondary'], -1)
+        cv2.rectangle(frame, (x, y), (x + width, y + height),
+                     self.theme['border'], 2)
+
+        # Barra de progreso con gradiente
+        progress_width = int(progress * width)
+        if progress_width > 0:
+            cv2.rectangle(frame, (x, y), (x + progress_width, y + height),
+                         self.theme['text_success'], -1)
+
+        # Texto de porcentaje
+        percent_text = f"{int(progress * 100)}%"
+        text_size = cv2.getTextSize(percent_text, cv2.FONT_HERSHEY_SIMPLEX, 0.5, 1)[0]
+        text_x = x + (width - text_size[0]) // 2
+        text_y = y + (height + text_size[1]) // 2
+
+        cv2.putText(frame, percent_text, (text_x, text_y),
+                   cv2.FONT_HERSHEY_SIMPLEX, 0.5, self.theme['text_primary'], 1)

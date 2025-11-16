@@ -130,12 +130,15 @@ class GestureProcessor:
         
         return img_array
     
-    def get_gesture_image(self) -> Optional[np.ndarray]:
+    def get_gesture_image(self, as_list: bool = False) -> Optional[np.ndarray]:
         """
         Obtiene la imagen del gesto actual y limpia el canvas.
         
+        Args:
+            as_list: Si True, devuelve la imagen como lista de listas
+            
         Returns:
-            Array numpy 28x28 o None si no hay puntos
+            Array numpy 28x28 o lista de listas, o None si no hay puntos
         """
         if len(self.stroke_points) < 2:
             return None
@@ -148,6 +151,9 @@ class GestureProcessor:
         
         # Limpiar para próximo gesto
         self.clear()
+        
+        if as_list:
+            return image.tolist()
         
         return image
     
@@ -167,6 +173,25 @@ class GestureProcessor:
         
         smoothed_points = self.smooth_stroke(self.stroke_points)
         return self.points_to_image(smoothed_points)
+    
+    def get_gesture_image_for_feedback(self) -> Optional[List[List[float]]]:
+        """
+        Obtiene la imagen del gesto actual como lista para feedback, sin limpiar.
+        
+        Returns:
+            Lista de listas con la imagen 28x28, o None si no hay puntos
+        """
+        if len(self.stroke_points) < 2:
+            return None
+        
+        # Suavizar puntos
+        smoothed_points = self.smooth_stroke(self.stroke_points)
+        
+        # Convertir a imagen
+        image = self.points_to_image(smoothed_points)
+        
+        # Devolver como lista sin limpiar
+        return image.tolist()
     
     def draw_on_frame(self, frame: np.ndarray, points: Optional[List[Tuple[int, int]]] = None,
                       frame_shape: Optional[Tuple[int, int]] = None) -> np.ndarray:

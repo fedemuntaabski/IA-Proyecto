@@ -13,8 +13,18 @@ from typing import Callable, Any, Optional, Dict, List
 from concurrent.futures import ThreadPoolExecutor
 import queue
 import logging
+from collections import deque
+from enum import Enum
 
 logger = logging.getLogger(__name__)
+
+
+class TaskPriority(Enum):
+    """Prioridades de tareas."""
+    LOW = 3
+    NORMAL = 2
+    HIGH = 1
+    CRITICAL = 0
 
 class AsyncProcessor:
     """
@@ -36,9 +46,25 @@ class AsyncProcessor:
         self.loop = None
         self.tasks = {}
         self.task_counter = 0
+        
+        # Manejo de prioridades mejorado
+        self.priority_queue = deque()  # Para tareas con prioridad
+        self.task_priority = {}  # Mapeo de task_id a prioridad
+        self.max_queue_size = 100  # Límite de tareas en cola
 
         # Cola para resultados
         self.result_queue = queue.Queue()
+
+        # Estadísticas mejoradas
+        self.stats = {
+            'total_tasks': 0,
+            'completed_tasks': 0,
+            'failed_tasks': 0,
+            'cancelled_tasks': 0,
+            'average_execution_time': 0.0,
+            'peak_active_tasks': 0,
+            'execution_times': deque(maxlen=100)  # Últimas 100 ejecuciones
+        }
 
         # Estado
         self.running = False
@@ -69,13 +95,14 @@ class AsyncProcessor:
 
         logger.info("✓ AsyncProcessor detenido")
 
-    def submit_task(self, func: Callable, *args, **kwargs) -> str:
+    def submit_task(self, func: Callable, *args, priority: TaskPriority = TaskPriority.NORMAL, **kwargs) -> str:
         """
-        Envía una tarea para ejecución asíncrona.
+        Envía una tarea para ejecución asíncrona con soporte a prioridades.
 
         Args:
             func: Función a ejecutar
             *args: Argumentos posicionales
+            priority: Prioridad de la tarea
             **kwargs: Argumentos nombrados
 
         Returns:
@@ -84,6 +111,11 @@ class AsyncProcessor:
         if not self.running:
             raise RuntimeError("AsyncProcessor no está ejecutándose")
 
+        # Verificar límite de cola
+        if len(self.tasks) >= self.max_queue_size:
+            logger.warning(f"⚠ Cola de tareas llena ({len(self.tasks)}/{self.max_queue_size})")
+            return None
+
         task_id = f"task_{self.task_counter}"
         self.task_counter += 1
 
@@ -91,13 +123,19 @@ class AsyncProcessor:
         future = self.executor.submit(func, *args, **kwargs)
 
         # Almacenar información de la tarea
+        start_time = time.time()
         self.tasks[task_id] = {
             'future': future,
-            'submitted_at': time.time(),
-            'func_name': func.__name__
+            'submitted_at': start_time,
+            'func_name': func.__name__,
+            'priority': priority,
+            'execution_time': None
         }
+        
+        self.task_priority[task_id] = priority
+        self.stats['total_tasks'] += 1
 
-        logger.debug(f"✓ Tarea {task_id} enviada: {func.__name__}")
+        logger.debug(f"✓ Tarea {task_id} enviada: {func.__name__} (prioridad: {priority.name})")
         return task_id
 
     def get_task_result(self, task_id: str, timeout: float = 0.1) -> Optional[Any]:
@@ -121,15 +159,32 @@ class AsyncProcessor:
             # Verificar si está listo sin bloquear
             if future.done():
                 result = future.result(timeout=timeout)
+                
+                # Registrar tiempo de ejecución
+                execution_time = time.time() - task_info['submitted_at']
+                task_info['execution_time'] = execution_time
+                self.stats['execution_times'].append(execution_time)
+                self.stats['completed_tasks'] += 1
+                
+                # Actualizar promedio
+                if self.stats['execution_times']:
+                    self.stats['average_execution_time'] = sum(self.stats['execution_times']) / len(self.stats['execution_times'])
+                
                 # Limpiar tarea completada
                 del self.tasks[task_id]
+                if task_id in self.task_priority:
+                    del self.task_priority[task_id]
+                
                 return result
             else:
                 return None
 
         except Exception as e:
             logger.error(f"Error obteniendo resultado de tarea {task_id}: {e}")
+            self.stats['failed_tasks'] += 1
             del self.tasks[task_id]
+            if task_id in self.task_priority:
+                del self.task_priority[task_id]
             raise e
 
     def is_task_done(self, task_id: str) -> bool:
@@ -164,7 +219,10 @@ class AsyncProcessor:
         cancelled = future.cancel()
 
         if cancelled:
+            self.stats['cancelled_tasks'] += 1
             del self.tasks[task_id]
+            if task_id in self.task_priority:
+                del self.task_priority[task_id]
             logger.debug(f"✓ Tarea {task_id} cancelada")
 
         return cancelled
@@ -218,17 +276,26 @@ class AsyncProcessor:
         Obtiene estadísticas del procesador.
 
         Returns:
-            Diccionario con estadísticas
+            Diccionario con estadísticas mejoradas
         """
         active_tasks = len(self.tasks)
-        completed_tasks = self.task_counter - active_tasks
+        completed_tasks = self.stats['completed_tasks']
+        
+        # Actualizar pico de tareas activas
+        if active_tasks > self.stats['peak_active_tasks']:
+            self.stats['peak_active_tasks'] = active_tasks
 
         return {
             'running': self.running,
             'max_workers': self.max_workers,
             'active_tasks': active_tasks,
-            'total_tasks_submitted': self.task_counter,
+            'total_tasks_submitted': self.stats['total_tasks'],
             'completed_tasks': completed_tasks,
+            'failed_tasks': self.stats['failed_tasks'],
+            'cancelled_tasks': self.stats['cancelled_tasks'],
+            'peak_active_tasks': self.stats['peak_active_tasks'],
+            'average_execution_time': self.stats['average_execution_time'],
+            'queue_size_ratio': active_tasks / self.max_queue_size,
             'task_info': {tid: self.get_task_info(tid) for tid in self.tasks.keys()}
         }
 
