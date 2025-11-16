@@ -207,6 +207,11 @@ class PictionaryLive:
                     self.running = False
                 elif key == ord('s'):
                     self._save_screenshot(frame)
+                
+                # Verificar si la ventana fue cerrada con el botón X (después de procesar eventos)
+                if cv2.getWindowProperty(UI_CONFIG["window_name"], cv2.WND_PROP_VISIBLE) < 1:
+                    self.logger.info("Usuario cerró la ventana - saliendo")
+                    self.running = False
         
         except KeyboardInterrupt:
             self.logger.info("Interrupción por usuario (Ctrl+C)")

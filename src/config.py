@@ -72,7 +72,7 @@ UI_CONFIG = {
 
 LOGGING_CONFIG = {
     "log_dir": "./logs",
-    "inference_log_file": "./inference.log",
+    "inference_log_file": "./inference/inference.log",
     "level_debug": "DEBUG",
     "level_info": "INFO",
 }

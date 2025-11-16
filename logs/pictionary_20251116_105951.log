@@ -1,0 +1,1270 @@
+2025-11-16 10:59:51,868 - PictionaryLive - INFO - ======================================================================
+2025-11-16 10:59:51,868 - PictionaryLive - INFO - PICTIONARY LIVE - Inicializando
+2025-11-16 10:59:51,868 - PictionaryLive - INFO - ======================================================================
+2025-11-16 10:59:51,885 - PictionaryLive - INFO - MediaPipe Hands inicializado
+2025-11-16 10:59:51,885 - PictionaryLive - INFO -   Thresholds: detection=0.2, tracking=0.2
+2025-11-16 10:59:51,885 - PictionaryLive - INFO - Modelo info cargado: 228 clases
+2025-11-16 10:59:51,885 - PictionaryLive - WARNING - Error al cargar sketch_classifier_model.keras: Keras cannot be imported. Check that it is installed.
+2025-11-16 10:59:51,890 - PictionaryLive - WARNING - Error al cargar sketch_classifier_model.h5: maximum recursion depth exceeded
+2025-11-16 10:59:51,890 - PictionaryLive - INFO - No se encontró modelo, usando predicciones demo
+2025-11-16 10:59:51,891 - PictionaryLive - INFO - 
+======================================================================
+2025-11-16 10:59:51,892 - PictionaryLive - INFO - VALIDACIÓN DE SETUP
+2025-11-16 10:59:51,892 - PictionaryLive - INFO - ======================================================================
+2025-11-16 10:59:51,892 - PictionaryLive - INFO -   [OK] IA folder
+2025-11-16 10:59:51,892 - PictionaryLive - INFO -   [OK] model_info.json
+2025-11-16 10:59:51,892 - PictionaryLive - INFO -   [OK] Hand Detector
+2025-11-16 10:59:51,892 - PictionaryLive - INFO -   [OK] Classifier
+2025-11-16 10:59:58,218 - PictionaryLive - INFO -   [OK] Camara 0 (640x480)
+2025-11-16 10:59:58,235 - PictionaryLive - INFO - ======================================================================
+
+2025-11-16 10:59:58,236 - PictionaryLive - INFO - Aplicación inicializada correctamente
+2025-11-16 11:00:20,973 - PictionaryLive - INFO - Cámara inicializada: 640x480 @ 30FPS
+2025-11-16 11:00:20,973 - PictionaryLive - INFO - [VIVO] Iniciando captura. Presiona 'q' para salir, 's' para guardar.
+2025-11-16 11:00:22,297 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:22,348 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:22,387 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:22,421 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:22,452 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:22,488 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:22,519 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:22,568 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:22,602 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:22,635 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:22,668 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:22,702 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:22,735 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:22,768 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:22,802 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:22,835 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:22,866 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:22,904 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:22,935 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:22,968 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:23,002 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:23,035 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:23,065 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:23,104 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:23,135 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:23,171 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:23,202 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:23,235 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:23,271 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:23,301 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:23,335 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:23,367 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:23,402 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:23,435 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:23,468 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:23,504 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:23,535 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:23,568 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:23,604 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:23,635 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:23,669 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:23,704 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:23,735 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:23,769 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:23,804 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:23,835 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:23,867 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:23,902 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:23,935 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:23,981 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:23,981 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0000
+2025-11-16 11:00:24,035 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:24,035 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0291
+2025-11-16 11:00:24,085 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:24,085 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0014
+2025-11-16 11:00:24,135 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:24,135 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0218
+2025-11-16 11:00:24,185 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:24,185 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0136
+2025-11-16 11:00:24,235 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:24,245 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0278
+2025-11-16 11:00:24,285 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:24,285 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0110
+2025-11-16 11:00:24,333 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:24,333 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0485
+2025-11-16 11:00:24,387 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:24,387 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0141
+2025-11-16 11:00:24,435 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:24,435 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0057
+2025-11-16 11:00:24,485 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:24,485 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0092
+2025-11-16 11:00:24,552 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:24,552 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0189
+2025-11-16 11:00:24,599 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:24,599 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0032
+2025-11-16 11:00:24,649 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:24,649 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0342
+2025-11-16 11:00:24,704 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:24,704 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0589
+2025-11-16 11:00:24,752 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:24,752 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0387
+2025-11-16 11:00:24,831 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:24,831 - PictionaryLive - INFO - Mano(s) detectada(s): 2, confianza: 0.00, velocidad: 0.0851
+2025-11-16 11:00:24,870 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:24,870 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.1264
+2025-11-16 11:00:24,931 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:24,931 - PictionaryLive - INFO - Mano(s) detectada(s): 2, confianza: 0.00, velocidad: 0.1264
+2025-11-16 11:00:24,985 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:24,985 - PictionaryLive - INFO - Mano(s) detectada(s): 2, confianza: 0.00, velocidad: 0.1076
+2025-11-16 11:00:25,024 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:25,024 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0833
+2025-11-16 11:00:25,070 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:25,070 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0074
+2025-11-16 11:00:25,135 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:25,135 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0652
+2025-11-16 11:00:25,202 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:25,202 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0145
+2025-11-16 11:00:25,265 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:25,265 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0635
+2025-11-16 11:00:25,316 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:25,316 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0610
+2025-11-16 11:00:25,366 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:25,366 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0027
+2025-11-16 11:00:25,416 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:25,416 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0697
+2025-11-16 11:00:25,466 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:25,466 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0074
+2025-11-16 11:00:25,521 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:25,521 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0314
+2025-11-16 11:00:25,569 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:25,569 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0230
+2025-11-16 11:00:25,620 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:25,620 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0027
+2025-11-16 11:00:25,666 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:25,666 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0203
+2025-11-16 11:00:25,716 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:25,716 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0032
+2025-11-16 11:00:25,766 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:25,766 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0371
+2025-11-16 11:00:25,820 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:25,820 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0393
+2025-11-16 11:00:25,866 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:25,866 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0478
+2025-11-16 11:00:25,920 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:25,920 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0049
+2025-11-16 11:00:25,971 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:25,971 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0471
+2025-11-16 11:00:26,022 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:26,022 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0433
+2025-11-16 11:00:26,071 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:26,071 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0421
+2025-11-16 11:00:26,124 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:26,124 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0415
+2025-11-16 11:00:26,170 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:26,170 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0028
+2025-11-16 11:00:26,216 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:26,216 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0749
+2025-11-16 11:00:26,266 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:26,266 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0409
+2025-11-16 11:00:26,320 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:26,320 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0190
+2025-11-16 11:00:26,366 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:26,366 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0279
+2025-11-16 11:00:26,416 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:26,416 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.2725
+2025-11-16 11:00:26,470 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:26,502 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:26,537 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:26,571 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:26,604 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:26,637 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:26,671 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:26,704 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:26,737 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:26,770 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:26,815 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:26,815 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0000
+2025-11-16 11:00:26,870 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:26,870 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.1467
+2025-11-16 11:00:26,916 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:26,916 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0097
+2025-11-16 11:00:26,966 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:26,966 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0116
+2025-11-16 11:00:27,020 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:27,020 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0032
+2025-11-16 11:00:27,071 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:27,071 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0045
+2025-11-16 11:00:27,071 - PictionaryLive - INFO - Predicción: giraffe (84.0%)
+2025-11-16 11:00:27,116 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:27,116 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0151
+2025-11-16 11:00:27,170 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:27,170 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0078
+2025-11-16 11:00:27,231 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:27,231 - PictionaryLive - INFO - Mano(s) detectada(s): 2, confianza: 0.00, velocidad: 0.1569
+2025-11-16 11:00:27,270 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:27,270 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.1652
+2025-11-16 11:00:27,321 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:27,321 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0439
+2025-11-16 11:00:27,384 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:27,384 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0190
+2025-11-16 11:00:27,448 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:27,448 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0195
+2025-11-16 11:00:27,514 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:27,514 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0610
+2025-11-16 11:00:27,570 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:27,570 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0605
+2025-11-16 11:00:27,616 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:27,616 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0276
+2025-11-16 11:00:27,683 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:27,683 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0307
+2025-11-16 11:00:27,748 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:27,748 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0250
+2025-11-16 11:00:27,798 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:27,798 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0151
+2025-11-16 11:00:27,851 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:27,851 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0712
+2025-11-16 11:00:27,899 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:27,899 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0668
+2025-11-16 11:00:27,948 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:27,948 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0518
+2025-11-16 11:00:27,998 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:27,998 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0087
+2025-11-16 11:00:28,053 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:28,053 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.1360
+2025-11-16 11:00:28,116 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:28,116 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0243
+2025-11-16 11:00:28,169 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:28,200 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:28,238 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:28,313 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:28,376 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:28,402 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:28,438 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:28,466 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:28,499 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:28,535 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:28,587 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:28,631 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:28,665 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:28,709 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:28,737 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:28,766 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:28,814 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:28,814 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0000
+2025-11-16 11:00:28,814 - PictionaryLive - INFO - Predicción: cat (70.7%)
+2025-11-16 11:00:28,870 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:28,870 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0089
+2025-11-16 11:00:28,921 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:28,921 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0746
+2025-11-16 11:00:28,965 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:28,965 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0072
+2025-11-16 11:00:29,031 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:29,031 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0295
+2025-11-16 11:00:29,070 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:29,070 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0024
+2025-11-16 11:00:29,116 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:29,116 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0290
+2025-11-16 11:00:29,170 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:29,170 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0014
+2025-11-16 11:00:29,216 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:29,216 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0484
+2025-11-16 11:00:29,270 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:29,270 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0298
+2025-11-16 11:00:29,320 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:29,320 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0038
+2025-11-16 11:00:29,370 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:29,370 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0521
+2025-11-16 11:00:29,425 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:29,425 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0098
+2025-11-16 11:00:29,470 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:29,470 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0812
+2025-11-16 11:00:29,548 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:29,548 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0268
+2025-11-16 11:00:29,615 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:29,615 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0036
+2025-11-16 11:00:29,666 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:29,666 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0374
+2025-11-16 11:00:29,720 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:29,720 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0114
+2025-11-16 11:00:29,770 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:29,770 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0258
+2025-11-16 11:00:29,821 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:29,821 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0643
+2025-11-16 11:00:29,872 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:29,872 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.1162
+2025-11-16 11:00:29,916 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:29,916 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0768
+2025-11-16 11:00:29,970 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:29,970 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0260
+2025-11-16 11:00:30,020 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:30,020 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0093
+2025-11-16 11:00:30,070 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:30,070 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0193
+2025-11-16 11:00:30,120 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:30,120 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0832
+2025-11-16 11:00:30,171 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:30,171 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0156
+2025-11-16 11:00:30,233 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:30,233 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0519
+2025-11-16 11:00:30,298 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:30,298 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0094
+2025-11-16 11:00:30,349 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:30,349 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0686
+2025-11-16 11:00:30,404 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:30,404 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0323
+2025-11-16 11:00:30,453 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:30,453 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0073
+2025-11-16 11:00:30,503 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:30,503 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0310
+2025-11-16 11:00:30,553 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:30,553 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0017
+2025-11-16 11:00:30,599 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:30,599 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0391
+2025-11-16 11:00:30,648 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:30,648 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0559
+2025-11-16 11:00:30,698 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:30,698 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0045
+2025-11-16 11:00:30,753 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:30,753 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0586
+2025-11-16 11:00:30,804 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:30,804 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0094
+2025-11-16 11:00:30,854 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:30,854 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0409
+2025-11-16 11:00:30,899 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:30,899 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0073
+2025-11-16 11:00:30,953 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:30,953 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0026
+2025-11-16 11:00:31,004 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:31,004 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0073
+2025-11-16 11:00:31,048 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:31,048 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0339
+2025-11-16 11:00:31,098 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:31,098 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0373
+2025-11-16 11:00:31,181 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:31,181 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0500
+2025-11-16 11:00:31,237 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:31,237 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0102
+2025-11-16 11:00:31,300 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:31,300 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0874
+2025-11-16 11:00:31,349 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:31,349 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0401
+2025-11-16 11:00:31,404 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:31,404 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0237
+2025-11-16 11:00:31,455 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:31,455 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0041
+2025-11-16 11:00:31,500 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:31,500 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0271
+2025-11-16 11:00:31,549 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:31,549 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0054
+2025-11-16 11:00:31,603 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:31,603 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0548
+2025-11-16 11:00:31,666 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:31,666 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0076
+2025-11-16 11:00:31,716 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:31,716 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0070
+2025-11-16 11:00:31,766 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:31,766 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0093
+2025-11-16 11:00:31,820 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:31,820 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0017
+2025-11-16 11:00:31,870 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:31,870 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0259
+2025-11-16 11:00:31,870 - PictionaryLive - INFO - Predicción: butterfly (56.9%)
+2025-11-16 11:00:31,933 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:31,933 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0052
+2025-11-16 11:00:31,988 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:31,988 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0039
+2025-11-16 11:00:32,037 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:32,037 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0015
+2025-11-16 11:00:32,088 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:32,088 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0018
+2025-11-16 11:00:32,137 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:32,137 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0169
+2025-11-16 11:00:32,187 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:32,187 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0074
+2025-11-16 11:00:32,237 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:32,237 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0452
+2025-11-16 11:00:32,291 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:32,291 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0031
+2025-11-16 11:00:32,337 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:32,337 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0302
+2025-11-16 11:00:32,387 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:32,387 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0052
+2025-11-16 11:00:32,437 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:32,437 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0435
+2025-11-16 11:00:32,499 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:32,499 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0514
+2025-11-16 11:00:32,549 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:32,549 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.2495
+2025-11-16 11:00:32,614 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:32,614 - PictionaryLive - INFO - Mano(s) detectada(s): 2, confianza: 0.00, velocidad: 0.2372
+2025-11-16 11:00:32,654 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:32,698 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:32,698 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0000
+2025-11-16 11:00:32,753 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:32,753 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0341
+2025-11-16 11:00:32,804 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:32,804 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0028
+2025-11-16 11:00:32,854 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:32,854 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0504
+2025-11-16 11:00:32,905 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:32,905 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0188
+2025-11-16 11:00:32,953 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:32,953 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0483
+2025-11-16 11:00:33,004 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:33,004 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0094
+2025-11-16 11:00:33,055 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:33,055 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.1031
+2025-11-16 11:00:33,103 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:33,103 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0394
+2025-11-16 11:00:33,156 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:33,156 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0131
+2025-11-16 11:00:33,200 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:33,200 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0234
+2025-11-16 11:00:33,253 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:33,253 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0015
+2025-11-16 11:00:33,303 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:33,303 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0244
+2025-11-16 11:00:33,348 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:33,348 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0046
+2025-11-16 11:00:33,398 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:33,398 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0458
+2025-11-16 11:00:33,453 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:33,453 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0009
+2025-11-16 11:00:33,504 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:33,504 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0268
+2025-11-16 11:00:33,548 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:33,548 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0061
+2025-11-16 11:00:33,598 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:33,598 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.1100
+2025-11-16 11:00:33,653 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:33,653 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0460
+2025-11-16 11:00:33,699 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:33,699 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.1027
+2025-11-16 11:00:33,754 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:33,754 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0390
+2025-11-16 11:00:33,805 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:33,805 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0017
+2025-11-16 11:00:33,854 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:33,854 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0269
+2025-11-16 11:00:33,903 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:33,903 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0025
+2025-11-16 11:00:33,948 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:33,948 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0506
+2025-11-16 11:00:33,998 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:33,998 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0393
+2025-11-16 11:00:34,053 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:34,053 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0050
+2025-11-16 11:00:34,100 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:34,100 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0394
+2025-11-16 11:00:34,154 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:34,154 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0018
+2025-11-16 11:00:34,204 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:34,204 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.2366
+2025-11-16 11:00:34,266 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:34,266 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0302
+2025-11-16 11:00:34,320 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:34,320 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0028
+2025-11-16 11:00:34,370 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:34,370 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0044
+2025-11-16 11:00:34,421 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:34,421 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0038
+2025-11-16 11:00:34,470 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:34,470 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0219
+2025-11-16 11:00:34,553 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:34,553 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0166
+2025-11-16 11:00:34,599 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:34,599 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0020
+2025-11-16 11:00:34,650 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:34,650 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0070
+2025-11-16 11:00:34,704 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:34,704 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0050
+2025-11-16 11:00:34,754 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:34,754 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0059
+2025-11-16 11:00:34,814 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:34,814 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0007
+2025-11-16 11:00:34,870 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:34,870 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0047
+2025-11-16 11:00:34,916 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:34,916 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0009
+2025-11-16 11:00:34,970 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:34,970 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0103
+2025-11-16 11:00:34,970 - PictionaryLive - INFO - Predicción: bat (78.3%)
+2025-11-16 11:00:35,033 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:35,033 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0088
+2025-11-16 11:00:35,083 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:35,083 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0057
+2025-11-16 11:00:35,137 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:35,137 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0068
+2025-11-16 11:00:35,187 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:35,187 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0155
+2025-11-16 11:00:35,238 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:35,238 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0046
+2025-11-16 11:00:35,287 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:35,287 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0027
+2025-11-16 11:00:35,337 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:35,337 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0036
+2025-11-16 11:00:35,388 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:35,388 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0049
+2025-11-16 11:00:35,437 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:35,437 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0050
+2025-11-16 11:00:35,487 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:35,487 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0011
+2025-11-16 11:00:35,537 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:35,537 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0031
+2025-11-16 11:00:35,587 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:35,587 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0199
+2025-11-16 11:00:35,637 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:35,637 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0187
+2025-11-16 11:00:35,687 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:35,687 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0093
+2025-11-16 11:00:35,731 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:35,731 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0171
+2025-11-16 11:00:35,785 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:35,785 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0035
+2025-11-16 11:00:35,847 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:35,847 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0140
+2025-11-16 11:00:35,899 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:35,899 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0049
+2025-11-16 11:00:35,951 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:35,951 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0365
+2025-11-16 11:00:36,004 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:36,004 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0890
+2025-11-16 11:00:36,054 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:36,054 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0170
+2025-11-16 11:00:36,104 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:36,104 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0120
+2025-11-16 11:00:36,155 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:36,155 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.1403
+2025-11-16 11:00:36,203 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:36,203 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.1595
+2025-11-16 11:00:36,254 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:36,254 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0070
+2025-11-16 11:00:36,304 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:36,304 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0477
+2025-11-16 11:00:36,354 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:36,354 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0080
+2025-11-16 11:00:36,405 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:36,405 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0635
+2025-11-16 11:00:36,453 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:36,453 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0221
+2025-11-16 11:00:36,505 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:36,505 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0690
+2025-11-16 11:00:36,554 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:36,554 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0862
+2025-11-16 11:00:36,604 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:36,604 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0218
+2025-11-16 11:00:36,654 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:36,654 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0922
+2025-11-16 11:00:36,705 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:36,705 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0861
+2025-11-16 11:00:36,755 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:36,798 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:36,855 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:36,908 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:36,909 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0000
+2025-11-16 11:00:36,955 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:36,955 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0746
+2025-11-16 11:00:37,014 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:37,014 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0828
+2025-11-16 11:00:37,066 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:37,066 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0030
+2025-11-16 11:00:37,116 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:37,116 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0613
+2025-11-16 11:00:37,170 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:37,170 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0091
+2025-11-16 11:00:37,220 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:37,220 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0002
+2025-11-16 11:00:37,270 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:37,270 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0209
+2025-11-16 11:00:37,321 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:37,321 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0140
+2025-11-16 11:00:37,372 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:37,372 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0388
+2025-11-16 11:00:37,420 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:37,420 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0103
+2025-11-16 11:00:37,470 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:37,470 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0891
+2025-11-16 11:00:37,521 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:37,521 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0152
+2025-11-16 11:00:37,566 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:37,615 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:37,656 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:37,699 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:37,699 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0000
+2025-11-16 11:00:37,753 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:37,756 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0097
+2025-11-16 11:00:37,804 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:37,837 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:37,870 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:37,903 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:37,956 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:37,956 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0000
+2025-11-16 11:00:38,003 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:38,003 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0015
+2025-11-16 11:00:38,066 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:38,066 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.3675
+2025-11-16 11:00:38,066 - PictionaryLive - INFO - Predicción: bench (93.6%)
+2025-11-16 11:00:38,120 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:38,157 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:38,198 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:38,198 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0000
+2025-11-16 11:00:38,257 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:38,326 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:38,326 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0000
+2025-11-16 11:00:38,383 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:38,383 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.1612
+2025-11-16 11:00:38,437 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:38,437 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.1019
+2025-11-16 11:00:38,487 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:38,487 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.1266
+2025-11-16 11:00:38,538 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:38,538 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0911
+2025-11-16 11:00:38,599 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:38,599 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.1866
+2025-11-16 11:00:38,649 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:38,649 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0146
+2025-11-16 11:00:38,704 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:38,733 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:38,799 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:38,799 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0000
+2025-11-16 11:00:38,850 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:38,850 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0134
+2025-11-16 11:00:38,904 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:38,959 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:38,997 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:39,058 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:39,059 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0000
+2025-11-16 11:00:39,105 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:39,105 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.1691
+2025-11-16 11:00:39,153 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:39,183 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:39,220 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:39,265 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:39,298 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:39,347 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:39,381 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:39,415 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:39,453 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:39,483 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:39,521 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:39,549 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:39,587 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:39,621 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:39,649 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:39,688 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:39,716 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:39,754 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:39,787 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:39,821 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:39,855 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:39,887 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:39,920 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:39,949 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:39,987 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:40,020 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:40,049 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:40,087 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:40,116 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:40,155 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:40,187 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:40,221 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:40,253 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:40,287 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:40,316 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:40,353 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:40,382 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:40,420 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:40,449 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:40,482 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:40,516 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:40,553 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:40,582 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:40,621 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:40,649 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:40,686 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:40,716 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:40,754 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:40,782 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:40,820 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:40,849 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:40,887 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:40,916 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:40,953 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:40,982 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:41,020 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:41,053 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:41,086 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:41,116 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:41,154 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:41,182 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:41,221 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:41,249 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:41,287 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:41,316 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:41,354 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:41,382 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:41,431 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:41,480 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:41,516 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:41,609 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:41,641 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:41,687 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:41,716 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:41,754 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:41,787 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:41,820 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:41,854 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:41,882 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:41,931 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:41,965 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:41,998 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:42,036 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:42,072 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:42,108 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:42,137 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:42,171 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:42,205 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:42,238 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:42,271 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:42,303 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:42,348 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:42,392 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:42,421 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:42,449 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:42,513 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:42,570 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:42,598 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:42,631 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:42,681 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:42,715 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:42,754 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:42,786 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:42,820 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:42,848 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:42,887 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:42,915 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:42,953 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:42,982 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:43,020 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:43,049 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:43,087 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:43,115 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:43,154 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:43,182 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:43,220 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:43,254 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:43,282 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:43,320 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:43,349 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:43,382 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:43,420 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:43,449 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:43,498 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:43,548 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:43,582 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:43,621 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:43,649 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:43,687 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:43,715 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:43,814 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:43,864 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:43,898 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:43,936 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:43,971 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:43,999 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:44,037 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:44,070 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:44,099 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:44,137 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:44,218 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:44,270 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:44,297 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:44,337 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:44,382 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:44,431 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:44,465 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:44,504 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:44,537 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:44,571 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:44,604 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:44,637 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:44,681 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:44,742 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:44,781 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:44,814 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:44,865 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:44,898 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:44,947 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:44,981 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:45,041 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:45,110 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:45,176 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:45,200 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:45,237 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:45,271 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:45,304 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:45,337 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:45,371 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:45,398 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:45,442 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:45,484 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:45,552 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:45,592 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:45,658 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:45,684 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:45,732 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:45,781 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:45,830 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:45,868 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:45,914 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:45,971 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:45,997 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:46,047 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:46,081 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:46,132 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:46,169 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:46,231 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:46,231 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0000
+2025-11-16 11:00:46,288 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:46,288 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0656
+2025-11-16 11:00:46,337 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:46,337 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0215
+2025-11-16 11:00:46,415 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:46,415 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0148
+2025-11-16 11:00:46,470 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:46,470 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0063
+2025-11-16 11:00:46,520 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:46,520 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0070
+2025-11-16 11:00:46,571 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:46,571 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0041
+2025-11-16 11:00:46,632 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:46,632 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0045
+2025-11-16 11:00:46,682 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:46,682 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0030
+2025-11-16 11:00:46,737 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:46,737 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0106
+2025-11-16 11:00:46,788 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:46,788 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0063
+2025-11-16 11:00:46,837 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:46,837 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0615
+2025-11-16 11:00:46,899 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:46,899 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0378
+2025-11-16 11:00:46,953 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:46,953 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0039
+2025-11-16 11:00:47,003 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:47,003 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0320
+2025-11-16 11:00:47,053 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:47,053 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0079
+2025-11-16 11:00:47,103 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:47,103 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0272
+2025-11-16 11:00:47,154 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:47,154 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0201
+2025-11-16 11:00:47,203 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:47,203 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0742
+2025-11-16 11:00:47,254 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:47,254 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0209
+2025-11-16 11:00:47,299 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:47,299 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0047
+2025-11-16 11:00:47,353 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:47,353 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.1079
+2025-11-16 11:00:47,403 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:47,403 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.1105
+2025-11-16 11:00:47,454 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:47,454 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0303
+2025-11-16 11:00:47,499 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:47,499 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0104
+2025-11-16 11:00:47,549 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:47,549 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0560
+2025-11-16 11:00:47,603 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:47,603 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0711
+2025-11-16 11:00:47,654 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:47,654 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0073
+2025-11-16 11:00:47,699 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:47,699 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0450
+2025-11-16 11:00:47,753 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:47,753 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0209
+2025-11-16 11:00:47,804 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:47,804 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0053
+2025-11-16 11:00:47,854 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:47,854 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0027
+2025-11-16 11:00:47,903 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:47,903 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0137
+2025-11-16 11:00:47,954 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:47,954 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0058
+2025-11-16 11:00:48,004 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:48,004 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0921
+2025-11-16 11:00:48,065 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:48,072 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0362
+2025-11-16 11:00:48,115 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:48,115 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0010
+2025-11-16 11:00:48,172 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:48,172 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0153
+2025-11-16 11:00:48,220 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:48,220 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0007
+2025-11-16 11:00:48,270 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:48,272 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0117
+2025-11-16 11:00:48,320 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:48,320 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0028
+2025-11-16 11:00:48,373 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:48,373 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.1390
+2025-11-16 11:00:48,421 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:48,421 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0030
+2025-11-16 11:00:48,473 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:48,473 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0035
+2025-11-16 11:00:48,520 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:48,520 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0581
+2025-11-16 11:00:48,573 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:48,573 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0027
+2025-11-16 11:00:48,620 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:48,620 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0506
+2025-11-16 11:00:48,673 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:48,673 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0006
+2025-11-16 11:00:48,720 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:48,720 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0310
+2025-11-16 11:00:48,773 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:48,773 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0045
+2025-11-16 11:00:48,820 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:48,820 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0937
+2025-11-16 11:00:48,873 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:48,873 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0104
+2025-11-16 11:00:48,920 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:48,920 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0324
+2025-11-16 11:00:48,973 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:48,973 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0521
+2025-11-16 11:00:49,021 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:49,021 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0075
+2025-11-16 11:00:49,073 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:49,073 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0091
+2025-11-16 11:00:49,121 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:49,121 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0050
+2025-11-16 11:00:49,173 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:49,173 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0223
+2025-11-16 11:00:49,232 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:49,232 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0079
+2025-11-16 11:00:49,282 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:49,282 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0013
+2025-11-16 11:00:49,348 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:49,348 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0110
+2025-11-16 11:00:49,348 - PictionaryLive - INFO - Predicción: butterfly (84.8%)
+2025-11-16 11:00:49,414 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:49,414 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0025
+2025-11-16 11:00:49,474 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:49,474 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0367
+2025-11-16 11:00:49,520 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:49,520 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0064
+2025-11-16 11:00:49,570 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:49,570 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0023
+2025-11-16 11:00:49,620 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:49,620 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0049
+2025-11-16 11:00:49,671 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:49,671 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0039
+2025-11-16 11:00:49,720 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:49,720 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0389
+2025-11-16 11:00:49,782 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:49,782 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0322
+2025-11-16 11:00:49,832 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:49,832 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0005
+2025-11-16 11:00:49,882 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:49,882 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0013
+2025-11-16 11:00:49,938 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:49,938 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0143
+2025-11-16 11:00:49,987 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:49,987 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0015
+2025-11-16 11:00:50,037 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:50,037 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0305
+2025-11-16 11:00:50,098 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:50,098 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0811
+2025-11-16 11:00:50,164 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:50,164 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0081
+2025-11-16 11:00:50,216 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:50,216 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0964
+2025-11-16 11:00:50,270 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:50,275 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0263
+2025-11-16 11:00:50,320 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:50,320 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0053
+2025-11-16 11:00:50,375 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:50,375 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0540
+2025-11-16 11:00:50,421 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:50,421 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0030
+2025-11-16 11:00:50,470 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:50,475 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0251
+2025-11-16 11:00:50,520 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:50,520 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0168
+2025-11-16 11:00:50,575 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:50,575 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0575
+2025-11-16 11:00:50,621 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:50,621 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0147
+2025-11-16 11:00:50,671 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:50,671 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0067
+2025-11-16 11:00:50,720 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:50,720 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0116
+2025-11-16 11:00:50,771 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:50,771 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0048
+2025-11-16 11:00:50,820 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:50,820 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.1766
+2025-11-16 11:00:50,882 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:50,882 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0920
+2025-11-16 11:00:50,937 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:50,937 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0319
+2025-11-16 11:00:50,982 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:50,982 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.1179
+2025-11-16 11:00:51,049 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:51,049 - PictionaryLive - INFO - Mano(s) detectada(s): 2, confianza: 0.00, velocidad: 0.0457
+2025-11-16 11:00:51,099 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:51,099 - PictionaryLive - INFO - Mano(s) detectada(s): 2, confianza: 0.00, velocidad: 0.0275
+2025-11-16 11:00:51,138 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:51,138 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0124
+2025-11-16 11:00:51,182 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:51,182 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0811
+2025-11-16 11:00:51,237 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:51,237 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0731
+2025-11-16 11:00:51,287 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:51,287 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.1188
+2025-11-16 11:00:51,365 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:51,365 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0547
+2025-11-16 11:00:51,415 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:51,415 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.1202
+2025-11-16 11:00:51,470 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:51,470 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0356
+2025-11-16 11:00:51,520 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:51,520 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0353
+2025-11-16 11:00:51,571 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:51,576 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0384
+2025-11-16 11:00:51,632 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:51,632 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.1318
+2025-11-16 11:00:51,687 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:51,687 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0193
+2025-11-16 11:00:51,737 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:51,737 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.1119
+2025-11-16 11:00:51,787 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:51,787 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0075
+2025-11-16 11:00:51,837 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:51,837 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.1675
+2025-11-16 11:00:51,882 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:51,882 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0184
+2025-11-16 11:00:51,937 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:51,937 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0292
+2025-11-16 11:00:51,988 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:51,988 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0779
+2025-11-16 11:00:52,037 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:52,037 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0135
+2025-11-16 11:00:52,082 - PictionaryLive - WARNING - No se pudo obtener confianza de mano: 'google._upb._message.RepeatedCompositeContainer' object has no attribute 'score'
+2025-11-16 11:00:52,082 - PictionaryLive - INFO - Mano(s) detectada(s): 1, confianza: 0.00, velocidad: 0.0971
+2025-11-16 11:00:52,132 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:52,177 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:52,203 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:52,232 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:52,270 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:52,304 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:52,377 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:52,406 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:52,438 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:52,473 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:52,514 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:52,558 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:52,587 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:52,620 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:52,653 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:52,685 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:52,719 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:52,752 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:52,797 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:52,838 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:52,870 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:52,900 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:52,938 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:52,974 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:53,004 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:53,032 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:53,083 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:53,119 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:53,181 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:53,220 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:53,265 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:53,298 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:53,337 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:53,365 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:53,404 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:53,432 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:53,470 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:53,499 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:53,532 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:53,565 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:53,605 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:53,632 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:53,670 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:53,699 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:53,732 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:53,765 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:53,804 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:53,837 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:53,870 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:53,898 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:53,948 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:53,981 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:54,018 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:54,049 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:54,086 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:54,115 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:54,154 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:54,186 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:54,237 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:54,265 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:54,304 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:54,337 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:54,371 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:54,399 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:54,432 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:54,465 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:54,504 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:54,565 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:54,598 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:54,631 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:54,669 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:54,698 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:54,776 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:54,802 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:54,837 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:54,865 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:54,904 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:54,932 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:54,970 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:54,999 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:55,037 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:55,065 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:55,104 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:55,132 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:55,322 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:55,348 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:55,398 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:55,466 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:55,497 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:55,536 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:55,575 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:55,605 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:55,648 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:55,685 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:55,716 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:55,755 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:55,782 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:55,821 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:55,854 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:55,888 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:55,915 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:55,954 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:55,982 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:56,021 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:56,054 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:56,087 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:56,120 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:56,154 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:56,182 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:56,220 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:56,249 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:56,287 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:56,315 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:56,355 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:56,388 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:56,421 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:56,449 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:56,487 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:56,520 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:56,554 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:56,583 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:56,621 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:56,654 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:56,687 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:56,715 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:56,754 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:56,782 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:56,816 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:56,849 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:56,889 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:56,915 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:56,954 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:56,982 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:57,015 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:57,049 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:57,092 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:57,121 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:57,155 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:57,184 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:57,220 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:57,249 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:57,287 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:57,315 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:57,354 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:57,384 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:57,421 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:57,449 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:57,488 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:57,515 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:57,554 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:57,584 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:57,621 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:57,649 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:57,687 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:57,715 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:57,754 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:57,784 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:57,822 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:57,849 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:57,888 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:57,915 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:57,953 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:57,985 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:58,022 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:58,049 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:58,088 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:58,116 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:58,155 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:58,185 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:58,222 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:58,252 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:58,288 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:58,316 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:58,357 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:58,385 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:58,416 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:58,454 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:58,485 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:58,521 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:58,549 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:58,586 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:58,615 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:58,654 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:58,685 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:58,721 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:58,749 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:58,785 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:58,915 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:58,959 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:59,004 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:59,048 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:59,101 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:59,171 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:59,203 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:59,239 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:59,272 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:59,306 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:59,334 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:59,373 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:59,405 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:59,435 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:59,464 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:59,502 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:59,532 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:59,571 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:59,604 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:59,638 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:59,665 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:59,704 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:59,732 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:59,753 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:59,787 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:59,815 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:59,854 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:59,886 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:59,921 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:59,953 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:00:59,987 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:01:00,021 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:01:00,054 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:01:00,086 - PictionaryLive - INFO - No se detectó mano en este frame
+2025-11-16 11:01:00,098 - PictionaryLive - INFO - Usuario presionó 'q' - saliendo
+2025-11-16 11:01:00,381 - PictionaryLive - INFO - 
+Aplicación cerrada
