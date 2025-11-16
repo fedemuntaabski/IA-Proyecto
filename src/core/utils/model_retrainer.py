@@ -13,9 +13,17 @@ from pathlib import Path
 import threading
 import time
 import logging
-from sklearn.model_selection import cross_val_score, StratifiedKFold
 
 logger = logging.getLogger(__name__)
+
+# Importar sklearn de forma condicional
+try:
+    from sklearn.model_selection import cross_val_score, StratifiedKFold
+    SKLEARN_AVAILABLE = True
+except ImportError:
+    SKLEARN_AVAILABLE = False
+    logger.warning("scikit-learn no disponible - funciones de validación cruzada deshabilitadas")
+
 
 
 class ModelRetrainer:

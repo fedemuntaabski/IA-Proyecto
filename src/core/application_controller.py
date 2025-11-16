@@ -25,6 +25,12 @@ from .utils.async_processor import async_processor
 from .utils.analytics import analytics_tracker
 from .utils.feedback_manager import feedback_manager
 from .utils.model_retrainer import ModelRetrainer
+from .utils.user_preferences import UserPreferences
+from .utils.sound_manager import sound_manager
+from .utils.statistics_tracker import statistics_tracker
+from .utils.performance_monitor import performance_monitor
+from .utils.settings_manager import settings_manager
+from .utils.error_handler import handle_error
 
 
 class ApplicationController:
@@ -53,6 +59,22 @@ class ApplicationController:
         # Inicializar internacionalización
         i18n.auto_detect_and_load()
         print(f"🌐 Idioma: {i18n.get_current_language().upper()}")
+
+        # Cargar preferencias de usuario
+        self.user_preferences = UserPreferences()
+        print(f"🎨 Tema: {self.user_preferences.get_theme()}")
+
+        # Cargar configuración avanzada
+        self.settings = settings_manager
+        valid, errors = self.settings.validate()
+        if not valid:
+            print(f"⚠️  {_('Errores en configuración')}:")
+            for error in errors:
+                print(f"   • {error}")
+
+        # Configurar sonidos según preferencias
+        sound_manager.set_enabled(self.user_preferences.is_sound_enabled())
+        sound_manager.set_volume(self.user_preferences.get_sound_volume())
 
         # Configurar GPU
         self._setup_gpu_acceleration()
@@ -107,6 +129,8 @@ class ApplicationController:
 
         # Inicializar UI
         self.ui_manager = UIManager()
+        # Aplicar tema guardado
+        self.ui_manager.switch_theme(self.user_preferences.get_theme())
 
         # Estado de la aplicación
         self.session_start_time = time.time()
@@ -162,6 +186,10 @@ class ApplicationController:
         # Actualizar FPS
         self._update_fps()
 
+        # Registrar frame en estadísticas y monitor de rendimiento
+        statistics_tracker.record_frame(self.current_fps)
+        performance_monitor.update(self.current_fps)
+
         # Rastrear frame procesado
         analytics_tracker.track_frame_processed(self.current_fps)
 
@@ -206,11 +234,14 @@ class ApplicationController:
         """
         if key == ord('q'):
             print(f"\n👋 {_('Saliendo...')}")
+            sound_manager.play_sound('info')
             return True
         elif key == ord('r'):
             print(_("🧹 Limpiando dibujo..."))
+            sound_manager.play_sound('info')
             self.frame_processor.clear_drawing()
         elif key == ord(' ') and len(self.frame_processor.gesture_processor.stroke_points) > 0:
+            sound_manager.play_classification()
             self.frame_processor.force_classification()
         elif key == ord('c') or key == ord('C'):
             self.ui_manager.toggle_feedback_mode()
@@ -223,10 +254,52 @@ class ApplicationController:
             self.ui_manager.toggle_help()
             status = _("mostrada") if self.ui_manager.show_help else _("oculta")
             print(f"{'👁️' if self.ui_manager.show_help else '🙈'} {_('Ayuda')} {status}")
+            sound_manager.play_info()
         elif key == ord('p') or key == ord('P'):
             self.ui_manager.toggle_user_profile()
             status = _("mostrado") if self.ui_manager.show_user_profile else _("oculto")
             print(f"👤 {_('Perfil de usuario')} {status}")
+        elif key == 112:  # F1
+            self.ui_manager.switch_theme('default')
+            self.user_preferences.set_theme('default')
+            self.user_preferences.save()
+            print(f"🎨 {_('Tema')}: Default")
+            sound_manager.play_info()
+        elif key == 113:  # F2
+            self.ui_manager.switch_theme('dark')
+            self.user_preferences.set_theme('dark')
+            self.user_preferences.save()
+            print(f"🎨 {_('Tema')}: Dark")
+            sound_manager.play_info()
+        elif key == 114:  # F3
+            self.ui_manager.switch_theme('high_contrast')
+            self.user_preferences.set_theme('high_contrast')
+            self.user_preferences.save()
+            print(f"🎨 {_('Tema')}: Alto Contraste")
+            sound_manager.play_info()
+        elif key == 115:  # F4
+            self.ui_manager.switch_theme('ocean')
+            self.user_preferences.set_theme('ocean')
+            self.user_preferences.save()
+            print(f"🎨 {_('Tema')}: Ocean")
+            sound_manager.play_info()
+        elif key == 116:  # F5
+            self.ui_manager.switch_theme('forest')
+            self.user_preferences.set_theme('forest')
+            self.user_preferences.save()
+            print(f"🎨 {_('Tema')}: Forest")
+            sound_manager.play_info()
+        elif key == 117:  # F6 - Toggle sonidos
+            enabled = not self.user_preferences.is_sound_enabled()
+            self.user_preferences.set_sound_enabled(enabled)
+            self.user_preferences.save()
+            sound_manager.set_enabled(enabled)
+            status = _("habilitados") if enabled else _("deshabilitados")
+            print(f"🔊 {_('Sonidos')} {status}")
+        elif key == ord('i'):  # Info de rendimiento
+            performance_monitor.print_status()
+        elif key == ord('s'):  # Settings
+            self.settings.print_settings()
         elif key == 27:  # ESC key
             if self.ui_manager.show_user_profile:
                 self.ui_manager.toggle_user_profile()
@@ -241,23 +314,37 @@ class ApplicationController:
         Returns:
             Diccionario con estadísticas
         """
-        stats = self.frame_processor.get_statistics()
-        success_rate = stats['success_rate']
+        # Mostrar estado de rendimiento
+        performance_monitor.print_status()
 
-        print("\n" + "="*50)
-        print(_("ESTADÍSTICAS DE LA SESIÓN"))
-        print("="*50)
-        print(f"⏱️  {_('Duración')}: {stats['session_duration']:.1f} segundos")
-        print(f"🎨 {_('Dibujos realizados')}: {stats['total_drawings']}")
-        print(f"✅ {_('Predicciones exitosas')}: {stats['successful_predictions']}")
-        print(f"📈 {_('Tasa de éxito')}: {success_rate:.1f}%")
-        print(f"🤖 {_('Modo clasificador')}: {self.classifier.mode.upper()}")
-        print("="*50)
+        # Finalizar sesión en rastreador
+        session_stats = statistics_tracker.end_session()
+        statistics_tracker.save()
 
-        return stats
+        # Imprimir resumen
+        statistics_tracker.print_summary()
+
+        # Estadísticas por clase
+        class_stats = statistics_tracker.get_class_statistics()
+        if class_stats:
+            print(f"📊 {_('Estadísticas por clase')}:")
+            for class_name, stats in class_stats.items():
+                print(f"  - {class_name}: {stats['count']} dibujos ({stats['success_rate']:.1f}% éxito)")
+
+        # Sugerencias de optimización
+        optimization_suggestions = performance_monitor.get_optimization_suggestions()
+        if optimization_suggestions:
+            print(f"\n⚡ {_('Sugerencias de optimización')}:")
+            for suggestion in optimization_suggestions:
+                print(f"  • {suggestion}")
+
+        return session_stats
 
     def cleanup(self) -> None:
         """Limpia recursos de la aplicación."""
+        # Guardar preferencias de usuario
+        self.user_preferences.save()
+
         # Detener procesamiento asíncrono
         async_processor.stop()
 

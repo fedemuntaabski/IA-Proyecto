@@ -94,7 +94,7 @@ def main():
         app = AirDrawClassifier()
         app.run()
     except KeyboardInterrupt:
-        print(f"\n⚠ {_('Interrupción detectada')}")
+        print(f"\n⚠️  {_('Interrupción detectada')}")
     except Exception as e:
         print(f"❌ {_('Error en la mini-app')}: {e}")
         import traceback

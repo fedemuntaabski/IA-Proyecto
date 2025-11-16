@@ -62,23 +62,23 @@ class UIManager:
             _("¡Excelente! Presiona H para ver más controles")
         ]
 
-        # Temas disponibles mejorados
+        # Temas disponibles mejorados con colores modernos
         self.available_themes = {
             'default': self.theme.copy(),
             'dark': {
-                'bg_primary': (20, 20, 30),
-                'bg_secondary': (40, 40, 50),
-                'border': (100, 100, 120),
-                'text_primary': (220, 220, 240),
-                'text_success': (100, 255, 100),
-                'text_warning': (255, 200, 100),
-                'text_error': (255, 100, 100),
-                'text_info': (150, 150, 255),
-                'accent': (255, 150, 255)
+                'bg_primary': (33, 33, 33),
+                'bg_secondary': (48, 48, 48),
+                'border': (117, 117, 117),
+                'text_primary': (229, 229, 229),
+                'text_success': (129, 199, 132),
+                'text_warning': (255, 193, 7),
+                'text_error': (229, 57, 53),
+                'text_info': (66, 165, 245),
+                'accent': (255, 152, 0)
             },
             'high_contrast': {
                 'bg_primary': (0, 0, 0),
-                'bg_secondary': (50, 50, 50),
+                'bg_secondary': (51, 51, 51),
                 'border': (255, 255, 255),
                 'text_primary': (255, 255, 255),
                 'text_success': (0, 255, 0),
@@ -88,26 +88,26 @@ class UIManager:
                 'accent': (255, 0, 255)
             },
             'ocean': {
-                'bg_primary': (40, 20, 10),
-                'bg_secondary': (60, 40, 20),
-                'border': (150, 100, 50),
-                'text_primary': (200, 180, 150),
-                'text_success': (100, 200, 150),
-                'text_warning': (200, 150, 100),
-                'text_error': (200, 100, 100),
-                'text_info': (150, 180, 200),
-                'accent': (100, 200, 255)
+                'bg_primary': (13, 71, 161),
+                'bg_secondary': (25, 103, 210),
+                'border': (66, 165, 245),
+                'text_primary': (227, 242, 253),
+                'text_success': (76, 175, 80),
+                'text_warning': (255, 193, 7),
+                'text_error': (244, 67, 54),
+                'text_info': (100, 181, 246),
+                'accent': (255, 152, 0)
             },
-            'neon': {
-                'bg_primary': (10, 10, 20),
-                'bg_secondary': (20, 20, 40),
-                'border': (100, 50, 200),
-                'text_primary': (50, 255, 150),
-                'text_success': (0, 255, 100),
-                'text_warning': (255, 100, 0),
-                'text_error': (255, 0, 100),
-                'text_info': (0, 200, 255),
-                'accent': (200, 50, 255)
+            'forest': {
+                'bg_primary': (27, 94, 32),
+                'bg_secondary': (56, 142, 60),
+                'border': (102, 187, 106),
+                'text_primary': (232, 245, 233),
+                'text_success': (129, 199, 132),
+                'text_warning': (255, 193, 7),
+                'text_error': (244, 67, 54),
+                'text_info': (100, 181, 246),
+                'accent': (255, 152, 0)
             }
         }
         self.current_theme = 'default'

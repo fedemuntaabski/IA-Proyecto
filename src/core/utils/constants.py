@@ -31,16 +31,16 @@ DEFAULT_FONT_SCALE = 0.6
 DEFAULT_FONT_THICKNESS = 2
 DEFAULT_BAR_HEIGHT = 80
 
-# Colores BGR para UI
-COLOR_SUCCESS = (0, 255, 0)
-COLOR_WARNING = (0, 165, 255)
-COLOR_ERROR = (0, 0, 255)
-COLOR_INFO = (255, 255, 0)
-COLOR_TEXT_PRIMARY = (255, 255, 255)
-COLOR_ACCENT = (255, 100, 100)
-COLOR_BG_PRIMARY = (30, 30, 30)
-COLOR_BG_SECONDARY = (20, 20, 20)
-COLOR_BORDER = (200, 200, 200)
+# Colores BGR para UI - Tema moderno por defecto
+COLOR_SUCCESS = (76, 175, 80)          # Verde moderno
+COLOR_WARNING = (33, 150, 243)         # Azul moderno
+COLOR_ERROR = (244, 67, 54)            # Rojo moderno
+COLOR_INFO = (156, 39, 176)            # Púrpura moderno
+COLOR_TEXT_PRIMARY = (33, 33, 33)      # Gris oscuro para texto
+COLOR_ACCENT = (255, 152, 0)           # Naranja moderno
+COLOR_BG_PRIMARY = (255, 255, 255)     # Blanco
+COLOR_BG_SECONDARY = (240, 240, 240)   # Gris muy claro
+COLOR_BORDER = (189, 189, 189)         # Gris medio
 
 # Configuración de GPU
 GPU_MEMORY_GROWTH = True
