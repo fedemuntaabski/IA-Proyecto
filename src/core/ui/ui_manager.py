@@ -41,8 +41,54 @@ class UIManager:
         }
 
         # Estado de UI
-        self.show_help = True
+        self.show_help = False
         self.current_fps = 0.0
+
+        # Sistema de tooltips mejorado
+        self.tooltip_active = False
+        self.tooltip_text = ""
+        self.tooltip_position = (0, 0)
+        self.tooltip_start_time = 0
+        self.tooltip_duration = 3.0  # segundos
+
+        # Sistema de tutorial
+        self.tutorial_active = False
+        self.tutorial_step = 0
+        self.tutorial_steps = [
+            _("¡Bienvenido! Muestra tu mano completa a la cámara"),
+            _("Extiende tu dedo índice para empezar a dibujar"),
+            _("Dibuja formas reconocibles (círculo, cuadrado, etc.)"),
+            _("Presiona ESPACIO para clasificar tu dibujo"),
+            _("¡Excelente! Presiona H para ver más controles")
+        ]
+
+        # Temas disponibles
+        self.available_themes = {
+            'default': self.theme.copy(),
+            'dark': {
+                'bg_primary': (20, 20, 30),
+                'bg_secondary': (40, 40, 50),
+                'border': (100, 100, 120),
+                'text_primary': (220, 220, 240),
+                'text_success': (100, 255, 100),
+                'text_warning': (255, 200, 100),
+                'text_error': (255, 100, 100),
+                'text_info': (150, 150, 255),
+                'accent': (255, 150, 255)
+            },
+            'high_contrast': {
+                'bg_primary': (0, 0, 0),
+                'bg_secondary': (50, 50, 50),
+                'border': (255, 255, 255),
+                'text_primary': (255, 255, 255),
+                'text_success': (0, 255, 0),
+                'text_warning': (255, 255, 0),
+                'text_error': (255, 0, 0),
+                'text_info': (0, 255, 255),
+                'accent': (255, 0, 255)
+            }
+        }
+        self.current_theme = 'default'
 
     def draw_ui(self, frame: np.ndarray, app_state: dict) -> np.ndarray:
         """
@@ -67,6 +113,18 @@ class UIManager:
         if self.show_help:
             self._draw_help_panel(frame, app_state)
 
+        # Dibujar tutorial si está activo
+        if self.tutorial_active:
+            self._draw_tutorial(frame, app_state)
+
+        # Dibujar tooltip si está activo
+        if self.tooltip_active:
+            self._draw_tooltip(frame)
+            self.update_tooltip()
+
+        # Mostrar tooltips contextuales automáticos
+        self.show_contextual_tooltip(app_state)
+
         return frame
 
     def _draw_top_bar(self, frame: np.ndarray, app_state: dict) -> None:
@@ -86,6 +144,7 @@ class UIManager:
         y_offset = 25
         has_hands = app_state.get('has_hands', False)
         stroke_points_count = len(app_state.get('stroke_points', []))
+        min_points = app_state.get('min_points_for_classification', 10)
 
         if has_hands:
             cv2.circle(frame, (width-30, 20), 8, self.theme['text_success'], -1)
@@ -108,22 +167,43 @@ class UIManager:
         cv2.putText(frame, fps_text, (width - 100, y_offset), cv2.FONT_HERSHEY_SIMPLEX, 0.6, fps_color, 2)
 
         # Barra de confianza
-        cv2.putText(frame, f"Confianza: {confidence_indicator}", (10, y_offset + 20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, self.theme['text_info'], 1)
+        confidence_level = self._calculate_confidence_level(has_hands, stroke_points_count, min_points)
+        confidence_colors = ['○', '●', '●', '●']  # Estados: vacío, bajo, medio, alto
+        confidence_text = f"Confianza: {confidence_colors[min(confidence_level, 3)] * (confidence_level + 1)}"
+        confidence_color = [self.theme['text_error'], self.theme['text_warning'],
+                           self.theme['text_info'], self.theme['text_success']][min(confidence_level, 3)]
+        cv2.putText(frame, confidence_text, (10, y_offset + 20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, confidence_color, 1)
 
         # Estado de dibujo
         y_offset += 35
         is_drawing = app_state.get('is_drawing', False)
-        min_points = app_state.get('min_points_for_classification', 10)
 
         if is_drawing:
-            pulse = int(time.time() * 4) % 2
-            draw_color = self.theme['accent'] if pulse else self.theme['text_warning']
+            # Efecto de pulso animado más sofisticado
+            pulse_intensity = (np.sin(time.time() * 6) + 1) / 2  # Oscilación más rápida
+            draw_color = tuple(int(self.theme['accent'][i] * (0.5 + pulse_intensity * 0.5)) for i in range(3))
             draw_status = f"✏️ {_('DIBUJANDO...')}"
-            # Barra de progreso
+
+            # Barra de progreso con gradiente
             progress = min(stroke_points_count / min_points, 1.0)
             bar_width = int(progress * 200)
-            cv2.rectangle(frame, (10, y_offset + 5), (10 + bar_width, y_offset + 15), draw_color, -1)
+
+            # Gradiente en la barra de progreso
+            for i in range(bar_width):
+                gradient_factor = i / 200.0
+                bar_color = tuple(int(self.theme['text_success'][j] * gradient_factor +
+                                    self.theme['accent'][j] * (1 - gradient_factor)) for j in range(3))
+                cv2.line(frame, (10 + i, y_offset + 5), (10 + i, y_offset + 15), bar_color)
+
             cv2.rectangle(frame, (10, y_offset + 5), (210, y_offset + 15), self.theme['border'], 1)
+
+            # Indicador de progreso numérico
+            progress_text = f"{stroke_points_count}/{min_points}"
+            cv2.putText(frame, progress_text, (220, y_offset + 12),
+                       cv2.FONT_HERSHEY_SIMPLEX, 0.4, self.theme['text_info'], 1)
+
+            # Partículas de "polvo" para efecto visual
+            self._draw_drawing_particles(frame, stroke_points_count, y_offset + 20)
         else:
             draw_status = f"✅ {_('Listo para dibujar')}"
             draw_color = self.theme['text_success']
@@ -186,20 +266,24 @@ class UIManager:
             ("ESPACIO", _("Forzar clasificación")),
             ("R", _("Limpiar dibujo")),
             ("Q", _("Salir de la app")),
-            ("H", _("Mostrar/ocultar ayuda"))
+            ("H", _("Mostrar/ocultar ayuda")),
+            ("T", _("Iniciar tutorial")),
+            ("F1-F3", _("Cambiar tema (F1=Normal, F2=Oscuro, F3=Alto Contraste)"))
         ]
 
         for i, (key, desc) in enumerate(controls):
             y_pos = controls_y + i * 18
             key_text = f"[{key}]"
             cv2.putText(frame, key_text, (10, y_pos), cv2.FONT_HERSHEY_SIMPLEX, 0.5, self.theme['accent'], 1)
-            cv2.putText(frame, desc, (80, y_pos), cv2.FONT_HERSHEY_SIMPLEX, 0.5, self.theme['text_primary'], 1)
+            cv2.putText(frame, desc, (120, y_pos), cv2.FONT_HERSHEY_SIMPLEX, 0.5, self.theme['text_primary'], 1)
 
         # Tips
         tips = [
             _("Muestra tu mano completa a la cámara"),
             _("Dibuja con el dedo índice extendido"),
-            _("Mantén buena iluminación para mejor detección")
+            _("Mantén buena iluminación para mejor detección"),
+            _("Presiona T para ver el tutorial interactivo"),
+            _("Usa F1-F3 para cambiar temas de color")
         ]
 
         for i, tip in enumerate(tips):
@@ -242,3 +326,311 @@ class UIManager:
     def update_fps(self, fps: float) -> None:
         """Actualiza el valor de FPS para mostrar."""
         self.current_fps = fps
+
+    def show_tooltip(self, text: str, position: Tuple[int, int], duration: float = 3.0) -> None:
+        """
+        Muestra un tooltip en la posición especificada.
+
+        Args:
+            text: Texto del tooltip
+            position: Posición (x, y) donde mostrar el tooltip
+            duration: Duración en segundos
+        """
+        self.tooltip_active = True
+        self.tooltip_text = text
+        self.tooltip_position = position
+        self.tooltip_start_time = time.time()
+        self.tooltip_duration = duration
+
+    def hide_tooltip(self) -> None:
+        """Oculta el tooltip actual."""
+        self.tooltip_active = False
+
+    def update_tooltip(self) -> None:
+        """Actualiza el estado del tooltip (llamar en cada frame)."""
+        if self.tooltip_active and time.time() - self.tooltip_start_time > self.tooltip_duration:
+            self.tooltip_active = False
+
+    def start_tutorial(self) -> None:
+        """Inicia el tutorial interactivo."""
+        self.tutorial_active = True
+        self.tutorial_step = 0
+
+    def next_tutorial_step(self) -> None:
+        """Avanza al siguiente paso del tutorial."""
+        if self.tutorial_step < len(self.tutorial_steps) - 1:
+            self.tutorial_step += 1
+        else:
+            self.end_tutorial()
+
+    def end_tutorial(self) -> None:
+        """Finaliza el tutorial."""
+        self.tutorial_active = False
+        self.tutorial_step = 0
+
+    def switch_theme(self, theme_name: str) -> None:
+        """
+        Cambia el tema de colores.
+
+        Args:
+            theme_name: Nombre del tema ('default', 'dark', 'high_contrast')
+        """
+        if theme_name in self.available_themes:
+            self.theme = self.available_themes[theme_name].copy()
+            self.current_theme = theme_name
+
+    def _draw_drawing_particles(self, frame: np.ndarray, point_count: int, y_offset: int) -> None:
+        """Dibuja partículas decorativas durante el dibujo."""
+        # Crear efecto de "polvo mágico" con puntos aleatorios
+        np.random.seed(int(time.time() * 10) % (2**32 - 1))  # Semilla basada en tiempo para animación, limitada al rango válido
+
+        for i in range(min(point_count // 2, 10)):  # Máximo 10 partículas
+            x = np.random.randint(10, 250)
+            y = y_offset + np.random.randint(-5, 5)
+            size = np.random.randint(1, 3)
+            alpha = np.random.random() * 0.5 + 0.5  # Transparencia variable
+
+            color = tuple(int(self.theme['accent'][j] * alpha) for j in range(3))
+            cv2.circle(frame, (x, y), size, color, -1)
+
+    def _draw_tooltip(self, frame: np.ndarray) -> None:
+        """Dibuja el tooltip actual si está activo."""
+        if not self.tooltip_active:
+            return
+
+        x, y = self.tooltip_position
+        text_size = cv2.getTextSize(self.tooltip_text, cv2.FONT_HERSHEY_SIMPLEX, 0.5, 1)[0]
+        padding = 8
+
+        # Fondo del tooltip
+        bg_width = text_size[0] + padding * 2
+        bg_height = text_size[1] + padding * 2
+        bg_x = max(0, x - bg_width // 2)
+        bg_y = y - bg_height - 10
+
+        # Asegurar que el tooltip quepa en la pantalla
+        height, width = frame.shape[:2]
+        bg_x = max(0, min(bg_x, width - bg_width))
+        bg_y = max(0, bg_y)
+
+        cv2.rectangle(frame, (bg_x, bg_y), (bg_x + bg_width, bg_y + bg_height),
+                     self.theme['bg_secondary'], -1)
+        cv2.rectangle(frame, (bg_x, bg_y), (bg_x + bg_width, bg_y + bg_height),
+                     self.theme['border'], 1)
+
+        # Texto del tooltip
+        text_x = bg_x + padding
+        text_y = bg_y + padding + text_size[1]
+        cv2.putText(frame, self.tooltip_text, (text_x, text_y),
+                   cv2.FONT_HERSHEY_SIMPLEX, 0.5, self.theme['text_primary'], 1)
+
+    def _draw_tutorial(self, frame: np.ndarray, app_state: dict) -> None:
+        """Dibuja el tutorial interactivo."""
+        height, width = frame.shape[:2]
+
+        # Overlay semi-transparente
+        overlay = frame.copy()
+        cv2.rectangle(overlay, (0, 0), (width, height), (0, 0, 0), -1)
+        cv2.addWeighted(frame, 0.7, overlay, 0.3, 0, frame)
+
+        # Panel del tutorial
+        tutorial_width = 400
+        tutorial_height = 150
+        tutorial_x = (width - tutorial_width) // 2
+        tutorial_y = (height - tutorial_height) // 2
+
+        cv2.rectangle(frame, (tutorial_x, tutorial_y),
+                     (tutorial_x + tutorial_width, tutorial_y + tutorial_height),
+                     self.theme['bg_primary'], -1)
+        cv2.rectangle(frame, (tutorial_x, tutorial_y),
+                     (tutorial_x + tutorial_width, tutorial_y + tutorial_height),
+                     self.theme['accent'], 2)
+
+        # Título
+        title = _("Tutorial Interactivo")
+        cv2.putText(frame, title, (tutorial_x + 20, tutorial_y + 30),
+                   cv2.FONT_HERSHEY_SIMPLEX, 0.7, self.theme['text_primary'], 2)
+
+        # Paso actual
+        step_text = f"{_('Paso')} {self.tutorial_step + 1}/{len(self.tutorial_steps)}"
+        cv2.putText(frame, step_text, (tutorial_x + tutorial_width - 100, tutorial_y + 30),
+                   cv2.FONT_HERSHEY_SIMPLEX, 0.5, self.theme['text_info'], 1)
+
+        # Contenido del paso
+        current_step = self.tutorial_steps[self.tutorial_step]
+        lines = self._wrap_text(current_step, tutorial_width - 40)
+
+        for i, line in enumerate(lines):
+            y_pos = tutorial_y + 60 + i * 25
+            cv2.putText(frame, line, (tutorial_x + 20, y_pos),
+                       cv2.FONT_HERSHEY_SIMPLEX, 0.6, self.theme['text_primary'], 1)
+
+        # Indicador de progreso
+        progress = (self.tutorial_step + 1) / len(self.tutorial_steps)
+        progress_width = int(progress * (tutorial_width - 40))
+        cv2.rectangle(frame, (tutorial_x + 20, tutorial_y + tutorial_height - 30),
+                     (tutorial_x + 20 + progress_width, tutorial_y + tutorial_height - 20),
+                     self.theme['accent'], -1)
+        cv2.rectangle(frame, (tutorial_x + 20, tutorial_y + tutorial_height - 30),
+                     (tutorial_x + tutorial_width - 20, tutorial_y + tutorial_height - 20),
+                     self.theme['border'], 1)
+
+        # Instrucción
+        instruction = _("Presiona ESPACIO para continuar, T para saltar tutorial")
+        cv2.putText(frame, instruction, (tutorial_x + 20, tutorial_y + tutorial_height - 40),
+                   cv2.FONT_HERSHEY_SIMPLEX, 0.4, self.theme['text_info'], 1)
+
+    def _wrap_text(self, text: str, max_width: int) -> List[str]:
+        """Envuelve el texto para que quepa en el ancho especificado."""
+        words = text.split()
+        lines = []
+        current_line = ""
+
+        for word in words:
+            test_line = current_line + " " + word if current_line else word
+            text_size = cv2.getTextSize(test_line, cv2.FONT_HERSHEY_SIMPLEX, 0.6, 1)[0]
+
+            if text_size[0] <= max_width:
+                current_line = test_line
+            else:
+                if current_line:
+                    lines.append(current_line)
+                current_line = word
+
+        if current_line:
+            lines.append(current_line)
+
+        return lines
+
+    def _calculate_confidence_level(self, has_hands: bool, stroke_points: int, min_points: int) -> int:
+        """
+        Calcula el nivel de confianza basado en el estado actual.
+
+        Returns:
+            Nivel de confianza (0-3): 0=ninguno, 1=bajo, 2=medio, 3=alto
+        """
+        level = 0
+        if has_hands:
+            level += 1
+        if stroke_points >= min_points // 2:
+            level += 1
+        if stroke_points >= min_points:
+            level += 1
+        return level
+
+    def show_contextual_tooltip(self, app_state: dict, mouse_pos: Optional[Tuple[int, int]] = None) -> None:
+        """
+        Muestra tooltips contextuales basados en el estado de la aplicación.
+
+        Args:
+            app_state: Estado actual de la aplicación
+            mouse_pos: Posición del mouse (si está disponible)
+        """
+        has_hands = app_state.get('has_hands', False)
+        is_drawing = app_state.get('is_drawing', False)
+        stroke_points_count = len(app_state.get('stroke_points', []))
+        min_points = app_state.get('min_points_for_classification', 10)
+
+        # Tooltip para detección de manos
+        if not has_hands and not self.tooltip_active:
+            self.show_tooltip(_("Muestra tu mano completa a la cámara"),
+                            (50, 100), 2.0)
+            return
+
+        # Tooltip para empezar a dibujar
+        if has_hands and not is_drawing and stroke_points_count == 0 and not self.tooltip_active:
+            self.show_tooltip(_("Extiende tu dedo índice para empezar a dibujar"),
+                            (50, 120), 3.0)
+            return
+
+        # Tooltip para progreso de dibujo
+        if is_drawing and stroke_points_count < min_points and not self.tooltip_active:
+            remaining = min_points - stroke_points_count
+            self.show_tooltip(_("Continúa dibujando... necesitas {remaining} puntos más").format(remaining=remaining),
+                            (50, 140), 2.0)
+            return
+
+        # Tooltip para clasificación lista
+        if is_drawing and stroke_points_count >= min_points and not self.tooltip_active:
+            self.show_tooltip(_("¡Perfecto! Presiona ESPACIO para clasificar"),
+                            (50, 160), 3.0)
+            return
+
+    def handle_keyboard_shortcut(self, key: int) -> str:
+        """
+        Maneja atajos de teclado y retorna la acción correspondiente.
+
+        Args:
+            key: Código de tecla presionada
+
+        Returns:
+            Acción a realizar ('space', 'r', 'q', 'h', 't', 'f1', 'f2', 'f3', etc.)
+        """
+        key_char = chr(key).lower() if key < 256 else ''
+
+        if key == 32:  # ESPACIO
+            return 'space'
+        elif key_char == 'r':
+            return 'r'
+        elif key_char == 'q':
+            return 'q'
+        elif key_char == 'h':
+            return 'h'
+        elif key_char == 't':
+            return 't'
+        elif key == 112:  # F1
+            return 'f1'
+        elif key == 113:  # F2
+            return 'f2'
+        elif key == 114:  # F3
+            return 'f3'
+        elif key == 27:  # ESC
+            return 'escape'
+
+        return ''
+
+    def process_ui_action(self, action: str) -> None:
+        """
+        Procesa acciones de UI basadas en atajos de teclado.
+
+        Args:
+            action: Acción a procesar
+        """
+        if action == 'h':
+            self.toggle_help()
+        elif action == 't':
+            if self.tutorial_active:
+                self.end_tutorial()
+            else:
+                self.start_tutorial()
+        elif action == 'f1':
+            self.switch_theme('default')
+        elif action == 'f2':
+            self.switch_theme('dark')
+        elif action == 'f3':
+            self.switch_theme('high_contrast')
+        elif action == 'escape':
+            if self.tutorial_active:
+                self.end_tutorial()
+            elif self.tooltip_active:
+                self.hide_tooltip()
+
+    def get_accessibility_info(self) -> str:
+        """
+        Retorna información de accesibilidad para lectores de pantalla.
+
+        Returns:
+            Texto descriptivo del estado actual de la UI
+        """
+        info_parts = []
+
+        if self.tutorial_active:
+            info_parts.append(f"Tutorial activo, paso {self.tutorial_step + 1} de {len(self.tutorial_steps)}")
+
+        info_parts.append(f"Tema actual: {self.current_theme}")
+        info_parts.append(f"Panel de ayuda: {'visible' if self.show_help else 'oculto'}")
+
+        if self.tooltip_active:
+            info_parts.append(f"Tooltip: {self.tooltip_text}")
+
+        return ". ".join(info_parts)

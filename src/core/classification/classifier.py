@@ -10,6 +10,8 @@ import numpy as np
 from typing import List, Tuple, Optional, Dict, Any
 from pathlib import Path
 from abc import ABC, abstractmethod
+from ..utils.gpu_manager import gpu_manager
+from ..utils.async_processor import ml_async_processor
 
 
 class BaseClassifier(ABC):
@@ -63,6 +65,11 @@ class TensorFlowClassifier(BaseClassifier):
             # Intentar importar TensorFlow
             import tensorflow as tf
             self.tf = tf
+
+            # Aplicar optimizaciones de GPU si está disponible
+            if gpu_manager.is_gpu_available():
+                gpu_manager.optimize_for_inference()
+                print("✓ Optimizaciones de GPU aplicadas")
 
             # Cargar información del modelo
             self.model_info = self._load_model_info()
@@ -164,6 +171,49 @@ class TensorFlowClassifier(BaseClassifier):
             print(f"⚠ Error en predicción TensorFlow: {e}")
             return [("Error", 0.0)]
 
+    def predict_async(self, image: np.ndarray, top_k: int = 3) -> str:
+        """
+        Realiza una predicción de manera asíncrona.
+
+        Args:
+            image: Imagen a clasificar
+            top_k: Número de predicciones a retornar
+
+        Returns:
+            ID de la tarea asíncrona
+        """
+        if not self.available or self.model is None:
+            # Para fallback, crear tarea que retorna resultado inmediato
+            def _fallback_predict():
+                return [("No disponible", 0.0)]
+            return ml_async_processor.async_processor.submit_task(_fallback_predict)
+
+        return ml_async_processor.predict_async(self, image, top_k)
+
+    def get_prediction_result(self, task_id: str) -> Optional[List[Tuple[str, float]]]:
+        """
+        Obtiene el resultado de una predicción asíncrona.
+
+        Args:
+            task_id: ID de la tarea
+
+        Returns:
+            Resultado de la predicción o None si no está listo
+        """
+        return ml_async_processor.get_prediction_result(task_id)
+
+    def is_prediction_ready(self, task_id: str) -> bool:
+        """
+        Verifica si una predicción asíncrona está lista.
+
+        Args:
+            task_id: ID de la tarea
+
+        Returns:
+            True si la predicción está lista
+        """
+        return ml_async_processor.is_prediction_ready(task_id)
+
     def get_top_prediction(self, image: np.ndarray) -> Tuple[str, float]:
         """
         Obtiene la predicción con mayor confianza.
@@ -189,6 +239,9 @@ class TensorFlowClassifier(BaseClassifier):
                 'test_accuracy': 0.0
             }
 
+        gpu_info = gpu_manager.get_gpu_info()
+        memory_info = gpu_manager.get_memory_usage()
+
         return {
             'status': 'available',
             'framework': 'TensorFlow/Keras',
@@ -196,7 +249,10 @@ class TensorFlowClassifier(BaseClassifier):
             'classes_sample': self.model_info['classes'][:10],
             'test_accuracy': self.model_info.get('test_accuracy', 'N/A'),
             'total_parameters': self.model.count_params() if self.model else 0,
-            'input_shape': self.model_info.get('input_shape', [28, 28, 1])
+            'input_shape': self.model_info.get('input_shape', [28, 28, 1]),
+            'gpu_accelerated': gpu_info.get('gpu_available', False),
+            'gpu_count': gpu_info.get('gpu_count', 0),
+            'memory_info': memory_info
         }
 
 
@@ -388,14 +444,21 @@ class SketchClassifier:
         """
         self.enable_fallback = enable_fallback
 
-        # Intentar inicializar clasificador TensorFlow
-        self.tf_classifier = TensorFlowClassifier(model_path, model_info_path)
+        # Intentar inicializar clasificador TensorFlow solo si hay paths válidos
+        if model_path and model_info_path:
+            try:
+                self.tf_classifier = TensorFlowClassifier(model_path, model_info_path)
+            except Exception as e:
+                print(f"⚠ Error inicializando TensorFlow classifier: {e}")
+                self.tf_classifier = None
+        else:
+            self.tf_classifier = None
 
         # Inicializar fallback si está habilitado
         self.fallback_classifier = FallbackClassifier() if enable_fallback else None
 
         # Determinar cuál usar
-        if self.tf_classifier.is_available():
+        if self.tf_classifier and self.tf_classifier.is_available():
             self.active_classifier = self.tf_classifier
             self.mode = "tensorflow"
             print("✓ SketchClassifier usando TensorFlow")
@@ -424,6 +487,49 @@ class SketchClassifier:
             return results
 
         return [("No disponible", 0.0)]
+
+    def predict_async(self, image: np.ndarray, top_k: int = 3) -> str:
+        """
+        Realiza una predicción de manera asíncrona.
+
+        Args:
+            image: Imagen a clasificar
+            top_k: Número de predicciones a retornar
+
+        Returns:
+            ID de la tarea asíncrona
+        """
+        if self.active_classifier and hasattr(self.active_classifier, 'predict_async'):
+            return self.active_classifier.predict_async(image, top_k)
+        else:
+            # Fallback síncrono
+            def _sync_predict():
+                return self.predict(image, top_k)
+            return ml_async_processor.async_processor.submit_task(_sync_predict)
+
+    def get_prediction_result(self, task_id: str) -> Optional[List[Tuple[str, float]]]:
+        """
+        Obtiene el resultado de una predicción asíncrona.
+
+        Args:
+            task_id: ID de la tarea
+
+        Returns:
+            Resultado de la predicción o None si no está listo
+        """
+        return ml_async_processor.get_prediction_result(task_id)
+
+    def is_prediction_ready(self, task_id: str) -> bool:
+        """
+        Verifica si una predicción asíncrona está lista.
+
+        Args:
+            task_id: ID de la tarea
+
+        Returns:
+            True si la predicción está lista
+        """
+        return ml_async_processor.is_prediction_ready(task_id)
 
     def get_top_prediction(self, image: np.ndarray) -> Tuple[str, float]:
         """

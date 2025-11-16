@@ -13,6 +13,8 @@ from .detection import HandDetector
 from .classification import GestureProcessor, SketchClassifier
 from .i18n import get_class_name_translation
 from .utils import MIN_POINTS_FOR_CLASSIFICATION
+from .utils.async_processor import ml_async_processor
+from .utils.analytics import analytics_tracker
 
 
 class FrameProcessor:
@@ -50,9 +52,14 @@ class FrameProcessor:
         self.drawing_start_time = None
         self.last_prediction = None
 
+        # Estado asíncrono
+        self.pending_predictions = {}  # task_id -> (timestamp, gesture_image)
+        self.async_enabled = config.get('async_processing', True)
+
         # Estadísticas
         self.total_drawings = 0
         self.successful_predictions = 0
+        self.async_predictions = 0
 
     def process_frame(self, frame: np.ndarray) -> Tuple[np.ndarray, Dict[str, Any]]:
         """
@@ -67,6 +74,9 @@ class FrameProcessor:
         # Voltear para efecto espejo
         frame = cv2.flip(frame, 1)
         height, width = frame.shape[:2]
+
+        # Verificar predicciones asíncronas completadas
+        self._check_pending_predictions()
 
         # Detectar manos
         frame_rgb, contours, has_hands = self.hand_detector.detect(frame)
@@ -151,31 +161,73 @@ class FrameProcessor:
 
         # Realizar clasificación
         if self.classifier.is_available():
-            predictions = self.classifier.predict(gesture_image, top_k=3)
-
-            if predictions:
-                top_class, confidence = predictions[0]
-                translated_class = get_class_name_translation(top_class)
-
-                # Contar predicción exitosa
-                if confidence >= self.confidence_threshold:
-                    self.successful_predictions += 1
-
-                self.last_prediction = (translated_class, confidence, time.time())
-
-                print(f"🎯 Predicción: {translated_class} ({confidence:.1%})")
-
-                if len(predictions) > 1:
-                    print("  Otras opciones:")
-                    for alt_class, alt_conf in predictions[1:2]:
-                        alt_translated = get_class_name_translation(alt_class)
-                        print(f"    {alt_translated} ({alt_conf:.1%})")
+            if self.async_enabled and hasattr(self.classifier, 'predict_async'):
+                # Clasificación asíncrona
+                task_id = self.classifier.predict_async(gesture_image, top_k=3)
+                self.pending_predictions[task_id] = (time.time(), gesture_image)
+                self.async_predictions += 1
+                print(f"📤 Predicción asíncrona enviada (ID: {task_id})")
             else:
-                print("⚠ No se obtuvieron predicciones")
+                # Clasificación síncrona
+                predictions = self.classifier.predict(gesture_image, top_k=3)
+                self._process_prediction_results(predictions)
         else:
             print("⚠ Clasificador no disponible")
 
         print()
+
+    def _check_pending_predictions(self) -> None:
+        """
+        Verifica si hay predicciones asíncronas completadas y las procesa.
+        """
+        completed_tasks = []
+
+        for task_id, (timestamp, gesture_image) in self.pending_predictions.items():
+            if self.classifier.is_prediction_ready(task_id):
+                predictions = self.classifier.get_prediction_result(task_id)
+                if predictions:
+                    self._process_prediction_results(predictions)
+                    print(f"✅ Predicción asíncrona completada (ID: {task_id})")
+                else:
+                    print(f"⚠ Error en predicción asíncrona (ID: {task_id})")
+                completed_tasks.append(task_id)
+
+        # Limpiar tareas completadas
+        for task_id in completed_tasks:
+            del self.pending_predictions[task_id]
+
+    def _process_prediction_results(self, predictions: List[Tuple[str, float]]) -> None:
+        """
+        Procesa los resultados de una predicción.
+
+        Args:
+            predictions: Lista de predicciones (clase, confianza)
+        """
+        if not predictions:
+            analytics_tracker.track_error('prediction', 'No predictions returned')
+            print("⚠ No se obtuvieron predicciones")
+            return
+
+        top_class, confidence = predictions[0]
+        translated_class = get_class_name_translation(top_class)
+
+        # Rastrear predicción
+        success = confidence >= self.confidence_threshold
+        analytics_tracker.track_prediction(success, confidence, top_class)
+
+        # Contar predicción exitosa
+        if confidence >= self.confidence_threshold:
+            self.successful_predictions += 1
+
+        self.last_prediction = (translated_class, confidence, time.time())
+
+        print(f"🎯 Predicción: {translated_class} ({confidence:.1%})")
+
+        if len(predictions) > 1:
+            print("  Otras opciones:")
+            for alt_class, alt_conf in predictions[1:2]:
+                alt_translated = get_class_name_translation(alt_class)
+                print(f"    {alt_translated} ({alt_conf:.1%})")
 
     def _get_app_state(self) -> Dict[str, Any]:
         """
@@ -192,6 +244,9 @@ class FrameProcessor:
             'min_points_for_classification': self.min_points_for_classification,
             'total_drawings': self.total_drawings,
             'successful_predictions': self.successful_predictions,
+            'async_predictions': self.async_predictions,
+            'pending_predictions_count': len(self.pending_predictions),
+            'async_enabled': self.async_enabled,
             'session_time': time.time() - getattr(self, 'session_start_time', time.time())
         }
 
@@ -216,10 +271,14 @@ class FrameProcessor:
         """
         session_duration = time.time() - getattr(self, 'session_start_time', time.time())
         success_rate = (self.successful_predictions / self.total_drawings * 100) if self.total_drawings > 0 else 0
+        async_rate = (self.async_predictions / self.total_drawings * 100) if self.total_drawings > 0 else 0
 
         return {
             'session_duration': session_duration,
             'total_drawings': self.total_drawings,
             'successful_predictions': self.successful_predictions,
-            'success_rate': success_rate
+            'success_rate': success_rate,
+            'async_predictions': self.async_predictions,
+            'async_rate': async_rate,
+            'pending_predictions': len(self.pending_predictions)
         }

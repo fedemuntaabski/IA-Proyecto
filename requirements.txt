@@ -12,14 +12,13 @@ mediapipe>=0.10.0
 numpy>=1.24.0
 pillow>=10.0.0
 
+# System monitoring
+psutil>=5.9.0
+
 # Utilidades
 python-dotenv>=1.0.0
 
-# Opcional - para UI mejorada (futuro)
-# PyQt6>=6.5.0
-# streamlit>=1.28.0
-
-# Testing (opcional)
+# Testing
 pytest>=7.4.0
 
 # Internationalization

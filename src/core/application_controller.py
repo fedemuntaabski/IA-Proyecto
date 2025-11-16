@@ -21,6 +21,8 @@ from .i18n import i18n, _
 from .ui import UIManager
 from .utils import (MIN_POINTS_FOR_CLASSIFICATION, DEFAULT_CONFIDENCE_THRESHOLD,
                     DEFAULT_RESOLUTION_WIDTH, DEFAULT_RESOLUTION_HEIGHT, DEFAULT_TARGET_FPS)
+from .utils.async_processor import async_processor
+from .utils.analytics import analytics_tracker
 
 
 class ApplicationController:
@@ -69,8 +71,20 @@ class ApplicationController:
             'confidence_threshold': self.ml_config.confidence_threshold,
             'target_fps': DEFAULT_TARGET_FPS,
             'resolution_width': DEFAULT_RESOLUTION_WIDTH,
-            'resolution_height': DEFAULT_RESOLUTION_HEIGHT
+            'resolution_height': DEFAULT_RESOLUTION_HEIGHT,
+            'async_processing': True  # Habilitar procesamiento asíncrono
         }
+
+        # Inicializar procesamiento asíncrono
+        async_processor.start()
+        print("✓ Procesamiento asíncrono inicializado")
+
+        # Inicializar analíticas
+        analytics_tracker.track_event('app_start', {
+            'model_path': model_path,
+            'model_info_path': model_info_path,
+            'timestamp': time.time()
+        })
 
         # Inicializar procesador de frames
         self.frame_processor = FrameProcessor(
@@ -133,6 +147,9 @@ class ApplicationController:
         """
         # Actualizar FPS
         self._update_fps()
+
+        # Rastrear frame procesado
+        analytics_tracker.track_frame_processed(self.current_fps)
 
         # Procesar frame
         processed_frame, app_state = self.frame_processor.process_frame(frame)
@@ -211,6 +228,20 @@ class ApplicationController:
 
     def cleanup(self) -> None:
         """Limpia recursos de la aplicación."""
+        # Detener procesamiento asíncrono
+        async_processor.stop()
+
+        # Guardar analíticas
+        analytics_tracker.save_events()
+
+        # Registrar fin de sesión
+        session_summary = analytics_tracker.get_session_summary()
+        analytics_tracker.track_event('app_end', {
+            'session_summary': session_summary,
+            'timestamp': time.time()
+        })
+        analytics_tracker.save_events()
+
         if hasattr(self, 'hand_detector'):
             self.hand_detector.close()
         print(_("✅ Aplicación cerrada correctamente"))
