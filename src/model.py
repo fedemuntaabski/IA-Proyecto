@@ -10,7 +10,6 @@ from typing import Tuple, List, Dict, Any
 
 try:
     import tensorflow as tf
-    from tensorflow import keras
     TENSORFLOW_AVAILABLE = True
 except ImportError:
     TENSORFLOW_AVAILABLE = False
@@ -83,7 +82,7 @@ class SketchClassifier:
         for model_path in model_paths:
             if model_path.exists():
                 try:
-                    self.model = keras.models.load_model(model_path)
+                    self.model = tf.keras.models.load_model(model_path)
                     self.logger.info(f"Modelo cargado: {model_path.name}")
                     return True
                 except Exception as e:
