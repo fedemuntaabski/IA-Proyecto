@@ -32,6 +32,7 @@ stroke:
   velocity_threshold: 0.002
   min_points: 8
   max_stroke_age_ms: 3000
+  min_stroke_length: 0.05  # Longitud mínima normalizada para considerar válido
 
 # ============================================================================
 # CONFIGURACIÓN DE MODELO
@@ -41,6 +42,18 @@ model:
   demo_mode: true
   use_quantized_model: true
   prefer_gpu: true
+
+# ============================================================================
+# CONFIGURACIÓN DE PREPROCESAMIENTO
+# ============================================================================
+preprocessing:
+  scale_factor: 0.8  # Factor de escala para ocupar el canvas (0.8 = 80%)
+  min_stroke_length: 0.05  # Longitud mínima normalizada del trazo
+  min_points: 5  # Mínimo número de puntos para considerar válido
+  blur_kernel: 3  # Tamaño del kernel de blur (3x3)
+  blur_sigma: 0.5  # Sigma para Gaussian blur
+  thickness_base: 2  # Grosor base de línea
+  thickness_max: 4  # Grosor máximo variable
 
 # ============================================================================
 # CONFIGURACIÓN DE UI

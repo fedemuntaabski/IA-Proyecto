@@ -38,6 +38,17 @@ class StrokeConfig(BaseModel):
     velocity_threshold: float = Field(0.002, gt=0.0)
     min_points: int = Field(8, gt=0)
     max_stroke_age_ms: int = Field(3000, gt=0)
+    min_stroke_length: float = Field(0.05, gt=0.0)
+
+
+class PreprocessingConfig(BaseModel):
+    scale_factor: float = Field(0.8, gt=0.0, le=1.0)
+    min_stroke_length: float = Field(0.05, gt=0.0)
+    min_points: int = Field(5, gt=0)
+    blur_kernel: int = Field(3, ge=1, le=11)
+    blur_sigma: float = Field(0.5, gt=0.0)
+    thickness_base: int = Field(2, gt=0)
+    thickness_max: int = Field(4, gt=0)
 
 
 class ModelConfig(BaseModel):
@@ -80,6 +91,7 @@ class AppConfig(BaseModel):
     mediapipe: MediaPipeConfig
     camera: CameraConfig
     stroke: StrokeConfig
+    preprocessing: PreprocessingConfig
     model: ModelConfig
     ui: UIConfig
     logging: LoggingConfig
