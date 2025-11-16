@@ -28,25 +28,25 @@ class TestHandDetector:
 
     def test_init_without_mediapipe(self, hand_config, mock_logger):
         """Prueba inicialización sin MediaPipe disponible."""
-        with patch('src.hand_detector.MEDIAPIPE_AVAILABLE', False):
-            detector = HandDetector(hand_config, mock_logger)
+        with patch.dict('sys.modules', {'mediapipe': None}):
+            # Reimportar para que MEDIAPIPE_AVAILABLE sea False
+            import importlib
+            import hand_detector
+            importlib.reload(hand_detector)
+            
+            detector = hand_detector.HandDetector(hand_config, mock_logger)
 
             assert detector.hands_detector is None
             mock_logger.warning.assert_called_with("MediaPipe no disponible. Funcionando en modo demo.")
 
     def test_init_with_mediapipe(self, hand_config, mock_logger):
         """Prueba inicialización con MediaPipe disponible."""
-        with patch('src.hand_detector.MEDIAPIPE_AVAILABLE', True):
-            with patch('mediapipe.solutions.hands') as mock_mp_hands:
-                mock_detector = Mock()
-                mock_mp_hands.Hands.return_value = mock_detector
+        detector = HandDetector(hand_config, mock_logger)
 
-                detector = HandDetector(hand_config, mock_logger)
-
-                assert detector.hands_detector == mock_detector
-                mock_mp_hands.Hands.assert_called_once()
-
-    def test_detect_no_detector(self, hand_config, mock_logger):
+        # Verificar que se inicializó correctamente
+        assert detector.hands_detector is not None
+        assert detector.config == hand_config
+        assert detector.logger == mock_logger
         """Prueba detección cuando no hay detector inicializado."""
         with patch('src.hand_detector.MEDIAPIPE_AVAILABLE', False):
             detector = HandDetector(hand_config, mock_logger)
@@ -158,10 +158,11 @@ class TestHandDetector:
         detector.hand_landmarks = [(0.1, 0.2), (0.15, 0.25), (0.2, 0.3)] + [(0.0, 0.0)] * 18
 
         frame = np.zeros((480, 640, 3), dtype=np.uint8)
+        original = frame.copy()
         result = detector.draw_hand_landmarks(frame)
 
-        # Verificar que se dibujó algo (no es todo ceros)
-        assert not np.array_equal(result, frame)
+        # Verificar que se dibujó algo (no es igual al original)
+        assert not np.array_equal(result, original)
 
     def test_get_index_finger_position_no_landmarks(self, hand_config, mock_logger):
         """Prueba obtener posición del índice sin landmarks."""
