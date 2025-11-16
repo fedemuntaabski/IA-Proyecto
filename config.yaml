@@ -1,60 +1,80 @@
-"""
-config.py - Configuración centralizada para Pictionary Live (LEGACY)
-Este archivo mantiene compatibilidad con el código existente mientras usa el nuevo sistema de configuración.
-"""
-
-from config_manager import get_config
-
-# Obtener configuración validada
-app_config = get_config()
+# Configuración optimizada para Pictionary Live
+# Optimizada para máxima precisión y rendimiento con 1 mano
 
 # ============================================================================
 # CONFIGURACIÓN DE MEDIAPIPE
 # ============================================================================
-
-MEDIAPIPE_CONFIG = {
-    "hands": app_config.mediapipe.hands.model_dump(),
-    "pose": app_config.mediapipe.pose.model_dump()
-}
+mediapipe:
+  hands:
+    static_image_mode: false
+    max_num_hands: 1  # Máximo 1 mano para mejor rendimiento
+    model_complexity: 0
+    min_detection_confidence: 0.5  # Aumentado para mejor precisión
+    min_tracking_confidence: 0.5   # Aumentado para mejor seguimiento
+  pose:
+    enabled: false
 
 # ============================================================================
 # CONFIGURACIÓN DE CÁMARA
 # ============================================================================
-
-CAMERA_CONFIG = app_config.camera.model_dump()
+camera:
+  width: 640
+  height: 480
+  fps: 30
+  buffer_size: 1
+  flip_horizontal: true
 
 # ============================================================================
 # CONFIGURACIÓN DE TRAZO
 # ============================================================================
-
-STROKE_CONFIG = app_config.stroke.model_dump()
+stroke:
+  pause_threshold_ms: 400
+  velocity_threshold: 0.002
+  min_points: 8
+  max_stroke_age_ms: 3000
 
 # ============================================================================
 # CONFIGURACIÓN DE MODELO
 # ============================================================================
-
-MODEL_CONFIG = app_config.model.model_dump()
+model:
+  input_shape: [28, 28, 1]
+  demo_mode: true
+  use_quantized_model: true
+  prefer_gpu: true
 
 # ============================================================================
 # CONFIGURACIÓN DE UI
 # ============================================================================
-
-UI_CONFIG = app_config.ui.model_dump()
+ui:
+  window_name: "Pictionary Live - Dibuja en el aire"
+  window_width: 1024  # Reducido para mejor rendimiento en pantallas pequeñas
+  window_height: 768   # Resolución aceptable y manejable
+  show_fps: true
+  show_diagnostics: true
+  show_top_predictions: 3
 
 # ============================================================================
 # CONFIGURACIÓN DE LOGGING
 # ============================================================================
-
-LOGGING_CONFIG = app_config.logging.model_dump()
+logging:
+  log_dir: "./logs"
+  inference_log_file: "./inference/inference.log"
+  level_debug: "DEBUG"
+  level_info: "INFO"
 
 # ============================================================================
 # CONFIGURACIÓN DE DETECCIÓN
 # ============================================================================
-
-DETECTION_CONFIG = app_config.detection.model_dump()
+detection:
+  hand_index_finger_id: 8
+  hand_landmark_count: 21
+  processing_resolution: 320
 
 # ============================================================================
 # CONFIGURACIÓN DE RENDIMIENTO
 # ============================================================================
-
-PERFORMANCE_CONFIG = app_config.performance.model_dump()
+performance:
+  skip_frames: 0
+  thread_workers: 1
+  enable_profiling: false
+  async_processing: true

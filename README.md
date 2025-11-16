@@ -20,7 +20,35 @@ Aplicación Python interactiva para jugar **Pictionary en vivo** usando detecci�
 
 1. Clona o descarga el repositorio
 2. Crea entorno virtual: `python -m venv venv` y activa
-3. Instala dependencias: `pip install opencv-python tensorflow mediapipe numpy`
+3. Instala dependencias: `pip install -r src/requirements.txt`
+
+## Configuración
+
+La aplicación usa un sistema de configuración flexible basado en `config.yaml`. Este archivo permite personalizar todos los aspectos de la aplicación sin modificar código.
+
+### Archivo de configuración
+
+Copia y modifica `config.yaml` según tus necesidades:
+
+```yaml
+# Ejemplo de configuración personalizada
+camera:
+  width: 1280
+  height: 720
+  fps: 60
+
+model:
+  demo_mode: false  # Cambiar a false si tienes modelo entrenado
+
+performance:
+  async_processing: true
+```
+
+También puedes usar `config.example.yaml` como base para configuraciones específicas de desarrollo o producción.
+
+### Validación de configuración
+
+La configuración se valida automáticamente al iniciar la aplicación. Si hay errores, se mostrarán mensajes detallados con información sobre qué valores son inválidos.
 
 ## Testing
 

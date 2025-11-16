@@ -22,7 +22,17 @@ sys.path.insert(0, str(Path(__file__).parent / "src"))
 from dependencies import main as check_dependencies
 check_dependencies()
 
-# Importar app después de verificar dependencias
+# Importar config_manager para validar configuración al inicio
+try:
+    from config_manager import get_config
+    config = get_config()
+    print(f"[INFO] Configuración cargada correctamente desde config.yaml")
+except Exception as e:
+    print(f"[ERROR] Error al cargar configuración: {e}")
+    print("[INFO] Verifica que config.yaml existe y es válido")
+    sys.exit(1)
+
+# Importar app después de verificar dependencias y configuración
 from app import PictionaryLive
 
 
