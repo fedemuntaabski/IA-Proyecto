@@ -173,7 +173,7 @@ class ApplicationController:
         except Exception as e:
             print(f"⚠ Error configurando GPU: {e} - usando configuración por defecto")
 
-    def process_frame(self, frame: np.ndarray) -> np.ndarray:
+    def process_frame(self, frame: np.ndarray) -> tuple:
         """
         Procesa un frame completo de la aplicación.
 
@@ -181,7 +181,7 @@ class ApplicationController:
             frame: Frame de OpenCV
 
         Returns:
-            Frame procesado con UI
+            Tupla de (frame_procesado, app_state)
         """
         # Actualizar FPS
         self._update_fps()
@@ -201,7 +201,8 @@ class ApplicationController:
             'has_hands': len(self.frame_processor.gesture_processor.stroke_points) > 0 or
                         app_state.get('has_hands', False),
             'session_time': time.time() - self.session_start_time,
-            'current_gesture_image': self.frame_processor.gesture_processor.get_gesture_image_for_feedback()
+            'current_gesture_image': self.frame_processor.gesture_processor.get_gesture_image_for_feedback(),
+            'fps': self.current_fps
         })
 
         # Actualizar UI con FPS
@@ -210,7 +211,7 @@ class ApplicationController:
         # Dibujar UI
         final_frame = self.ui_manager.draw_ui(processed_frame, app_state)
 
-        return final_frame
+        return final_frame, app_state
 
     def _update_fps(self) -> None:
         """Actualiza el cálculo de FPS."""

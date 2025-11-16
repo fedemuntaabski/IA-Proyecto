@@ -7,8 +7,10 @@ de procesamiento de frames, separando esta responsabilidad del main.py.
 
 import cv2
 import numpy as np
+import time
 from typing import Optional, Callable
 from .i18n import _
+from .utils.diagnostic_monitor import diagnostic_monitor
 
 
 class CameraManager:
@@ -33,6 +35,10 @@ class CameraManager:
         self.width = width
         self.height = height
         self.cap: Optional[cv2.VideoCapture] = None
+        self.frame_count = 0
+        self.start_time = time.time()
+        self.last_fps_time = time.time()
+        self.last_diagnostic_time = time.time()
 
     def initialize_camera(self) -> bool:
         """
@@ -59,7 +65,7 @@ class CameraManager:
                      key_handler: Callable[[int], bool],
                      window_title: str = "Air Draw Classifier - IA Proyecto") -> None:
         """
-        Ejecuta el loop principal de captura y procesamiento.
+        Ejecuta el loop principal de captura y procesamiento con diagnósticos.
 
         Args:
             frame_processor: Función que procesa cada frame
@@ -73,6 +79,7 @@ class CameraManager:
         print(_("ESPACIO: Forzar nueva clasificación"))
         print(_("R: Limpiar dibujo actual"))
         print(_("H: Mostrar/ocultar ayuda"))
+        print(_("D: Mostrar diagnóstico"))
         print(_("Q: Salir"))
         print("\n💡 Instrucciones:")
         print(_("1. Muestra tu mano a la cámara"))
@@ -86,8 +93,25 @@ class CameraManager:
                 if not ret:
                     break
 
+                self.frame_count += 1
+                current_time = time.time()
+
+                # Calcular FPS
+                fps = self.frame_count / (current_time - self.start_time)
+
                 # Procesar frame
-                display_frame = frame_processor(frame)
+                display_frame, app_state = frame_processor(frame)
+
+                # Actualizar monitor de diagnóstico con FPS
+                diagnostic_monitor.track_event('frame_processed', {
+                    'fps': fps,
+                    'frame_count': self.frame_count
+                })
+
+                # Mostrar indicador de diagnóstico si hay problemas
+                if not diagnostic_monitor.health_check():
+                    cv2.putText(display_frame, "WARNING: System health compromised",
+                              (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
 
                 # Mostrar frame
                 cv2.imshow(window_title, display_frame)
@@ -95,8 +119,20 @@ class CameraManager:
                 # Procesar teclas
                 key = cv2.waitKey(1) & 0xFF
 
-                if key_handler(key):
+                # Manejo especial de tecla 'D' para diagnósticos
+                if key == ord('d') or key == ord('D'):
+                    print(diagnostic_monitor.get_status_summary())
+                    key = -1  # No pasar a key_handler
+
+                if key != -1 and key_handler(key):
                     break
+
+                # Mostrar reporte de diagnóstico cada 30 segundos
+                if current_time - self.last_diagnostic_time > 30:
+                    report = diagnostic_monitor.generate_report(force=True)
+                    if report and report.get('issues'):
+                        print(f"\n⚠️  Problemas detectados: {len(report['issues'])}")
+                    self.last_diagnostic_time = current_time
 
         finally:
             self.cleanup()

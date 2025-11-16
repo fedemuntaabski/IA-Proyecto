@@ -11,6 +11,11 @@ Clasificador de sketches basado en deep learning para un entrenador de IA en el 
 - **Performance optimizada**: Procesamiento asíncrono, aceleración GPU y monitoring de FPS
 - **Sistema robusto**: Fallback automático cuando TensorFlow no está disponible
 - **Testing completo**: Framework de pruebas con cobertura unitaria e integración
+- **✨ Sensibilidad Adaptativa**: Ajuste automático de thresholds según condiciones ambientales
+- **✨ Compensación de Iluminación**: Normalización automática en diferentes condiciones de luz
+- **✨ Monitor de Diagnóstico**: Chequeos de salud en tiempo real y recomendaciones
+- **✨ Optimización de ROI**: Detección dinámica del área de búsqueda para mayor eficiencia
+- **✨ Análisis de Calidad de Frame**: Optimización automática de resolución según FPS disponible
 
 ## 📦 Instalación
 
@@ -37,6 +42,7 @@ python tests/test_runner.py
 - `SPACE` - Forzar clasificación
 - `r` - Limpiar dibujo
 - `h` - Mostrar/ocultar ayuda
+- `d` - Mostrar diagnóstico del sistema
 - `q` - Salir
 
 ## 📁 Estructura del Proyecto
@@ -64,12 +70,37 @@ python tests/test_runner.py
 
 ## 📈 Mejoras Implementadas
 
+### Detección y Iluminación
+- ✅ **Compensación Automática de Iluminación**: Análisis de histograma por regiones, corrección gamma y CLAHE
+- ✅ **Detección y Mitigación de Sombras**: Identificación automática de áreas sombreadas
+- ✅ **Rangos HSV Adaptativos**: Ajuste dinámico según condiciones de luz
+
+### Sensibilidad y Precisión
+- ✅ **Sensibilidad Adaptativa**: Ajuste automático basado en calidad de frame, ruido y rendimiento
+- ✅ **Análisis de Ruido**: Detección de ruido ambiental para mejorar detección
+- ✅ **Estabilidad Multi-Frame**: Buffer circular y filtrado temporal para contornos estables
+
+### Rendimiento y Optimización
+- ✅ **Optimización de ROI**: Detección dinámica del área de búsqueda (Region of Interest)
+- ✅ **Optimización de Resolución**: Ajuste automático de calidad según FPS disponible
 - ✅ **GPU Acceleration**: Aceleración automática con TensorFlow
-- ✅ **Async Processing**: Clasificación en segundo plano
-- ✅ **Analytics Framework**: Métricas de uso y rendimiento
-- ✅ **UI Mejorada**: Interfaz intuitiva y moderna
-- ✅ **Multi-idioma**: Español e inglés con detección automática
-- ✅ **Testing Framework**: Cobertura completa de funcionalidades
+- ✅ **Procesamiento Asíncrono**: Clasificación en segundo plano sin bloqueos
+
+### Monitoreo y Diagnóstico
+- ✅ **Monitor de Diagnóstico**: Chequeos de salud del sistema en tiempo real
+- ✅ **Health Check Completo**: Verificación de Python, dependencias, cámara, disco, memoria y permisos
+- ✅ **Recomendaciones Dinámicas**: Sugerencias de optimización basadas en condiciones actuales
+- ✅ **Análisis de Calidad de Frame**: Métricas de nitidez y contraste
+
+### Gestos y Tracking
+- ✅ **Análisis Avanzado de Gestos**: Tracking multi-mano con estados estables
+- ✅ **Análisis de Movimiento**: Detección de velocidad, dirección y estabilidad de gestos
+- ✅ **Análisis de Estabilidad de Contornos**: Seguimiento histórico para mejor precisión
+
+### Configuración y Usabilidad
+- ✅ **Configuración Avanzada**: Sistema de settings con validación y perfiles
+- ✅ **Bootstrap del Sistema**: Inicialización automática con chequeos integrados
+- ✅ **Diagnosticador en Tiempo Real**: Presionar 'D' para ver estado del sistema
 
 ## 🎯 Mejoras Futuras
 

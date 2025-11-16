@@ -306,21 +306,27 @@ class HandDetector:
         Returns:
             Tupla con (frame_rgb, contours, manos_detectadas)
         """
+        # Importar compensador de iluminación
+        from ..utils.lighting_analysis import lighting_compensator
+        
+        # Aplicar compensación de iluminación automática
+        frame_compensated, lighting_analysis = lighting_compensator.compensate_frame(frame)
+
         # Procesamiento avanzado si está habilitado
         vision_result = None
         if self.enable_advanced_vision and self.vision_processor:
             try:
-                vision_result = self.vision_processor.process_frame(frame)
+                vision_result = self.vision_processor.process_frame(frame_compensated)
             except Exception as e:
                 print(f"⚠ Error en procesamiento avanzado: {e}")
                 vision_result = None
 
         # Análisis de histograma y detección de sombras
-        histogram_stats = self.histogram_analyzer.analyze_regions(frame)
-        shadow_mask = self.shadow_detector.detect_shadows(frame)
+        histogram_stats = self.histogram_analyzer.analyze_regions(frame_compensated)
+        shadow_mask = self.shadow_detector.detect_shadows(frame_compensated)
 
         # Calcular brillo promedio del frame para compensación
-        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        gray = cv2.cvtColor(frame_compensated, cv2.COLOR_BGR2GRAY)
         avg_brightness = np.mean(gray)
 
         # Obtener rangos adaptados
@@ -329,7 +335,7 @@ class HandDetector:
         adjusted_lower, adjusted_upper = adjusted_ranges
 
         # Convertir a HSV
-        hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+        hsv = cv2.cvtColor(frame_compensated, cv2.COLOR_BGR2HSV)
 
         # Crear máscara con rangos ajustados
         mask = cv2.inRange(hsv, adjusted_lower, adjusted_upper)

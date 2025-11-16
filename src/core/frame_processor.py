@@ -15,6 +15,7 @@ from .i18n import get_class_name_translation
 from .utils import MIN_POINTS_FOR_CLASSIFICATION
 from .utils.async_processor import ml_async_processor
 from .utils.analytics import analytics_tracker
+from .utils.sensitivity_manager import sensitivity_manager
 
 
 class FrameProcessor:
@@ -63,7 +64,7 @@ class FrameProcessor:
 
     def process_frame(self, frame: np.ndarray) -> Tuple[np.ndarray, Dict[str, Any]]:
         """
-        Procesa un frame completo.
+        Procesa un frame completo con sensibilidad adaptativa.
 
         Args:
             frame: Frame de OpenCV (BGR)
@@ -75,11 +76,25 @@ class FrameProcessor:
         frame = cv2.flip(frame, 1)
         height, width = frame.shape[:2]
 
+        # Analizar calidad del frame para sensibilidad adaptativa
+        frame_quality = sensitivity_manager.analyze_frame_quality(frame)
+        
+        # Calcular sensibilidad actual y actualizar umbrales
+        current_sensitivity = sensitivity_manager.calculate_current_sensitivity()
+        sensitivity_manager.update_thresholds(current_sensitivity)
+
         # Verificar predicciones asíncronas completadas
         self._check_pending_predictions()
 
         # Detectar manos
         frame_rgb, contours, has_hands = self.hand_detector.detect(frame)
+
+        # Medir ruido si hay máscara de detección
+        if has_hands and contours:
+            # Crear máscara simple para análisis de ruido
+            mask = np.zeros((height, width), dtype=np.uint8)
+            cv2.drawContours(mask, contours, -1, 255, -1)
+            noise_level = sensitivity_manager.measure_noise_level(frame, mask)
 
         # Procesar gestos si hay manos
         if has_hands and contours:
@@ -99,7 +114,7 @@ class FrameProcessor:
             )
 
         # Preparar estado de la aplicación
-        app_state = self._get_app_state()
+        app_state = self._get_app_state(current_sensitivity, frame_quality)
 
         return display_frame, app_state
 
@@ -229,7 +244,7 @@ class FrameProcessor:
                 alt_translated = get_class_name_translation(alt_class)
                 print(f"    {alt_translated} ({alt_conf:.1%})")
 
-    def _get_app_state(self) -> Dict[str, Any]:
+    def _get_app_state(self, current_sensitivity: float = None, frame_quality: float = None) -> Dict[str, Any]:
         """
         Obtiene el estado actual de la aplicación.
 
@@ -247,7 +262,9 @@ class FrameProcessor:
             'async_predictions': self.async_predictions,
             'pending_predictions_count': len(self.pending_predictions),
             'async_enabled': self.async_enabled,
-            'session_time': time.time() - getattr(self, 'session_start_time', time.time())
+            'session_time': time.time() - getattr(self, 'session_start_time', time.time()),
+            'current_sensitivity': current_sensitivity,
+            'frame_quality': frame_quality
         }
 
     def clear_drawing(self) -> None:

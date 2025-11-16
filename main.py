@@ -23,6 +23,7 @@ import queue
 import sys
 sys.path.insert(0, str(Path(__file__).parent))
 
+from src.core.bootstrap import initialize_system, apply_performance_optimizations
 from src.core.application_controller import ApplicationController
 from src.core.camera_manager import CameraManager
 from src.core.i18n import _
@@ -91,8 +92,25 @@ class AirDrawClassifier:
 def main():
     """Punto de entrada de la mini-app."""
     try:
+        # Inicializar sistema con chequeos de salud
+        print("Inicializando sistema...")
+        init_result = initialize_system(run_health_check=True, verbose=False)
+
+        if not init_result['success']:
+            print(f"\n❌ {_('Error de inicialización')}:")
+            for error in init_result['errors']:
+                print(f"   • {error}")
+            return
+
+        # Aplicar optimizaciones de rendimiento
+        perf_opts = apply_performance_optimizations()
+        if perf_opts['gpu_enabled']:
+            print("🎮 GPU habilitada para aceleración")
+
+        # Crear aplicación
         app = AirDrawClassifier()
         app.run()
+
     except KeyboardInterrupt:
         print(f"\n⚠️  {_('Interrupción detectada')}")
     except Exception as e:

@@ -20,14 +20,17 @@ class SettingsManager:
             'max_frame_size': 640,
             'enable_async_processing': True,
             'enable_gpu_acceleration': True,
-            'gpu_memory_growth': True
+            'gpu_memory_growth': True,
+            'enable_roi_optimization': True,
+            'enable_frame_quality_optimization': True
         },
         'ui': {
             'theme': 'default',
             'scale': 1.0,
             'show_fps': True,
             'show_confidence': True,
-            'help_on_startup': False
+            'help_on_startup': False,
+            'show_diagnostics': False
         },
         'audio': {
             'enabled': True,
@@ -41,7 +44,10 @@ class SettingsManager:
         'detection': {
             'min_hand_area': 5000,
             'max_hand_area': 50000,
-            'enable_advanced_vision': True
+            'enable_advanced_vision': True,
+            'sensitivity': 0.6,
+            'enable_adaptive_sensitivity': True,
+            'enable_lighting_compensation': True
         },
         'privacy': {
             'auto_save_drawings': False,
