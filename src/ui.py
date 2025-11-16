@@ -65,40 +65,55 @@ class PictionaryUI:
         
         # Título
         cv2.putText(
-            frame, "PICTIONARY LIVE", (20, 35),
+            frame, "PICTIONARY LIVE", (20, 30),
             cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 255, 0), 3
         )
         
-        # Información de diagnostico
-        diag_text = f"FPS: {self.fps:.1f} | Mano: {'✓' if hand_detected else '✗'} | Puntos: {stroke_points}"
+        # Información de diagnostico (separada en líneas)
+        fps_text = f"FPS: {self.fps:.1f}"
         cv2.putText(
-            frame, diag_text, (20, 70),
-            cv2.FONT_HERSHEY_SIMPLEX, 0.8, (100, 200, 255), 2
+            frame, fps_text, (20, 50),
+            cv2.FONT_HERSHEY_SIMPLEX, 0.7, (100, 200, 255), 2
+        )
+        
+        mano_text = f"Mano: {'✓' if hand_detected else '✗'}"
+        cv2.putText(
+            frame, mano_text, (20, 70),
+            cv2.FONT_HERSHEY_SIMPLEX, 0.7, (100, 200, 255), 2
+        )
+        
+        puntos_text = f"Puntos: {stroke_points}"
+        cv2.putText(
+            frame, puntos_text, (20, 90),
+            cv2.FONT_HERSHEY_SIMPLEX, 0.7, (100, 200, 255), 2
         )
         
         # Velocidad de la mano
         if hand_detected and hand_velocity > 0:
             vel_text = f"Velocidad: {hand_velocity:.4f}"
             cv2.putText(
-                frame, vel_text, (20, 100),
+                frame, vel_text, (20, 110),
                 cv2.FONT_HERSHEY_SIMPLEX, 0.7, (100, 255, 100), 2
             )
+        
+        # Línea divisoria
+        cv2.line(frame, (0, 125), (w, 125), (255, 255, 255), 1)
         
         # Predicción (si existe)
         if self.last_prediction:
             label, conf, top3 = self.last_prediction
             pred_text = f"{label}: {conf:.1%}"
             
-            # Panel de predicción a la derecha
+            # Panel de predicción a la derecha (mínimo x=400)
             text_size = cv2.getTextSize(pred_text, cv2.FONT_HERSHEY_SIMPLEX, 1.0, 2)[0]
-            x_pos = w - text_size[0] - 30
+            x_pos = max(w - text_size[0] - 30, 400)
             
-            cv2.rectangle(frame, (x_pos - 10, 15), (w - 10, 110), (50, 100, 150), -1)
-            cv2.rectangle(frame, (x_pos - 10, 15), (w - 10, 110), (0, 200, 255), 2)
+            cv2.rectangle(frame, (x_pos - 10, 15), (w - 10, 115), (50, 100, 150), -1)
+            cv2.rectangle(frame, (x_pos - 10, 15), (w - 10, 115), (0, 200, 255), 2)
             
-            cv2.putText(frame, "Predicción:", (x_pos, 40),
+            cv2.putText(frame, "Prediccion:", (x_pos, 35),
                        cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 200, 255), 1)
-            cv2.putText(frame, pred_text, (x_pos, 70),
+            cv2.putText(frame, pred_text, (x_pos, 60),
                        cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
         
         # Controles abajo
@@ -110,7 +125,7 @@ class PictionaryUI:
         
         # Top-3 predicciones (abajo a la izquierda)
         if self.last_prediction and len(self.last_prediction[2]) > 0:
-            top3_y = h - 100
+            top3_y = h - 105
             cv2.putText(frame, "Top 3:", (20, top3_y),
                        cv2.FONT_HERSHEY_SIMPLEX, 0.6, (100, 200, 255), 1)
             for i, (label, conf) in enumerate(self.last_prediction[2][:3]):
