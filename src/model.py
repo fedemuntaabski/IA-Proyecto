@@ -44,16 +44,30 @@ class SketchClassifier:
         self.input_shape = [28, 28, 1]
         self.labels = []
         
-        if not self.ia_dir.exists():
-            self.logger.warning(f"Carpeta IA no encontrada: {ia_dir}")
-            return
-        
-        # Cargar metadata
-        self._load_model_info()
-        
-        # Cargar modelo si TensorFlow disponible
-        if TENSORFLOW_AVAILABLE:
-            self._load_model()
+        try:
+            if not self.ia_dir.exists():
+                self.logger.warning(f"Carpeta IA no encontrada: {ia_dir} - usando modo demo")
+                self.demo_mode = True
+                return
+            
+            # Cargar metadata con fallback
+            if not self._load_model_info():
+                self.logger.warning("No se pudo cargar model_info.json - usando valores por defecto")
+                self.input_shape = [28, 28, 1]
+                self.labels = ["demo"]  # Al menos una etiqueta para evitar errores
+            
+            # Cargar modelo si TensorFlow disponible y no demo_mode
+            if TENSORFLOW_AVAILABLE and not self.demo_mode:
+                if not self._load_model():
+                    self.logger.warning("No se pudo cargar modelo - cambiando a modo demo")
+                    self.demo_mode = True
+            else:
+                self.logger.info("Modo demo activado")
+                self.demo_mode = True
+        except Exception as e:
+            self.logger.error(f"Error crítico en inicialización del clasificador: {e} - usando modo demo")
+            self.demo_mode = True
+            self.labels = ["demo"]
     
     def _load_model_info(self) -> bool:
         """Carga model_info.json."""

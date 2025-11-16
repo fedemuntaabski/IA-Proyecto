@@ -86,14 +86,25 @@ Requisitos para mejor detección:
         )
         app.run()
     
+    except RuntimeError as e:
+        print(f"\n[ERROR] Error de configuración: {e}", file=sys.stderr)
+        if args.debug:
+            import traceback
+            traceback.print_exc()
+        print("\nSugerencias:")
+        print("- Verifica que la carpeta IA existe y contiene model_info.json")
+        print("- Asegúrate de que la cámara no esté en uso por otra aplicación")
+        print("- Instala dependencias faltantes: pip install -r src/requirements.txt")
+        sys.exit(1)
     except KeyboardInterrupt:
         print("\n\n[INFO] Aplicación finalizada por usuario")
         sys.exit(0)
     except Exception as e:
-        print(f"\n[ERROR] Error fatal: {e}", file=sys.stderr)
+        print(f"\n[ERROR] Error fatal inesperado: {e}", file=sys.stderr)
         if args.debug:
             import traceback
             traceback.print_exc()
+        print("\nPor favor, revisa los logs en logs/ para más detalles.")
         sys.exit(1)
 
 

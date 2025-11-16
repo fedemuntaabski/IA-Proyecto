@@ -1,0 +1,86 @@
+2025-11-16 12:16:41,152 - PictionaryLive - INFO - ======================================================================
+2025-11-16 12:16:41,152 - PictionaryLive - INFO - PICTIONARY LIVE - Inicializando
+2025-11-16 12:16:41,152 - PictionaryLive - INFO - ======================================================================
+2025-11-16 12:16:41,173 - PictionaryLive - INFO - MediaPipe Hands inicializado
+2025-11-16 12:16:41,173 - PictionaryLive - INFO -   Thresholds: detection=0.2, tracking=0.2
+2025-11-16 12:16:41,175 - PictionaryLive - INFO - Modelo info cargado: 3 clases
+2025-11-16 12:16:41,176 - PictionaryLive - INFO - Modo demo activado
+2025-11-16 12:16:41,176 - PictionaryLive - INFO - 
+======================================================================
+2025-11-16 12:16:41,176 - PictionaryLive - INFO - VALIDACIÓN DE SETUP
+2025-11-16 12:16:41,176 - PictionaryLive - INFO - ======================================================================
+2025-11-16 12:16:41,176 - PictionaryLive - INFO -   [OK] IA folder
+2025-11-16 12:16:41,177 - PictionaryLive - INFO -   [OK] model_info.json
+2025-11-16 12:16:41,177 - PictionaryLive - INFO -   [OK] Hand Detector
+2025-11-16 12:16:41,177 - PictionaryLive - INFO -   [OK] Classifier
+2025-11-16 12:16:41,177 - PictionaryLive - INFO -   [OK] Stroke Accumulator
+2025-11-16 12:16:41,177 - PictionaryLive - INFO -   [OK] Preprocessor
+2025-11-16 12:16:41,177 - PictionaryLive - INFO -   [OK] UI
+2025-11-16 12:16:41,177 - PictionaryLive - INFO -   [OK] Camara 0 (640x480)
+2025-11-16 12:16:41,177 - PictionaryLive - INFO - ======================================================================
+
+2025-11-16 12:16:41,177 - PictionaryLive - INFO - Aplicación inicializada correctamente
+2025-11-16 12:16:41,180 - PictionaryLive - INFO - ======================================================================
+2025-11-16 12:16:41,180 - PictionaryLive - INFO - PICTIONARY LIVE - Inicializando
+2025-11-16 12:16:41,180 - PictionaryLive - INFO - ======================================================================
+2025-11-16 12:16:41,190 - PictionaryLive - INFO - MediaPipe Hands inicializado
+2025-11-16 12:16:41,190 - PictionaryLive - INFO -   Thresholds: detection=0.2, tracking=0.2
+2025-11-16 12:16:41,191 - PictionaryLive - INFO - Modelo info cargado: 3 clases
+2025-11-16 12:16:41,192 - PictionaryLive - INFO - Modo demo activado
+2025-11-16 12:16:41,192 - PictionaryLive - INFO - 
+======================================================================
+2025-11-16 12:16:41,192 - PictionaryLive - INFO - VALIDACIÓN DE SETUP
+2025-11-16 12:16:41,192 - PictionaryLive - INFO - ======================================================================
+2025-11-16 12:16:41,192 - PictionaryLive - INFO -   [OK] IA folder
+2025-11-16 12:16:41,192 - PictionaryLive - INFO -   [OK] model_info.json
+2025-11-16 12:16:41,192 - PictionaryLive - INFO -   [OK] Hand Detector
+2025-11-16 12:16:41,192 - PictionaryLive - INFO -   [OK] Classifier
+2025-11-16 12:16:41,193 - PictionaryLive - INFO -   [OK] Stroke Accumulator
+2025-11-16 12:16:41,193 - PictionaryLive - INFO -   [OK] Preprocessor
+2025-11-16 12:16:41,193 - PictionaryLive - INFO -   [OK] UI
+2025-11-16 12:16:41,193 - PictionaryLive - INFO -   [OK] Camara 0 (640x480)
+2025-11-16 12:16:41,193 - PictionaryLive - INFO - ======================================================================
+
+2025-11-16 12:16:41,193 - PictionaryLive - INFO - Aplicación inicializada correctamente
+2025-11-16 12:16:41,193 - PictionaryLive - INFO - 
+======================================================================
+2025-11-16 12:16:41,193 - PictionaryLive - INFO - VALIDACIÓN DE SETUP
+2025-11-16 12:16:41,194 - PictionaryLive - INFO - ======================================================================
+2025-11-16 12:16:41,195 - PictionaryLive - INFO -   [OK] IA folder
+2025-11-16 12:16:41,195 - PictionaryLive - INFO -   [OK] model_info.json
+2025-11-16 12:16:41,195 - PictionaryLive - INFO -   [OK] Hand Detector
+2025-11-16 12:16:41,195 - PictionaryLive - INFO -   [OK] Classifier
+2025-11-16 12:16:41,195 - PictionaryLive - INFO -   [OK] Stroke Accumulator
+2025-11-16 12:16:41,195 - PictionaryLive - INFO -   [OK] Preprocessor
+2025-11-16 12:16:41,195 - PictionaryLive - INFO -   [OK] UI
+2025-11-16 12:16:41,196 - PictionaryLive - INFO -   [OK] Camara 0 (640x480)
+2025-11-16 12:16:41,196 - PictionaryLive - INFO - ======================================================================
+
+2025-11-16 12:16:41,201 - PictionaryLive - INFO - ======================================================================
+2025-11-16 12:16:41,202 - PictionaryLive - INFO - PICTIONARY LIVE - Inicializando
+2025-11-16 12:16:41,202 - PictionaryLive - INFO - ======================================================================
+2025-11-16 12:16:41,210 - PictionaryLive - INFO - MediaPipe Hands inicializado
+2025-11-16 12:16:41,210 - PictionaryLive - INFO -   Thresholds: detection=0.2, tracking=0.2
+2025-11-16 12:16:41,211 - PictionaryLive - INFO - Modelo info cargado: 3 clases
+2025-11-16 12:16:41,211 - PictionaryLive - INFO - Modo demo activado
+2025-11-16 12:16:41,212 - PictionaryLive - INFO - 
+======================================================================
+2025-11-16 12:16:41,212 - PictionaryLive - INFO - VALIDACIÓN DE SETUP
+2025-11-16 12:16:41,212 - PictionaryLive - INFO - ======================================================================
+2025-11-16 12:16:41,212 - PictionaryLive - INFO -   [OK] IA folder
+2025-11-16 12:16:41,212 - PictionaryLive - INFO -   [OK] model_info.json
+2025-11-16 12:16:41,212 - PictionaryLive - INFO -   [OK] Hand Detector
+2025-11-16 12:16:41,212 - PictionaryLive - INFO -   [OK] Classifier
+2025-11-16 12:16:41,212 - PictionaryLive - INFO -   [OK] Stroke Accumulator
+2025-11-16 12:16:41,212 - PictionaryLive - INFO -   [OK] Preprocessor
+2025-11-16 12:16:41,213 - PictionaryLive - INFO -   [OK] UI
+2025-11-16 12:16:41,213 - PictionaryLive - WARNING -   [FAIL] Camara 0 - intento 1/3
+2025-11-16 12:16:42,213 - PictionaryLive - WARNING -   [FAIL] Camara 0 - intento 2/3
+2025-11-16 12:16:43,214 - PictionaryLive - WARNING -   [FAIL] Camara 0 - intento 3/3
+2025-11-16 12:16:43,214 - PictionaryLive - ERROR -   [FAIL] Camara 0 no disponible después de 3 intentos
+2025-11-16 12:16:43,214 - PictionaryLive - INFO - ======================================================================
+
+2025-11-16 12:16:43,214 - PictionaryLive - WARNING - Algunos componentes fallaron - la aplicación puede funcionar con limitaciones
+2025-11-16 12:16:43,214 - PictionaryLive - INFO - Componentes críticos: Hand Detector, Classifier, Camera
+2025-11-16 12:16:43,214 - PictionaryLive - WARNING - Validación de setup incompleta - continuando con fallbacks
+2025-11-16 12:16:43,214 - PictionaryLive - INFO - Aplicación inicializada correctamente

@@ -32,10 +32,14 @@ class HandDetector:
         self.previous_hand_pos = None
         self.hand_velocity = 0.0
         
-        if MEDIAPIPE_AVAILABLE:
-            self._init_mediapipe()
-        else:
-            self.logger.warning("MediaPipe no disponible. Funcionando en modo demo.")
+        try:
+            if MEDIAPIPE_AVAILABLE:
+                self._init_mediapipe()
+            else:
+                self.logger.warning("MediaPipe no disponible - funcionando en modo sin detección")
+        except Exception as e:
+            self.logger.error(f"Error al inicializar HandDetector: {e} - funcionando en modo sin detección")
+            self.hands_detector = None
     
     def _init_mediapipe(self):
         """Inicializa MediaPipe Hands."""
