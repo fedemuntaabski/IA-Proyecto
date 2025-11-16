@@ -20,6 +20,10 @@ protobuf==4.25.3
 # Utilidades
 ndjson>=0.3.0
 
+# Testing
+pytest>=7.0.0
+pytest-mock>=3.10.0
+
 # NOTAS DE INSTALACIÓN:
 # 1. Usar Python 3.10, 3.11 o 3.12
 # 2. En Windows, podría necesitar Visual C++ redistributable

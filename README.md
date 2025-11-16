@@ -22,6 +22,34 @@ Aplicación Python interactiva para jugar **Pictionary en vivo** usando detecci�
 2. Crea entorno virtual: `python -m venv venv` y activa
 3. Instala dependencias: `pip install opencv-python tensorflow mediapipe numpy`
 
+## Testing
+
+El proyecto incluye una suite completa de pruebas unitarias y de integración.
+
+### Ejecutar pruebas
+```bash
+# Desde la raíz del proyecto
+python src/run_tests.py
+```
+
+### Ejecutar pruebas manualmente
+```bash
+# Instalar dependencias de testing
+pip install pytest pytest-mock pytest-cov
+
+# Ejecutar todas las pruebas
+pytest src/tests/ --cov=src --cov-report=html
+
+# Ejecutar pruebas específicas
+pytest src/tests/test_model.py -v
+```
+
+### Cobertura de pruebas
+- ✅ **SketchClassifier**: Carga de modelo, predicciones, modo demo
+- ✅ **HandDetector**: Detección de manos, cálculo de velocidad, dibujo
+- ✅ **StrokeAccumulator**: Acumulación de trazos, detección de pausas
+- ✅ **PictionaryLive**: Integración completa, validación de setup
+
 ## Uso
 
 ### Ejecución básica

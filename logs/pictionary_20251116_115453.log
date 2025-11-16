@@ -1,0 +1,47 @@
+2025-11-16 11:54:53,470 - PictionaryLive - INFO - ======================================================================
+2025-11-16 11:54:53,470 - PictionaryLive - INFO - PICTIONARY LIVE - Inicializando
+2025-11-16 11:54:53,470 - PictionaryLive - INFO - ======================================================================
+2025-11-16 11:54:53,470 - PictionaryLive - INFO - MediaPipe Hands inicializado
+2025-11-16 11:54:53,470 - PictionaryLive - INFO -   Thresholds: detection=0.2, tracking=0.2
+2025-11-16 11:54:53,496 - PictionaryLive - INFO - Modelo info cargado: 3 clases
+2025-11-16 11:54:53,497 - PictionaryLive - INFO - No se encontró modelo, usando predicciones demo
+2025-11-16 11:54:53,497 - PictionaryLive - INFO - 
+======================================================================
+2025-11-16 11:54:53,497 - PictionaryLive - INFO - VALIDACIÓN DE SETUP
+2025-11-16 11:54:53,497 - PictionaryLive - INFO - ======================================================================
+2025-11-16 11:54:53,497 - PictionaryLive - INFO -   [OK] IA folder
+2025-11-16 11:54:53,497 - PictionaryLive - INFO -   [OK] model_info.json
+2025-11-16 11:54:53,497 - PictionaryLive - INFO -   [OK] Hand Detector
+2025-11-16 11:54:53,497 - PictionaryLive - INFO -   [OK] Classifier
+2025-11-16 11:54:53,497 - PictionaryLive - INFO -   [OK] Camara 0 (640x480)
+2025-11-16 11:54:53,498 - PictionaryLive - INFO - ======================================================================
+
+2025-11-16 11:54:53,498 - PictionaryLive - INFO - Aplicación inicializada correctamente
+2025-11-16 11:54:53,504 - PictionaryLive - INFO - ======================================================================
+2025-11-16 11:54:53,504 - PictionaryLive - INFO - PICTIONARY LIVE - Inicializando
+2025-11-16 11:54:53,504 - PictionaryLive - INFO - ======================================================================
+2025-11-16 11:54:53,510 - PictionaryLive - INFO - MediaPipe Hands inicializado
+2025-11-16 11:54:53,510 - PictionaryLive - INFO -   Thresholds: detection=0.2, tracking=0.2
+2025-11-16 11:54:53,514 - PictionaryLive - INFO - Modelo info cargado: 3 clases
+2025-11-16 11:54:53,514 - PictionaryLive - INFO - No se encontró modelo, usando predicciones demo
+2025-11-16 11:54:53,514 - PictionaryLive - INFO - 
+======================================================================
+2025-11-16 11:54:53,514 - PictionaryLive - INFO - VALIDACIÓN DE SETUP
+2025-11-16 11:54:53,514 - PictionaryLive - INFO - ======================================================================
+2025-11-16 11:54:53,515 - PictionaryLive - INFO -   [OK] IA folder
+2025-11-16 11:54:53,515 - PictionaryLive - INFO -   [OK] model_info.json
+2025-11-16 11:54:53,515 - PictionaryLive - INFO -   [OK] Hand Detector
+2025-11-16 11:54:53,515 - PictionaryLive - INFO -   [OK] Classifier
+2025-11-16 11:54:53,515 - PictionaryLive - INFO -   [OK] Camara 0 (640x480)
+2025-11-16 11:54:53,515 - PictionaryLive - INFO - ======================================================================
+
+2025-11-16 11:54:53,515 - PictionaryLive - INFO - Aplicación inicializada correctamente
+2025-11-16 11:54:53,516 - PictionaryLive - INFO - 
+======================================================================
+2025-11-16 11:54:53,516 - PictionaryLive - INFO - VALIDACIÓN DE SETUP
+2025-11-16 11:54:53,516 - PictionaryLive - INFO - ======================================================================
+2025-11-16 11:54:53,516 - PictionaryLive - INFO -   [OK] IA folder
+2025-11-16 11:54:53,516 - PictionaryLive - INFO -   [OK] model_info.json
+2025-11-16 11:54:53,516 - PictionaryLive - INFO -   [OK] Hand Detector
+2025-11-16 11:54:53,516 - PictionaryLive - INFO -   [OK] Classifier
+2025-11-16 11:54:53,516 - PictionaryLive - ERROR -   [FAIL] Error al validar camara: 
