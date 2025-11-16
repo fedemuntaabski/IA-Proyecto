@@ -1,0 +1,27 @@
+2025-11-16 11:23:24,285 - PictionaryLive - INFO - ======================================================================
+2025-11-16 11:23:24,285 - PictionaryLive - INFO - PICTIONARY LIVE - Inicializando
+2025-11-16 11:23:24,286 - PictionaryLive - INFO - ======================================================================
+2025-11-16 11:23:24,293 - PictionaryLive - INFO - MediaPipe Hands inicializado
+2025-11-16 11:23:24,293 - PictionaryLive - INFO -   Thresholds: detection=0.2, tracking=0.2
+2025-11-16 11:23:24,294 - PictionaryLive - INFO - Modelo info cargado: 228 clases
+2025-11-16 11:23:24,296 - PictionaryLive - WARNING - Error al cargar sketch_classifier_model.keras: Keras cannot be imported. Check that it is installed.
+2025-11-16 11:23:24,298 - PictionaryLive - WARNING - Error al cargar sketch_classifier_model.h5: maximum recursion depth exceeded
+2025-11-16 11:23:24,298 - PictionaryLive - INFO - No se encontró modelo, usando predicciones demo
+2025-11-16 11:23:24,299 - PictionaryLive - INFO - 
+======================================================================
+2025-11-16 11:23:24,299 - PictionaryLive - INFO - VALIDACIÓN DE SETUP
+2025-11-16 11:23:24,299 - PictionaryLive - INFO - ======================================================================
+2025-11-16 11:23:24,300 - PictionaryLive - INFO -   [OK] IA folder
+2025-11-16 11:23:24,300 - PictionaryLive - INFO -   [OK] model_info.json
+2025-11-16 11:23:24,300 - PictionaryLive - INFO -   [OK] Hand Detector
+2025-11-16 11:23:24,300 - PictionaryLive - INFO -   [OK] Classifier
+2025-11-16 11:23:24,300 - PictionaryLive - INFO - ======================================================================
+
+2025-11-16 11:23:24,300 - PictionaryLive - INFO - Aplicación inicializada correctamente
+2025-11-16 11:23:24,301 - PictionaryLive - INFO - 
+[DRY RUN] Informacion del modelo:
+2025-11-16 11:23:24,301 - PictionaryLive - INFO -   Input shape: (28, 28, 1)
+2025-11-16 11:23:24,301 - PictionaryLive - INFO -   Total de clases: 228
+2025-11-16 11:23:24,301 - PictionaryLive - INFO -   Primeras 10 clases: ['The Eiffel Tower', 'The Great Wall of China', 'The Mona Lisa', 'aircraft carrier', 'airplane', 'alarm clock', 'ambulance', 'arm', 'asparagus', 'axe']
+2025-11-16 11:23:24,301 - PictionaryLive - INFO - [DRY RUN] Setup validado correctamente - Listo para usar
+
