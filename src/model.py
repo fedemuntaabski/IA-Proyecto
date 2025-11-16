@@ -10,9 +10,18 @@ from typing import Tuple, List, Dict, Any
 
 try:
     import tensorflow as tf
+    import keras
     TENSORFLOW_AVAILABLE = True
 except ImportError:
     TENSORFLOW_AVAILABLE = False
+    tf = None
+    keras = None
+except Exception as e:
+    # Silenciar errores de importación como AttributeError
+    print(f"AVISO: Error al importar TensorFlow: {e}")
+    TENSORFLOW_AVAILABLE = False
+    tf = None
+    keras = None
 
 
 class SketchClassifier:
@@ -82,7 +91,10 @@ class SketchClassifier:
         for model_path in model_paths:
             if model_path.exists():
                 try:
-                    self.model = tf.keras.models.load_model(model_path)
+                    if keras:
+                        self.model = keras.models.load_model(model_path)
+                    else:
+                        self.model = tf.keras.models.load_model(model_path)
                     self.logger.info(f"Modelo cargado: {model_path.name}")
                     return True
                 except Exception as e:

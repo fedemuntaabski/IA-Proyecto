@@ -7,6 +7,10 @@ Este archivo es el único punto de entrada de la aplicación.
 Maneja la instalación automática de dependencias y el lanzamiento de la app.
 """
 
+import os
+# Reducir logs de TensorFlow
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+
 import sys
 import argparse
 from pathlib import Path

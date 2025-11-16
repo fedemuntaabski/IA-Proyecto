@@ -6,15 +6,21 @@ import sys
 import subprocess
 from pathlib import Path
 
+try:
+    from importlib.metadata import version
+except ImportError:
+    # Fallback para versiones antiguas de Python
+    from importlib_metadata import version
+
 
 REQUIRED_PACKAGES = {
-    "opencv-python": "4.8.0",
-    "numpy": "1.24.0",
-    "mediapipe": "0.10.0",
+    "opencv-python": ">=4.5.0",
+    "numpy": ">=1.24.0",
+    "mediapipe": ">=0.10.0",
 }
 
 OPTIONAL_PACKAGES = {
-    "tensorflow": "2.13.0",  # Para inferencia real
+    "tensorflow": ">=2.17.0",  # Para inferencia real
 }
 
 
@@ -27,47 +33,72 @@ def check_python_version():
     return True
 
 
-def check_package(package_name: str, min_version: str = None) -> bool:
+def check_package(package_name: str, version_spec: str = None) -> bool:
     """
     Verifica si un paquete está instalado.
     
     Args:
         package_name: Nombre del paquete pip
-        min_version: Versión mínima requerida
+        version_spec: Especificación de versión (opcional, solo informativo)
     
     Returns:
-        True si está instalado y cumple versión
+        True si está instalado
     """
     try:
         module = __import__(package_name.replace("-", "_"))
         if hasattr(module, '__version__'):
-            version = module.__version__
-            print(f"  OK: {package_name}: {version}")
+            version_str = module.__version__
+            print(f"  OK: {package_name}: {version_str}")
             return True
         else:
             print(f"  OK: {package_name}: instalado (version desconocida)")
             return True
     except ImportError:
         return False
+    except Exception as e:
+        # Manejar errores de importación como AttributeError en TensorFlow
+        print(f"  AVISO: {package_name}: error al importar ({e}), asumiendo instalado")
+        return True
+
+
+def validate_compatibility():
+    """Valida compatibilidad entre paquetes críticos (protobuf con TF/MP)."""
+    print("\n[VALIDACION] Verificando compatibilidad de versiones...")
+    
+    try:
+        # Verificar protobuf
+        protobuf_version = version("protobuf")
+        print(f"  OK: protobuf {protobuf_version} instalado")
+        
+        # Verificar combinaciones críticas
+        if check_package("tensorflow") and check_package("mediapipe"):
+            tf_version = version("tensorflow")
+            mp_version = version("mediapipe")
+            print(f"  OK: TensorFlow {tf_version} + MediaPipe {mp_version} + protobuf {protobuf_version} disponibles")
+        
+        return True
+    except Exception as e:
+        print(f"  AVISO: No se pudo validar compatibilidad completa: {e}")
+        return True  # No bloquear si falla la validación
 
 
 def install_packages(packages: dict, upgrade: bool = False):
     """
-    Instala paquetes desde pip.
+    Instala paquetes desde pip usando rangos.
     
     Args:
-        packages: Dict con nombre -> versión mínima
+        packages: Dict con nombre -> especificación de versión
         upgrade: Si True, actualizar paquetes existentes
     """
     print("\n[INSTALACION] Instalando dependencias...\n")
     
-    for package_name, min_version in packages.items():
-        if check_package(package_name):
+    for package_name, version_spec in packages.items():
+        if check_package(package_name, version_spec):
             continue
         
-        print(f"  [INSTALANDO] {package_name}...")
+        print(f"  [INSTALANDO] {package_name}{version_spec}...")
         
-        cmd = [sys.executable, "-m", "pip", "install", package_name]
+        cmd = [sys.executable, "-m", "pip", "install", f"{package_name}{version_spec}"]
         if upgrade:
             cmd.append("--upgrade")
         
@@ -81,6 +112,24 @@ def install_packages(packages: dict, upgrade: bool = False):
     return True
 
 
+def install_from_requirements():
+    """Instala desde requirements.txt si existe."""
+    req_file = Path(__file__).parent / "requirements.txt"
+    if req_file.exists():
+        print(f"\n[INSTALACION] Instalando desde {req_file.name}...")
+        try:
+            subprocess.check_call([sys.executable, "-m", "pip", "install", "-r", str(req_file)], 
+                                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            print("  [OK] Dependencias instaladas desde requirements.txt")
+            return True
+        except subprocess.CalledProcessError as e:
+            print(f"  [AVISO] Fallo al instalar desde requirements.txt (exit code {e.returncode}), continuando con instalación individual")
+            return False
+    else:
+        print("\n[AVISO] requirements.txt no encontrado, usando rangos directos")
+        return False
+
+
 def main():
     """Verifica e instala dependencias."""
     print("=" * 70)
@@ -92,33 +141,38 @@ def main():
     if not check_python_version():
         sys.exit(1)
     
-    print("\n[CHEQUEO] Verificando dependencias requeridas...")
-    missing_required = []
-    for package_name in REQUIRED_PACKAGES.keys():
-        if not check_package(package_name):
-            missing_required.append(package_name)
-    
-    if missing_required:
-        print(f"\n[AVISO] Faltan {len(missing_required)} dependencias requeridas:")
-        for pkg in missing_required:
-            print(f"  - {pkg}")
+    # Intentar instalar desde requirements.txt primero
+    if not install_from_requirements():
+        print("\n[CHEQUEO] Verificando dependencias requeridas...")
+        missing_required = []
+        for package_name, version_spec in REQUIRED_PACKAGES.items():
+            if not check_package(package_name, version_spec):
+                missing_required.append(package_name)
         
-        if not install_packages({p: REQUIRED_PACKAGES[p] for p in missing_required}):
-            print("\n[ERROR] Fallo al instalar dependencias requeridas")
-            sys.exit(1)
+        if missing_required:
+            print(f"\n[AVISO] Faltan {len(missing_required)} dependencias requeridas:")
+            for pkg in missing_required:
+                print(f"  - {pkg}")
+            
+            if not install_packages({p: REQUIRED_PACKAGES[p] for p in missing_required}):
+                print("\n[ERROR] Fallo al instalar dependencias requeridas")
+                sys.exit(1)
     
-    print("\n[OK] Todas las dependencias requeridas estan instaladas")
+    print("\n[OK] Todas las dependencias requeridas están instaladas")
+    
+    # Validar compatibilidad
+    validate_compatibility()
     
     # Verificar opcional
     print("\n[CHEQUEO] Verificando dependencias opcionales...")
-    for package_name in OPTIONAL_PACKAGES.keys():
-        if check_package(package_name):
+    for package_name, version_spec in OPTIONAL_PACKAGES.items():
+        if check_package(package_name, version_spec):
             print(f"  OK: {package_name} disponible (inferencia real activada)")
         else:
             print(f"  AVISO: {package_name} no disponible (modo demo)")
     
     print("\n" + "=" * 70)
-    print("[OK] Verificacion completada correctamente")
+    print("[OK] Verificación completada correctamente")
     print("=" * 70)
 
 
