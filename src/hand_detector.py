@@ -105,7 +105,7 @@ class HandDetector:
                 
                 # Escalar landmarks de vuelta al tamaño original
                 hand_landmarks = [
-                    (lm.x / scale_factor, lm.y / scale_factor) 
+                    (lm.x, lm.y) 
                     for lm in raw_landmarks
                 ]
                 
