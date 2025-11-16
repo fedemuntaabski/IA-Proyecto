@@ -10,6 +10,7 @@ import numpy as np
 from typing import Optional, Tuple, List, Dict
 from collections import deque
 from .advanced_vision import AdvancedVisionProcessor, BackgroundSubtractionMethod, OpticalFlowMethod
+from ..constants import DETECTION_CONFIG
 
 
 class KalmanFilter1D:
@@ -41,9 +42,9 @@ class KalmanFilter1D:
 class ContourBuffer:
     """Buffer circular de contornos para votación mayoritaria."""
     
-    def __init__(self, max_size: int = 5):
-        self.buffer = deque(maxlen=max_size)
-        self.confidence_threshold = 0.6
+    def __init__(self, max_size: int = None):
+        self.buffer = deque(maxlen=max_size or DETECTION_CONFIG['CONTOUR_BUFFER_SIZE'])
+        self.confidence_threshold = DETECTION_CONFIG['CONTOUR_CONFIDENCE_THRESHOLD']
     
     def add(self, contours: List) -> List:
         """Agrega contornos al buffer y devuelve los más estables."""
@@ -83,8 +84,8 @@ class ContourBuffer:
 class HistogramAnalyzer:
     """Analizador de histograma para compensación de iluminación."""
     
-    def __init__(self, region_grid: int = 3):
-        self.region_grid = region_grid
+    def __init__(self, region_grid: int = None):
+        self.region_grid = region_grid or DETECTION_CONFIG['HISTOGRAM_GRID_SIZE']
         self.histogram_cache = None
     
     def analyze_regions(self, frame: np.ndarray) -> Dict[str, float]:
@@ -125,14 +126,14 @@ class ShadowDetector:
         hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
         
         # Sombras típicamente tienen baja saturación y bajo valor
-        lower_shadow = np.array([0, 0, 0])
-        upper_shadow = np.array([180, 255, 100])
+        lower_shadow = np.array(DETECTION_CONFIG['SHADOW_HSV_LOWER'])
+        upper_shadow = np.array(DETECTION_CONFIG['SHADOW_HSV_UPPER'])
         
         shadow_mask = cv2.inRange(hsv, lower_shadow, upper_shadow)
         
         # Aplicar morphology para limpiar
-        kernel = np.ones((3, 3), np.uint8)
-        shadow_mask = cv2.morphologyEx(shadow_mask, cv2.MORPH_CLOSE, kernel, iterations=1)
+        kernel = np.ones(DETECTION_CONFIG['SHADOW_MORPHOLOGY_KERNEL'], np.uint8)
+        shadow_mask = cv2.morphologyEx(shadow_mask, cv2.MORPH_CLOSE, kernel, iterations=DETECTION_CONFIG['SHADOW_MORPHOLOGY_ITERATIONS'])
         
         return shadow_mask
 
@@ -191,54 +192,64 @@ class HandDetector:
         skin_upper: Límite superior del rango de color de piel (HSV)
     """
     
-    def __init__(self, min_area: int = 3000, max_area: int = 30000,
+    def __init__(self, min_area: int = None, max_area: int = None,
                  skin_lower: Optional[Tuple[int, int, int]] = None,
                  skin_upper: Optional[Tuple[int, int, int]] = None,
                  enable_advanced_vision: bool = True,
                  use_mediapipe: bool = False):
         """
         Inicializa el detector de manos con técnicas avanzadas.
-        
+
         Args:
-            min_area: Área mínima en píxeles para detección
-            max_area: Área máxima en píxeles para detección
+            min_area: Área mínima en píxeles para detección (opcional, usa config por defecto)
+            max_area: Área máxima en píxeles para detección (opcional, usa config por defecto)
             skin_lower: Límite inferior del rango de color de piel (HSV) - opcional
             skin_upper: Límite superior del rango de color de piel (HSV) - opcional
             enable_advanced_vision: Si True, usa algoritmos avanzados de visión
             use_mediapipe: Si True, usa MediaPipe en lugar de OpenCV
+
+        Raises:
+            ValueError: Si los parámetros de área son inválidos
         """
-        self.min_area = min_area
-        self.max_area = max_area
+        # Validar parámetros de área
+        self.min_area = min_area or DETECTION_CONFIG['DEFAULT_MIN_AREA']
+        self.max_area = max_area or DETECTION_CONFIG['DEFAULT_MAX_AREA']
+
+        if self.min_area <= 0 or self.max_area <= 0:
+            raise ValueError("Min and max area must be positive")
+        if self.min_area >= self.max_area:
+            raise ValueError("Min area must be less than max area")
+
         self.use_mediapipe = use_mediapipe
-        
+
         # Rangos HSV para detección de piel (usar valores por defecto o personalizados)
-        self.skin_lower = np.array(skin_lower if skin_lower else [0, 20, 70], dtype=np.uint8)
-        self.skin_upper = np.array(skin_upper if skin_upper else [20, 255, 255], dtype=np.uint8)
-        
+        self.skin_lower = np.array(skin_lower if skin_lower else DETECTION_CONFIG['DEFAULT_SKIN_LOWER'], dtype=np.uint8)
+        self.skin_upper = np.array(skin_upper if skin_upper else DETECTION_CONFIG['DEFAULT_SKIN_UPPER'], dtype=np.uint8)
+
         # Para tracking temporal
         self.prev_contours = []
         self.contour_history = []  # Historial de contornos para estabilidad
         self.tracking_point = None
-        self.stability_threshold = 3  # Frames consecutivos para confirmar detección
-        self.max_history_size = 10  # Máximo frames en historial
-        
+        self.stability_threshold = DETECTION_CONFIG['STABILITY_THRESHOLD']
+        self.max_history_size = DETECTION_CONFIG['MAX_HISTORY_SIZE']
+
         # Estabilidad multi-frame
-        self.contour_buffer = ContourBuffer(max_size=5)
+        self.contour_buffer = ContourBuffer(max_size=DETECTION_CONFIG['CONTOUR_BUFFER_SIZE'])
         self.kalman_filters = {}  # Filtros Kalman por contorno
         self.hysteresis_state = {}  # Estado de hysteresis
-        
+
         # Compensación de iluminación avanzada
-        self.histogram_analyzer = HistogramAnalyzer(region_grid=3)
+        self.histogram_analyzer = HistogramAnalyzer(region_grid=DETECTION_CONFIG['HISTOGRAM_GRID_SIZE'])
         self.shadow_detector = ShadowDetector()
         self.adaptive_ranges = AdaptiveRangeManager()
-        
+
         # Inicializar detector apropiado
         if use_mediapipe:
             try:
                 from .mediapipe_hand_detector import MediaPipeHandDetector
                 self.detector = MediaPipeHandDetector(
-                    min_area=min_area,
-                    max_area=max_area
+                    min_area=self.min_area,
+                    max_area=self.max_area
                 )
                 self.enable_advanced_vision = False  # MediaPipe no necesita visión avanzada
                 print("✓ HandDetector usando MediaPipe Hands")
@@ -284,11 +295,20 @@ class HandDetector:
         Detecta manos en un frame usando el detector configurado.
 
         Args:
-            frame: Frame de OpenCV (BGR)
+            frame: Frame de OpenCV (BGR). Debe ser un array válido no vacío.
 
         Returns:
             Tupla con (frame_rgb, contours, manos_detectadas)
+
+        Raises:
+            ValueError: Si el frame es None o inválido
         """
+        if frame is None:
+            raise ValueError("Frame cannot be None")
+
+        if not isinstance(frame, np.ndarray) or frame.size == 0:
+            raise ValueError("Frame must be a valid non-empty numpy array")
+
         if self.use_mediapipe and hasattr(self, 'detector'):
             # Usar MediaPipe detector
             return self.detector.detect(frame)
@@ -306,92 +326,100 @@ class HandDetector:
         Returns:
             Tupla con (frame_rgb, contours, manos_detectadas)
         """
-        # Importar compensador de iluminación
-        from ..utils.lighting_analysis import lighting_compensator
-        
-        # Aplicar compensación de iluminación automática
-        frame_compensated, lighting_analysis = lighting_compensator.compensate_frame(frame)
+        try:
+            # Importar compensador de iluminación
+            from ..utils.lighting_analysis import lighting_compensator
 
-        # Procesamiento avanzado si está habilitado
-        vision_result = None
-        if self.enable_advanced_vision and self.vision_processor:
-            try:
-                vision_result = self.vision_processor.process_frame(frame_compensated)
-            except Exception as e:
-                print(f"⚠ Error en procesamiento avanzado: {e}")
-                vision_result = None
+            # Aplicar compensación de iluminación automática
+            frame_compensated, lighting_analysis = lighting_compensator.compensate_frame(frame)
 
-        # Análisis de histograma y detección de sombras
-        histogram_stats = self.histogram_analyzer.analyze_regions(frame_compensated)
-        shadow_mask = self.shadow_detector.detect_shadows(frame_compensated)
+            # Procesamiento avanzado si está habilitado
+            vision_result = None
+            if self.enable_advanced_vision and self.vision_processor:
+                try:
+                    vision_result = self.vision_processor.process_frame(frame_compensated)
+                except Exception as e:
+                    print(f"⚠ Error en procesamiento avanzado: {e}")
+                    vision_result = None
 
-        # Calcular brillo promedio del frame para compensación
-        gray = cv2.cvtColor(frame_compensated, cv2.COLOR_BGR2GRAY)
-        avg_brightness = np.mean(gray)
+            # Análisis de histograma y detección de sombras
+            histogram_stats = self.histogram_analyzer.analyze_regions(frame_compensated)
+            shadow_mask = self.shadow_detector.detect_shadows(frame_compensated)
 
-        # Obtener rangos adaptados
-        current_ranges = (self.skin_lower, self.skin_upper)
-        adjusted_ranges = self.adaptive_ranges.adjust(current_ranges, histogram_stats, shadow_mask)
-        adjusted_lower, adjusted_upper = adjusted_ranges
+            # Calcular brillo promedio del frame para compensación
+            gray = cv2.cvtColor(frame_compensated, cv2.COLOR_BGR2GRAY)
+            avg_brightness = np.mean(gray)
 
-        # Convertir a HSV
-        hsv = cv2.cvtColor(frame_compensated, cv2.COLOR_BGR2HSV)
+            # Obtener rangos adaptados
+            current_ranges = (self.skin_lower, self.skin_upper)
+            adjusted_ranges = self.adaptive_ranges.adjust(current_ranges, histogram_stats, shadow_mask)
+            adjusted_lower, adjusted_upper = adjusted_ranges
 
-        # Crear máscara con rangos ajustados
-        mask = cv2.inRange(hsv, adjusted_lower, adjusted_upper)
+            # Convertir a HSV
+            hsv = cv2.cvtColor(frame_compensated, cv2.COLOR_BGR2HSV)
 
-        # Limpiar máscara
-        mask = cv2.medianBlur(mask, 5)
-        mask = cv2.GaussianBlur(mask, (5, 5), 0)
+            # Crear máscara con rangos ajustados
+            mask = cv2.inRange(hsv, adjusted_lower, adjusted_upper)
 
-        # Operaciones morfológicas para limpiar
-        kernel = np.ones((3, 3), np.uint8)
-        mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel, iterations=2)
-        mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel, iterations=2)
+            # Limpiar máscara
+            mask = cv2.medianBlur(mask, DETECTION_CONFIG['MEDIAN_BLUR_SIZE'])
+            mask = cv2.GaussianBlur(mask, DETECTION_CONFIG['GAUSSIAN_BLUR_SIZE'], 0)
 
-        # Integrar resultados del procesamiento avanzado
-        if vision_result and vision_result['processing_success']:
-            fg_mask = vision_result['foreground_mask']
-            motion_analysis = vision_result['motion_analysis']
+            # Operaciones morfológicas para limpiar
+            kernel = np.ones(DETECTION_CONFIG['MORPHOLOGY_KERNEL_SIZE'], np.uint8)
+            mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel, iterations=DETECTION_CONFIG['MORPH_OPEN_ITERATIONS'])
+            mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel, iterations=DETECTION_CONFIG['MORPH_CLOSE_ITERATIONS'])
 
-            if fg_mask is not None:
-                # Combinar máscaras: usar AND entre segmentación por color y background subtraction
-                combined_mask = cv2.bitwise_and(mask, fg_mask)
+            # Integrar resultados del procesamiento avanzado
+            if vision_result and vision_result['processing_success']:
+                fg_mask = vision_result['foreground_mask']
+                motion_analysis = vision_result['motion_analysis']
 
-                # Si hay movimiento significativo, dar más peso al background subtraction
-                if motion_analysis.gesture_type in ["drawing", "pointing"]:
-                    # Usar principalmente background subtraction con algo de color
-                    combined_mask = cv2.bitwise_or(
-                        cv2.bitwise_and(mask, fg_mask),
-                        cv2.bitwise_and(mask, fg_mask, mask=fg_mask.astype(np.uint8) // 2)
-                    )
-                else:
-                    # Usar principalmente segmentación por color
-                    combined_mask = cv2.bitwise_or(mask, fg_mask.astype(np.uint8) // 4)
+                if fg_mask is not None:
+                    # Combinar máscaras: usar AND entre segmentación por color y background subtraction
+                    combined_mask = cv2.bitwise_and(mask, fg_mask)
 
-                mask = combined_mask
+                    # Si hay movimiento significativo, dar más peso al background subtraction
+                    if motion_analysis.gesture_type in ["drawing", "pointing"]:
+                        # Usar principalmente background subtraction con algo de color
+                        combined_mask = cv2.bitwise_or(
+                            cv2.bitwise_and(mask, fg_mask),
+                            cv2.bitwise_and(mask, fg_mask, mask=fg_mask.astype(np.uint8) // DETECTION_CONFIG['MASK_COMBINE_RATIO'])
+                        )
+                    else:
+                        # Usar principalmente segmentación por color
+                        combined_mask = cv2.bitwise_or(mask, fg_mask.astype(np.uint8) // DETECTION_CONFIG['MASK_COMBINE_RATIO'])
 
-        # Encontrar contornos
-        contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+                    mask = combined_mask
 
-        # Filtrar contornos por área
-        valid_contours = []
-        for cnt in contours:
-            area = cv2.contourArea(cnt)
-            if self.min_area < area < self.max_area:
-                valid_contours.append(cnt)
+            # Encontrar contornos
+            contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-        # Aplicar buffer de estabilidad multi-frame
-        buffered_contours = self.contour_buffer.add(valid_contours)
+            # Filtrar contornos por área
+            valid_contours = []
+            for cnt in contours:
+                area = cv2.contourArea(cnt)
+                if self.min_area < area < self.max_area:
+                    valid_contours.append(cnt)
 
-        # Aplicar filtros de estabilidad mejorados
-        stable_contours = self._filter_stable_contours_advanced(buffered_contours, vision_result)
+            # Aplicar buffer de estabilidad multi-frame
+            buffered_contours = self.contour_buffer.add(valid_contours)
 
-        # Detectar si hay manos (usando contornos estables)
-        has_hands = len(stable_contours) > 0
+            # Aplicar filtros de estabilidad mejorados
+            stable_contours = self._filter_stable_contours_advanced(buffered_contours, vision_result)
 
-        return frame, stable_contours, has_hands
-    
+            # Detectar si hay manos (usando contornos estables)
+            has_hands = len(stable_contours) > 0
+
+            return frame, stable_contours, has_hands
+
+        except cv2.error as e:
+            print(f"Error in OpenCV detection: {e}")
+            return frame, [], False
+        except Exception as e:
+            print(f"Unexpected error in hand detection: {e}")
+            return frame, [], False
+
     def _calculate_contour_similarity(self, contour1, contour2) -> float:
         """
         Calcula similitud entre dos contornos basada en área y posición.
@@ -428,12 +456,12 @@ class HandDetector:
             # Distancia euclidiana entre centros
             center_distance = np.sqrt((cx1 - cx2)**2 + (cy1 - cy2)**2)
             
-            # Normalizar distancia (asumiendo frame de 640x480)
-            max_distance = np.sqrt(640**2 + 480**2)
+            # Normalizar distancia (usando constantes de frame)
+            max_distance = np.sqrt(DETECTION_CONFIG['FRAME_WIDTH']**2 + DETECTION_CONFIG['FRAME_HEIGHT']**2)
             position_similarity = 1.0 - min(center_distance / max_distance, 1.0)
             
             # Puntuación combinada
-            return 0.6 * area_ratio + 0.4 * position_similarity
+            return DETECTION_CONFIG['AREA_SIMILARITY_WEIGHT'] * area_ratio + DETECTION_CONFIG['POSITION_SIMILARITY_WEIGHT'] * position_similarity
             
         except Exception:
             return 0.0
@@ -468,7 +496,7 @@ class HandDetector:
                 
                 if best_match is not None:
                     similarity = self._calculate_contour_similarity(current_contour, best_match)
-                    if similarity > 0.7:  # Umbral de similitud
+                    if similarity > DETECTION_CONFIG['CONTOUR_SIMILARITY_THRESHOLD']:  # Umbral de similitud
                         consecutive_matches += 1
                     else:
                         break
@@ -528,7 +556,7 @@ class HandDetector:
                 
                 if best_match is not None:
                     similarity = self._calculate_contour_similarity(current_contour, best_match)
-                    if similarity > 0.7:  # Umbral de similitud
+                    if similarity > DETECTION_CONFIG['CONTOUR_SIMILARITY_THRESHOLD']:  # Umbral de similitud
                         consecutive_matches += 1
                     else:
                         break
@@ -581,9 +609,9 @@ class HandDetector:
             # Mano cerrada: alta circularidad, alta solidity
             # Mano abierta: baja circularidad, baja solidity (más "extendida")
             
-            if circularity > 0.75 and solidity > 0.85:
+            if circularity > DETECTION_CONFIG['CLOSED_HAND_CIRCULARITY_THRESHOLD'] and solidity > DETECTION_CONFIG['CLOSED_HAND_SOLIDITY_THRESHOLD']:
                 return "closed"
-            elif circularity < 0.6 and solidity < 0.8:
+            elif circularity < DETECTION_CONFIG['OPEN_HAND_CIRCULARITY_THRESHOLD'] and solidity < DETECTION_CONFIG['OPEN_HAND_SOLIDITY_THRESHOLD']:
                 return "open"
             else:
                 return "unknown"
@@ -767,7 +795,7 @@ class HandDetector:
             if perimeter > 0:
                 circularity = 4 * np.pi * area / (perimeter * perimeter)
                 # Debe ser lo suficientemente "extendida" pero no un círculo perfecto
-                return 0.3 < circularity < 0.7
+                return DETECTION_CONFIG['DRAWING_GESTURE_MIN_CIRCULARITY'] < circularity < DETECTION_CONFIG['DRAWING_GESTURE_MAX_CIRCULARITY']
         
         return False
     

@@ -31,6 +31,7 @@ from .utils.statistics_tracker import statistics_tracker
 from .utils.performance_monitor import performance_monitor
 from .utils.settings_manager import settings_manager
 from .utils.error_handler import handle_error
+from .constants import FRAME_PROCESSING_CONFIG
 
 
 class ApplicationController:
@@ -50,9 +51,17 @@ class ApplicationController:
         Inicializa el controlador de la aplicación.
 
         Args:
-            model_path: Ruta al modelo de clasificación
-            model_info_path: Ruta a la información del modelo
+            model_path: Ruta al modelo de clasificación. Debe ser una cadena no vacía.
+            model_info_path: Ruta a la información del modelo. Debe ser una cadena no vacía.
+
+        Raises:
+            ValueError: Si las rutas de modelo son inválidas
         """
+        if not model_path or not isinstance(model_path, str):
+            raise ValueError("model_path must be a non-empty string")
+        if not model_info_path or not isinstance(model_info_path, str):
+            raise ValueError("model_info_path must be a non-empty string")
+
         print("🚀 Iniciando Mini Air Draw Classifier...")
         print("=" * 50)
 
@@ -85,17 +94,17 @@ class ApplicationController:
         self.ml_config = self.config_manager.get_ml_config()
 
         # Inicializar componentes
-        self.hand_detector = HandDetector(min_area=5000, max_area=50000)
+        self.hand_detector = HandDetector(min_area=FRAME_PROCESSING_CONFIG['MIN_HAND_AREA'], max_area=FRAME_PROCESSING_CONFIG['MAX_HAND_AREA'])
         self.gesture_processor = GestureProcessor(image_size=28)
         self.classifier = SketchClassifier(model_path, model_info_path, enable_fallback=True)
 
         # Configuración de la aplicación
         self.app_config = {
-            'min_points_for_classification': MIN_POINTS_FOR_CLASSIFICATION,
+            'min_points_for_classification': FRAME_PROCESSING_CONFIG['MIN_POINTS_FOR_CLASSIFICATION'],
             'confidence_threshold': self.ml_config.confidence_threshold,
-            'target_fps': DEFAULT_TARGET_FPS,
-            'resolution_width': DEFAULT_RESOLUTION_WIDTH,
-            'resolution_height': DEFAULT_RESOLUTION_HEIGHT,
+            'target_fps': FRAME_PROCESSING_CONFIG['TARGET_FPS'],
+            'resolution_width': FRAME_PROCESSING_CONFIG['DEFAULT_RESOLUTION_WIDTH'],
+            'resolution_height': FRAME_PROCESSING_CONFIG['DEFAULT_RESOLUTION_HEIGHT'],
             'async_processing': True  # Habilitar procesamiento asíncrono
         }
 
@@ -178,40 +187,74 @@ class ApplicationController:
         Procesa un frame completo de la aplicación.
 
         Args:
-            frame: Frame de OpenCV
+            frame: Frame de OpenCV. Debe ser un array válido no vacío.
 
         Returns:
             Tupla de (frame_procesado, app_state)
+
+        Raises:
+            ValueError: Si el frame es None o inválido
         """
-        # Actualizar FPS
-        self._update_fps()
+        if frame is None:
+            raise ValueError("Frame cannot be None")
 
-        # Registrar frame en estadísticas y monitor de rendimiento
-        statistics_tracker.record_frame(self.current_fps)
-        performance_monitor.update(self.current_fps)
+        if not isinstance(frame, np.ndarray) or frame.size == 0:
+            raise ValueError("Frame must be a valid non-empty numpy array")
 
-        # Rastrear frame procesado
-        analytics_tracker.track_frame_processed(self.current_fps)
+        try:
+            # Actualizar FPS
+            self._update_fps()
 
-        # Procesar frame
-        processed_frame, app_state = self.frame_processor.process_frame(frame)
+            # Registrar frame en estadísticas y monitor de rendimiento
+            statistics_tracker.record_frame(self.current_fps)
+            performance_monitor.update(self.current_fps)
 
-        # Actualizar estado de la aplicación
-        app_state.update({
-            'has_hands': len(self.frame_processor.gesture_processor.stroke_points) > 0 or
-                        app_state.get('has_hands', False),
-            'session_time': time.time() - self.session_start_time,
-            'current_gesture_image': self.frame_processor.gesture_processor.get_gesture_image_for_feedback(),
-            'fps': self.current_fps
-        })
+            # Rastrear frame procesado
+            analytics_tracker.track_frame_processed(self.current_fps)
 
-        # Actualizar UI con FPS
-        self.ui_manager.update_fps(self.current_fps)
+            # Procesar frame
+            processed_frame, app_state = self.frame_processor.process_frame(frame)
 
-        # Dibujar UI
-        final_frame = self.ui_manager.draw_ui(processed_frame, app_state)
+            # Actualizar estado de la aplicación
+            app_state.update({
+                'has_hands': len(self.frame_processor.gesture_processor.stroke_points) > 0 or
+                            app_state.get('has_hands', False),
+                'session_time': time.time() - self.session_start_time,
+                'current_gesture_image': self.frame_processor.gesture_processor.get_gesture_image_for_feedback(),
+                'fps': self.current_fps
+            })
 
-        return final_frame, app_state
+            # Actualizar UI con FPS
+            self.ui_manager.update_fps(self.current_fps)
+
+            # Dibujar UI
+            final_frame = self.ui_manager.draw_ui(processed_frame, app_state)
+
+            return final_frame, app_state
+
+        except Exception as e:
+            # Manejar errores gracefully
+            handle_error(e, "Frame processing error")
+            print(f"⚠ Error procesando frame: {e}")
+
+            # Retornar frame original con estado de error
+            error_state = {
+                'has_hands': False,
+                'is_drawing': False,
+                'stroke_points': [],
+                'last_prediction': None,
+                'session_time': time.time() - self.session_start_time,
+                'fps': getattr(self, 'current_fps', 0.0),
+                'error': str(e)
+            }
+
+            # Intentar dibujar UI de error
+            try:
+                error_frame = self.ui_manager.draw_ui(frame, error_state)
+                return error_frame, error_state
+            except Exception:
+                # Si ni siquiera podemos dibujar la UI, retornar frame original
+                return frame, error_state
 
     def _update_fps(self) -> None:
         """Actualiza el cálculo de FPS."""
@@ -228,85 +271,97 @@ class ApplicationController:
         Maneja la presión de teclas.
 
         Args:
-            key: Código de tecla de OpenCV
+            key: Código de tecla de OpenCV. Debe ser un entero válido.
 
         Returns:
             True si debe salir, False para continuar
-        """
-        if key == ord('q'):
-            print(f"\n👋 {_('Saliendo...')}")
-            sound_manager.play_sound('info')
-            return True
-        elif key == ord('r'):
-            print(_("🧹 Limpiando dibujo..."))
-            sound_manager.play_sound('info')
-            self.frame_processor.clear_drawing()
-        elif key == ord(' ') and len(self.frame_processor.gesture_processor.stroke_points) > 0:
-            sound_manager.play_classification()
-            self.frame_processor.force_classification()
-        elif key == ord('c') or key == ord('C'):
-            self.ui_manager.toggle_feedback_mode()
-            status = _("activado") if self.ui_manager.feedback_mode else _("desactivado")
-            print(f"📝 Modo feedback {status}")
-        elif hasattr(self.ui_manager, 'handle_feedback_key') and self.ui_manager.handle_feedback_key(key):
-            # Tecla manejada por el sistema de feedback
-            pass
-        elif key == ord('h'):
-            self.ui_manager.toggle_help()
-            status = _("mostrada") if self.ui_manager.show_help else _("oculta")
-            print(f"{'👁️' if self.ui_manager.show_help else '🙈'} {_('Ayuda')} {status}")
-            sound_manager.play_info()
-        elif key == ord('p') or key == ord('P'):
-            self.ui_manager.toggle_user_profile()
-            status = _("mostrado") if self.ui_manager.show_user_profile else _("oculto")
-            print(f"👤 {_('Perfil de usuario')} {status}")
-        elif key == 112:  # F1
-            self.ui_manager.switch_theme('default')
-            self.user_preferences.set_theme('default')
-            self.user_preferences.save()
-            print(f"🎨 {_('Tema')}: Default")
-            sound_manager.play_info()
-        elif key == 113:  # F2
-            self.ui_manager.switch_theme('dark')
-            self.user_preferences.set_theme('dark')
-            self.user_preferences.save()
-            print(f"🎨 {_('Tema')}: Dark")
-            sound_manager.play_info()
-        elif key == 114:  # F3
-            self.ui_manager.switch_theme('high_contrast')
-            self.user_preferences.set_theme('high_contrast')
-            self.user_preferences.save()
-            print(f"🎨 {_('Tema')}: Alto Contraste")
-            sound_manager.play_info()
-        elif key == 115:  # F4
-            self.ui_manager.switch_theme('ocean')
-            self.user_preferences.set_theme('ocean')
-            self.user_preferences.save()
-            print(f"🎨 {_('Tema')}: Ocean")
-            sound_manager.play_info()
-        elif key == 116:  # F5
-            self.ui_manager.switch_theme('forest')
-            self.user_preferences.set_theme('forest')
-            self.user_preferences.save()
-            print(f"🎨 {_('Tema')}: Forest")
-            sound_manager.play_info()
-        elif key == 117:  # F6 - Toggle sonidos
-            enabled = not self.user_preferences.is_sound_enabled()
-            self.user_preferences.set_sound_enabled(enabled)
-            self.user_preferences.save()
-            sound_manager.set_enabled(enabled)
-            status = _("habilitados") if enabled else _("deshabilitados")
-            print(f"🔊 {_('Sonidos')} {status}")
-        elif key == ord('i'):  # Info de rendimiento
-            performance_monitor.print_status()
-        elif key == ord('s'):  # Settings
-            self.settings.print_settings()
-        elif key == 27:  # ESC key
-            if self.ui_manager.show_user_profile:
-                self.ui_manager.toggle_user_profile()
-                print(f"👤 {_('Perfil de usuario oculto')}")
 
-        return False
+        Raises:
+            ValueError: Si la tecla es inválida
+        """
+        if not isinstance(key, int):
+            raise ValueError("Key must be an integer")
+
+        try:
+            if key == ord('q'):
+                print(f"\n👋 {_('Saliendo...')}")
+                sound_manager.play_sound('info')
+                return True
+            elif key == ord('r'):
+                print(_("🧹 Limpiando dibujo..."))
+                sound_manager.play_sound('info')
+                self.frame_processor.clear_drawing()
+            elif key == ord(' ') and len(self.frame_processor.gesture_processor.stroke_points) > 0:
+                sound_manager.play_classification()
+                self.frame_processor.force_classification()
+            elif key == ord('c') or key == ord('C'):
+                self.ui_manager.toggle_feedback_mode()
+                status = _("activado") if self.ui_manager.feedback_mode else _("desactivado")
+                print(f"📝 Modo feedback {status}")
+            elif hasattr(self.ui_manager, 'handle_feedback_key') and self.ui_manager.handle_feedback_key(key):
+                # Tecla manejada por el sistema de feedback
+                pass
+            elif key == ord('h'):
+                self.ui_manager.toggle_help()
+                status = _("mostrada") if self.ui_manager.show_help else _("oculta")
+                print(f"{'👁️' if self.ui_manager.show_help else '🙈'} {_('Ayuda')} {status}")
+                sound_manager.play_info()
+            elif key == ord('p') or key == ord('P'):
+                self.ui_manager.toggle_user_profile()
+                status = _("mostrado") if self.ui_manager.show_user_profile else _("oculto")
+                print(f"👤 {_('Perfil de usuario')} {status}")
+            elif key == 112:  # F1
+                self.ui_manager.switch_theme('default')
+                self.user_preferences.set_theme('default')
+                self.user_preferences.save()
+                print(f"🎨 {_('Tema')}: Default")
+                sound_manager.play_info()
+            elif key == 113:  # F2
+                self.ui_manager.switch_theme('dark')
+                self.user_preferences.set_theme('dark')
+                self.user_preferences.save()
+                print(f"🎨 {_('Tema')}: Dark")
+                sound_manager.play_info()
+            elif key == 114:  # F3
+                self.ui_manager.switch_theme('high_contrast')
+                self.user_preferences.set_theme('high_contrast')
+                self.user_preferences.save()
+                print(f"🎨 {_('Tema')}: Alto Contraste")
+                sound_manager.play_info()
+            elif key == 115:  # F4
+                self.ui_manager.switch_theme('ocean')
+                self.user_preferences.set_theme('ocean')
+                self.user_preferences.save()
+                print(f"🎨 {_('Tema')}: Ocean")
+                sound_manager.play_info()
+            elif key == 116:  # F5
+                self.ui_manager.switch_theme('forest')
+                self.user_preferences.set_theme('forest')
+                self.user_preferences.save()
+                print(f"🎨 {_('Tema')}: Forest")
+                sound_manager.play_info()
+            elif key == 117:  # F6 - Toggle sonidos
+                enabled = not self.user_preferences.is_sound_enabled()
+                self.user_preferences.set_sound_enabled(enabled)
+                self.user_preferences.save()
+                sound_manager.set_enabled(enabled)
+                status = _("habilitados") if enabled else _("deshabilitados")
+                print(f"🔊 {_('Sonidos')} {status}")
+            elif key == ord('i'):  # Info de rendimiento
+                performance_monitor.print_status()
+            elif key == ord('s'):  # Settings
+                self.settings.print_settings()
+            elif key == 27:  # ESC key
+                if self.ui_manager.show_user_profile:
+                    self.ui_manager.toggle_user_profile()
+                    print(f"👤 {_('Perfil de usuario oculto')}")
+
+            return False
+
+        except Exception as e:
+            handle_error(e, "Key press handling error")
+            print(f"⚠ Error manejando tecla: {e}")
+            return False
 
     def get_session_statistics(self) -> Dict[str, Any]:
         """

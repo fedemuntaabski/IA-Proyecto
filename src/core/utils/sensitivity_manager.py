@@ -5,10 +5,12 @@ Este módulo gestiona ajustes dinámicos de sensibilidad basados en
 condiciones ambientales, rendimiento y feedback del usuario.
 """
 
+import cv2
 import numpy as np
-from typing import Dict, Any, Tuple
+from typing import Dict, Any, Tuple, Optional
 from collections import deque
 from .performance_monitor import performance_monitor
+from ..constants import SENSITIVITY_CONFIG
 
 
 class DynamicSensitivityManager:
@@ -17,12 +19,12 @@ class DynamicSensitivityManager:
     def __init__(self):
         """Inicializa el gestor de sensibilidad."""
         # Sensibilidad base (0.0 a 1.0)
-        self.base_sensitivity = 0.6
+        self.base_sensitivity = SENSITIVITY_CONFIG['BASE_SENSITIVITY']
         
         # Históricos para cálculo de tendencias
-        self.frame_quality_history = deque(maxlen=30)
-        self.noise_level_history = deque(maxlen=30)
-        self.fps_history = deque(maxlen=30)
+        self.frame_quality_history = deque(maxlen=SENSITIVITY_CONFIG['FRAME_QUALITY_HISTORY_SIZE'])
+        self.noise_level_history = deque(maxlen=SENSITIVITY_CONFIG['NOISE_LEVEL_HISTORY_SIZE'])
+        self.fps_history = deque(maxlen=SENSITIVITY_CONFIG['FPS_HISTORY_SIZE'])
         
         # Factores de ajuste
         self.performance_factor = 1.0
@@ -41,65 +43,87 @@ class DynamicSensitivityManager:
         Analiza la calidad del frame.
 
         Args:
-            frame: Frame de OpenCV
+            frame: Frame de OpenCV (BGR). Debe ser un array válido no vacío.
 
         Returns:
             Puntuación de calidad (0.0 a 1.0)
+
+        Raises:
+            ValueError: Si el frame es None o inválido
         """
-        if frame is None or frame.size == 0:
+        if frame is None:
+            raise ValueError("Frame cannot be None")
+
+        if not isinstance(frame, np.ndarray) or frame.size == 0:
             return 0.0
 
-        # Convertir a escala de grises
-        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        try:
+            # Convertir a escala de grises
+            gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
-        # Medir nitidez usando Laplaciano
-        laplacian_var = cv2.Laplacian(gray, cv2.uint8).var()
-        
-        # Normalizar (valores típicos: 100-500+)
-        sharpness_score = min(laplacian_var / 500.0, 1.0)
+            # Medir nitidez usando Laplaciano
+            laplacian_var = cv2.Laplacian(gray, cv2.uint8).var()
+            
+            # Normalizar (valores típicos: 100-500+)
+            sharpness_score = min(laplacian_var / 500.0, 1.0)
 
-        # Medir contraste usando desviación estándar
-        contrast_score = np.std(gray) / 255.0
+            # Medir contraste usando desviación estándar
+            contrast_score = np.std(gray) / 255.0
 
-        # Combinar puntuaciones
-        quality_score = 0.6 * sharpness_score + 0.4 * contrast_score
-        
-        self.frame_quality_history.append(quality_score)
-        return quality_score
+            # Combinar puntuaciones
+            quality_score = 0.6 * sharpness_score + 0.4 * contrast_score
+            
+            self.frame_quality_history.append(quality_score)
+            return quality_score
+
+        except cv2.error as e:
+            print(f"Error analyzing frame quality: {e}")
+            return 0.0
 
     def measure_noise_level(self, frame: np.ndarray, mask: np.ndarray) -> float:
         """
         Mide el nivel de ruido en el frame.
 
         Args:
-            frame: Frame de OpenCV
-            mask: Máscara de segmentación
+            frame: Frame de OpenCV (BGR)
+            mask: Máscara de segmentación binaria
 
         Returns:
             Nivel de ruido (0.0 a 1.0, donde 1.0 es muy ruidoso)
+
+        Raises:
+            ValueError: Si los parámetros son inválidos
         """
-        if mask is None or mask.sum() == 0:
+        if frame is None or mask is None:
+            raise ValueError("Frame and mask cannot be None")
+
+        if mask.sum() == 0:
             return 0.5
 
-        # Aplicar máscara
-        masked = cv2.bitwise_and(frame, frame, mask=mask)
+        try:
+            # Aplicar máscara
+            masked = cv2.bitwise_and(frame, frame, mask=mask)
 
-        # Convertir a escala de grises
-        gray = cv2.cvtColor(masked, cv2.COLOR_BGR2GRAY)
+            # Convertir a escala de grises
+            gray = cv2.cvtColor(masked, cv2.COLOR_BGR2GRAY)
 
-        # Calcular gradientes para detectar ruido
-        sobelx = cv2.Sobel(gray, cv2.CV_64F, 1, 0, ksize=3)
-        sobely = cv2.Sobel(gray, cv2.CV_64F, 0, 1, ksize=3)
+            # Calcular gradientes para detectar ruido
+            sobelx = cv2.Sobel(gray, cv2.CV_64F, 1, 0, ksize=3)
+            sobely = cv2.Sobel(gray, cv2.CV_64F, 0, 1, ksize=3)
 
-        # Magnitud de gradientes
-        magnitude = np.sqrt(sobelx**2 + sobely**2)
+            # Magnitud de gradientes
+            magnitude = np.sqrt(sobelx**2 + sobely**2)
 
-        # Ruido típicamente tiene gradientes altos y erráticos
-        noise_level = np.std(magnitude) / 100.0
-        noise_level = min(noise_level, 1.0)
+            # Ruido típicamente tiene gradientes altos y erráticos
+            noise_level = np.std(magnitude) / 100.0
+            noise_level = min(noise_level, 1.0)
 
-        self.noise_level_history.append(noise_level)
-        return noise_level
+            self.noise_level_history.append(noise_level)
+            return noise_level
+
+        except cv2.error as e:
+            print(f"Error measuring noise level: {e}")
+            return 0.5
 
     def calculate_current_sensitivity(self) -> float:
         """
@@ -156,7 +180,9 @@ class DynamicSensitivityManager:
         )
 
         # Limitar a rango válido
-        return np.clip(current_sensitivity, 0.3, 1.2)
+        return np.clip(current_sensitivity, 
+                      SENSITIVITY_CONFIG['MIN_SENSITIVITY'],
+                      SENSITIVITY_CONFIG['MAX_SENSITIVITY'])
 
     def update_thresholds(self, sensitivity: float) -> Dict[str, float]:
         """
@@ -184,7 +210,13 @@ class DynamicSensitivityManager:
 
         Args:
             level: Nivel de sensibilidad (0.0 a 1.0)
+
+        Raises:
+            ValueError: Si el nivel está fuera del rango válido
         """
+        if not (0.0 <= level <= 1.0):
+            raise ValueError("Sensitivity level must be between 0.0 and 1.0")
+
         self.base_sensitivity = np.clip(level, 0.1, 1.0)
 
     def get_diagnostics(self) -> Dict[str, Any]:
@@ -205,9 +237,6 @@ class DynamicSensitivityManager:
             'current_thresholds': self.current_thresholds
         }
 
-
-# Importar cv2 al final para evitar referencias circulares
-import cv2
 
 # Instancia global
 sensitivity_manager = DynamicSensitivityManager()

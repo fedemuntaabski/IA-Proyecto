@@ -16,6 +16,7 @@ from .utils import MIN_POINTS_FOR_CLASSIFICATION
 from .utils.async_processor import ml_async_processor
 from .utils.analytics import analytics_tracker
 from .utils.sensitivity_manager import sensitivity_manager
+from .constants import FRAME_PROCESSING_CONFIG
 
 
 class FrameProcessor:
@@ -39,14 +40,32 @@ class FrameProcessor:
             gesture_processor: Procesador de gestos
             classifier: Clasificador de sketches
             config: Configuración de la aplicación
+
+        Raises:
+            ValueError: Si los parámetros son inválidos
         """
+        if hand_detector is None:
+            raise ValueError("hand_detector cannot be None")
+        if gesture_processor is None:
+            raise ValueError("gesture_processor cannot be None")
+        if classifier is None:
+            raise ValueError("classifier cannot be None")
+        if config is None:
+            raise ValueError("config cannot be None")
+
         self.hand_detector = hand_detector
         self.gesture_processor = gesture_processor
         self.classifier = classifier
 
-        # Configuración
-        self.min_points_for_classification = config.get('min_points_for_classification', MIN_POINTS_FOR_CLASSIFICATION)
-        self.confidence_threshold = config.get('confidence_threshold', 0.5)
+        # Configuración con valores por defecto de constantes
+        self.min_points_for_classification = config.get('min_points_for_classification', FRAME_PROCESSING_CONFIG['MIN_POINTS_FOR_CLASSIFICATION'])
+        self.confidence_threshold = config.get('confidence_threshold', FRAME_PROCESSING_CONFIG['DEFAULT_CONFIDENCE_THRESHOLD'])
+
+        # Validar configuración
+        if self.min_points_for_classification <= 0:
+            raise ValueError("min_points_for_classification must be positive")
+        if not (0.0 <= self.confidence_threshold <= 1.0):
+            raise ValueError("confidence_threshold must be between 0.0 and 1.0")
 
         # Estado del procesamiento
         self.is_drawing = False
@@ -67,56 +86,105 @@ class FrameProcessor:
         Procesa un frame completo con sensibilidad adaptativa.
 
         Args:
-            frame: Frame de OpenCV (BGR)
+            frame: Frame de OpenCV (BGR). Debe ser un array válido no vacío.
 
         Returns:
             Tupla de (frame_procesado, estado_de_aplicacion)
+
+        Raises:
+            ValueError: Si el frame es None o inválido
         """
-        # Voltear para efecto espejo
-        frame = cv2.flip(frame, 1)
-        height, width = frame.shape[:2]
+        if frame is None:
+            raise ValueError("Frame cannot be None")
 
-        # Analizar calidad del frame para sensibilidad adaptativa
-        frame_quality = sensitivity_manager.analyze_frame_quality(frame)
-        
-        # Calcular sensibilidad actual y actualizar umbrales
-        current_sensitivity = sensitivity_manager.calculate_current_sensitivity()
-        sensitivity_manager.update_thresholds(current_sensitivity)
+        if not isinstance(frame, np.ndarray) or frame.size == 0:
+            raise ValueError("Frame must be a valid non-empty numpy array")
 
-        # Verificar predicciones asíncronas completadas
-        self._check_pending_predictions()
+        try:
+            # Voltear para efecto espejo
+            frame = cv2.flip(frame, 1)
+            height, width = frame.shape[:2]
 
-        # Detectar manos
-        frame_rgb, contours, has_hands = self.hand_detector.detect(frame)
+            # Analizar calidad del frame para sensibilidad adaptativa
+            frame_quality = sensitivity_manager.analyze_frame_quality(frame)
+            
+            # Calcular sensibilidad actual y actualizar umbrales
+            current_sensitivity = sensitivity_manager.calculate_current_sensitivity()
+            sensitivity_manager.update_thresholds(current_sensitivity)
 
-        # Medir ruido si hay máscara de detección
-        if has_hands and contours:
-            # Crear máscara simple para análisis de ruido
-            mask = np.zeros((height, width), dtype=np.uint8)
-            cv2.drawContours(mask, contours, -1, 255, -1)
-            noise_level = sensitivity_manager.measure_noise_level(frame, mask)
+            # Verificar predicciones asíncronas completadas
+            self._check_pending_predictions()
 
-        # Procesar gestos si hay manos
-        if has_hands and contours:
-            self._process_gesture(contours, (height, width))
+            # Detectar manos
+            frame_rgb, contours, has_hands = self.hand_detector.detect(frame)
 
-        # Crear frame de visualización
-        display_frame = frame.copy()
+            # Medir ruido si hay máscara de detección
+            if has_hands and contours:
+                # Crear máscara simple para análisis de ruido
+                mask = np.zeros((height, width), dtype=np.uint8)
+                cv2.drawContours(mask, contours, -1, 255, -1)
+                noise_level = sensitivity_manager.measure_noise_level(frame, mask)
 
-        # Dibujar landmarks si hay manos
-        if has_hands and contours:
-            display_frame = self.hand_detector.draw_landmarks(display_frame, contours)
+            # Procesar gestos si hay manos
+            if has_hands and contours:
+                self._process_gesture(contours, (height, width))
 
-        # Dibujar trazo actual
-        if len(self.gesture_processor.stroke_points) > 0:
-            display_frame = self.gesture_processor.draw_on_frame(
-                display_frame, frame_shape=(height, width)
-            )
+            # Crear frame de visualización
+            display_frame = frame.copy()
 
-        # Preparar estado de la aplicación
-        app_state = self._get_app_state(current_sensitivity, frame_quality)
+            # Dibujar landmarks si hay manos
+            if has_hands and contours:
+                display_frame = self.hand_detector.draw_landmarks(display_frame, contours)
 
-        return display_frame, app_state
+            # Dibujar trazo actual
+            if len(self.gesture_processor.stroke_points) > 0:
+                display_frame = self.gesture_processor.draw_on_frame(
+                    display_frame, frame_shape=(height, width)
+                )
+
+            # Preparar estado de la aplicación
+            app_state = self._get_app_state(current_sensitivity, frame_quality)
+
+            return display_frame, app_state
+
+        except cv2.error as e:
+            print(f"OpenCV error in frame processing: {e}")
+            # Retornar frame original con estado vacío
+            empty_state = {
+                'has_hands': False,
+                'is_drawing': False,
+                'stroke_points': [],
+                'last_prediction': None,
+                'min_points_for_classification': self.min_points_for_classification,
+                'total_drawings': getattr(self, 'total_drawings', 0),
+                'successful_predictions': getattr(self, 'successful_predictions', 0),
+                'async_predictions': getattr(self, 'async_predictions', 0),
+                'pending_predictions_count': len(self.pending_predictions),
+                'async_enabled': self.async_enabled,
+                'session_time': time.time() - getattr(self, 'session_start_time', time.time()),
+                'current_sensitivity': 0.5,
+                'frame_quality': 0.5
+            }
+            return frame, empty_state
+        except Exception as e:
+            print(f"Unexpected error in frame processing: {e}")
+            # Retornar frame original con estado vacío
+            empty_state = {
+                'has_hands': False,
+                'is_drawing': False,
+                'stroke_points': [],
+                'last_prediction': None,
+                'min_points_for_classification': self.min_points_for_classification,
+                'total_drawings': getattr(self, 'total_drawings', 0),
+                'successful_predictions': getattr(self, 'successful_predictions', 0),
+                'async_predictions': getattr(self, 'async_predictions', 0),
+                'pending_predictions_count': len(self.pending_predictions),
+                'async_enabled': self.async_enabled,
+                'session_time': time.time() - getattr(self, 'session_start_time', time.time()),
+                'current_sensitivity': 0.5,
+                'frame_quality': 0.5
+            }
+            return frame, empty_state
 
     def _process_gesture(self, contours: List, frame_shape: Tuple[int, int]) -> None:
         """
@@ -125,22 +193,38 @@ class FrameProcessor:
         Args:
             contours: Contornos detectados
             frame_shape: Forma del frame (height, width)
+
+        Raises:
+            ValueError: Si los parámetros son inválidos
         """
-        # Obtener posición del dedo índice
-        index_pos = self.hand_detector.get_index_finger_tip(contours)
+        if contours is None:
+            raise ValueError("contours cannot be None")
 
-        if index_pos and self.hand_detector.is_drawing_gesture(contours):
-            # Usuario está dibujando
-            if not self.is_drawing:
-                self._start_drawing()
+        if not isinstance(frame_shape, tuple) or len(frame_shape) != 2:
+            raise ValueError("frame_shape must be a tuple of (height, width)")
 
-            # Agregar punto al gesto
-            normalized_pos = (index_pos[0] / frame_shape[1], index_pos[1] / frame_shape[0])
-            self.gesture_processor.add_point(normalized_pos, frame_shape)
-        else:
-            # Usuario dejó de dibujar
-            if self.is_drawing:
-                self._stop_drawing()
+        if frame_shape[0] <= 0 or frame_shape[1] <= 0:
+            raise ValueError("frame_shape dimensions must be positive")
+
+        try:
+            # Obtener posición del dedo índice
+            index_pos = self.hand_detector.get_index_finger_tip(contours)
+
+            if index_pos and self.hand_detector.is_drawing_gesture(contours):
+                # Usuario está dibujando
+                if not self.is_drawing:
+                    self._start_drawing()
+
+                # Agregar punto al gesto
+                normalized_pos = (index_pos[0] / frame_shape[1], index_pos[1] / frame_shape[0])
+                self.gesture_processor.add_point(normalized_pos, frame_shape)
+            else:
+                # Usuario dejó de dibujar
+                if self.is_drawing:
+                    self._stop_drawing()
+        except Exception as e:
+            print(f"Error processing gesture: {e}")
+            # No relanzar la excepción para no interrumpir el procesamiento del frame
 
     def _start_drawing(self) -> None:
         """Inicia una nueva sesión de dibujo."""
@@ -160,34 +244,47 @@ class FrameProcessor:
             print(f"⚠ Dibujo muy corto ({points_count} puntos)")
 
     def _classify_current_gesture(self) -> None:
-        """Clasifica el gesto actual."""
-        if len(self.gesture_processor.stroke_points) < self.min_points_for_classification:
-            return
+        """
+        Clasifica el gesto actual.
+        """
+        try:
+            if len(self.gesture_processor.stroke_points) < self.min_points_for_classification:
+                return
 
-        print("🔍 Clasificando dibujo...")
-        self.total_drawings += 1
+            print("🔍 Clasificando dibujo...")
+            self.total_drawings += 1
 
-        # Obtener imagen del gesto
-        gesture_image = self.gesture_processor.get_gesture_image()
+            # Obtener imagen del gesto
+            gesture_image = self.gesture_processor.get_gesture_image()
 
-        if gesture_image is None:
-            print("⚠ No se pudo procesar el gesto")
-            return
+            if gesture_image is None:
+                analytics_tracker.track_error('classification', 'Failed to get gesture image')
+                print("⚠ No se pudo procesar el gesto")
+                return
 
-        # Realizar clasificación
-        if self.classifier.is_available():
-            if self.async_enabled and hasattr(self.classifier, 'predict_async'):
-                # Clasificación asíncrona
-                task_id = self.classifier.predict_async(gesture_image, top_k=3)
-                self.pending_predictions[task_id] = (time.time(), gesture_image)
-                self.async_predictions += 1
-                print(f"📤 Predicción asíncrona enviada (ID: {task_id})")
+            # Realizar clasificación
+            if self.classifier.is_available():
+                if self.async_enabled and hasattr(self.classifier, 'predict_async'):
+                    # Clasificación asíncrona
+                    task_id = self.classifier.predict_async(gesture_image, top_k=3)
+                    if task_id:
+                        self.pending_predictions[task_id] = (time.time(), gesture_image)
+                        self.async_predictions += 1
+                        print(f"📤 Predicción asíncrona enviada (ID: {task_id})")
+                    else:
+                        analytics_tracker.track_error('classification', 'Failed to start async prediction')
+                        print("⚠ Error iniciando predicción asíncrona")
+                else:
+                    # Clasificación síncrona
+                    predictions = self.classifier.predict(gesture_image, top_k=3)
+                    self._process_prediction_results(predictions)
             else:
-                # Clasificación síncrona
-                predictions = self.classifier.predict(gesture_image, top_k=3)
-                self._process_prediction_results(predictions)
-        else:
-            print("⚠ Clasificador no disponible")
+                analytics_tracker.track_error('classification', 'Classifier not available')
+                print("⚠ Clasificador no disponible")
+
+        except Exception as e:
+            analytics_tracker.track_error('classification', str(e))
+            print(f"⚠ Error en clasificación: {e}")
 
         print()
 
