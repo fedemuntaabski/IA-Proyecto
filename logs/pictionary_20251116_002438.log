@@ -1,5 +1,0 @@
-2025-11-16 00:24:38,282 - PictionaryLive - INFO - ======================================================================
-2025-11-16 00:24:38,283 - PictionaryLive - INFO - PICTIONARY LIVE - Inicializando
-2025-11-16 00:24:38,283 - PictionaryLive - INFO - ======================================================================
-2025-11-16 00:24:38,284 - PictionaryLive - INFO - Modelo info cargado: 228 clases
-2025-11-16 00:24:38,284 - PictionaryLive - ERROR - TensorFlow no está instalado. Instala con: pip install tensorflow

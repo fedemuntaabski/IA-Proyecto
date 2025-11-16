@@ -1,0 +1,234 @@
+2025-11-16 10:01:16,315 - PictionaryLive - INFO - ======================================================================
+2025-11-16 10:01:16,315 - PictionaryLive - INFO - PICTIONARY LIVE - Inicializando
+2025-11-16 10:01:16,315 - PictionaryLive - INFO - ======================================================================
+2025-11-16 10:01:16,320 - PictionaryLive - INFO - MediaPipe Hands inicializado
+2025-11-16 10:01:16,320 - PictionaryLive - INFO -   Thresholds: detection=0.4, tracking=0.4
+2025-11-16 10:01:16,324 - PictionaryLive - INFO - Modelo info cargado: 228 clases
+2025-11-16 10:01:16,326 - PictionaryLive - WARNING - Error al cargar sketch_classifier_model.keras: Keras cannot be imported. Check that it is installed.
+2025-11-16 10:01:16,329 - PictionaryLive - WARNING - Error al cargar sketch_classifier_model.h5: maximum recursion depth exceeded
+2025-11-16 10:01:16,329 - PictionaryLive - INFO - No se encontró modelo, usando predicciones demo
+2025-11-16 10:01:16,329 - PictionaryLive - INFO - 
+======================================================================
+2025-11-16 10:01:16,329 - PictionaryLive - INFO - VALIDACIÓN DE SETUP
+2025-11-16 10:01:16,329 - PictionaryLive - INFO - ======================================================================
+2025-11-16 10:01:16,330 - PictionaryLive - INFO -   [OK] IA folder
+2025-11-16 10:01:16,330 - PictionaryLive - INFO -   [OK] model_info.json
+2025-11-16 10:01:16,330 - PictionaryLive - INFO -   [OK] Hand Detector
+2025-11-16 10:01:16,330 - PictionaryLive - INFO -   [OK] Classifier
+2025-11-16 10:01:22,590 - PictionaryLive - INFO -   [OK] Camara 0 (640x480)
+2025-11-16 10:01:22,607 - PictionaryLive - INFO - ======================================================================
+
+2025-11-16 10:01:22,607 - PictionaryLive - INFO - Aplicación inicializada correctamente
+2025-11-16 10:01:44,991 - PictionaryLive - INFO - Cámara inicializada: 640x480 @ 30FPS
+2025-11-16 10:01:44,991 - PictionaryLive - INFO - [VIVO] Iniciando captura. Presiona 'q' para salir, 's' para guardar.
+2025-11-16 10:01:49,286 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:49,364 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:50,087 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:50,633 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:50,750 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:50,808 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:50,859 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:50,924 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:50,974 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:51,024 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:51,074 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:51,124 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:51,185 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:51,251 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:51,307 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:51,367 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:51,408 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:51,474 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:51,524 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:51,574 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:51,624 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:51,674 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:51,724 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:51,774 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:51,824 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:51,874 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:51,924 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:51,974 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:52,025 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:52,075 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:52,125 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:52,175 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:52,225 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:52,276 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:52,327 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:52,377 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:52,425 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:52,475 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:52,525 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:52,575 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:52,627 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:52,675 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:52,726 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:52,775 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:52,825 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:52,890 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:52,925 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:52,975 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:53,025 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:53,075 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:53,125 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:53,191 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:53,225 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:53,276 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:53,325 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:53,375 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:53,425 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:53,475 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:53,528 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:53,577 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:53,626 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:53,676 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:53,725 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:53,775 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:53,827 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:53,878 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:53,926 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:53,975 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:54,025 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:54,090 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:54,125 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:54,175 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:54,225 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:54,275 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:54,325 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:54,376 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:54,427 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:54,475 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:54,525 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:54,575 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:54,625 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:54,675 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:54,727 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:54,775 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:54,825 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:54,875 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:54,925 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:54,975 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:55,026 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:55,076 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:55,125 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:55,176 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:55,225 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:55,275 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:55,327 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:55,375 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:55,425 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:55,476 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:55,525 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:55,575 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:55,625 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:55,676 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:55,725 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:55,775 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:55,825 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:55,875 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:55,927 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:55,976 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:56,025 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:56,075 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:56,125 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:56,175 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:56,226 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:56,275 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:56,328 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:56,375 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:56,425 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:56,475 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:56,528 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:56,575 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:56,625 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:56,675 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:56,725 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:56,776 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:56,825 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:56,875 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:56,925 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:56,983 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:57,037 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:57,107 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:57,157 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:57,209 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:57,258 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:57,308 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:57,360 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:57,409 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:57,458 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:57,508 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:57,558 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:57,608 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:57,658 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:57,708 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:57,761 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:57,809 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:57,858 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:57,910 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:57,959 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:58,008 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:58,058 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:58,108 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:58,158 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:58,210 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:58,258 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:58,309 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:58,359 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:58,408 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:58,458 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:58,508 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:58,560 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:58,609 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:58,658 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:58,708 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:58,758 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:58,808 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:58,858 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:58,908 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:58,958 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:59,008 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:59,058 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:59,109 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:59,159 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:59,208 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:59,259 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:59,309 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:59,358 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:59,409 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:59,458 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:59,509 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:59,559 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:59,608 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:59,658 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:59,708 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:59,758 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:59,808 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:59,858 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:59,908 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:01:59,958 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:02:00,008 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:02:00,059 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:02:00,109 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:02:00,158 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:02:00,208 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:02:00,258 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:02:00,308 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:02:00,359 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:02:00,409 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:02:00,458 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:02:00,508 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:02:00,558 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:02:00,608 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:02:00,658 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:02:00,708 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:02:00,759 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:02:00,809 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:02:00,858 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:02:00,908 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:02:00,958 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:02:01,009 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:02:01,059 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:02:01,108 - PictionaryLive - ERROR - Error en detección de manos: score
+2025-11-16 10:02:01,158 - PictionaryLive - ERROR - Error en detección de manos: score

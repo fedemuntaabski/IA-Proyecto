@@ -265,8 +265,8 @@ class BodyTracker:
             self.hands_detector = mp_hands.Hands(
                 static_image_mode=False,
                 max_num_hands=2,
-                min_detection_confidence=0.7,
-                min_tracking_confidence=0.7,
+                min_detection_confidence=0.5,  # Reducido de 0.7 para mejor tolerancia
+                min_tracking_confidence=0.5,   # Reducido de 0.7 para mejor seguimiento
             )
             
             # Detección de pose (cuerpo completo: cabeza, hombros, brazos, etc.)
@@ -275,11 +275,12 @@ class BodyTracker:
                 static_image_mode=False,
                 model_complexity=1,
                 smooth_landmarks=True,
-                min_detection_confidence=0.6,
-                min_tracking_confidence=0.6,
+                min_detection_confidence=0.5,  # Reducido de 0.6 para mejor tolerancia
+                min_tracking_confidence=0.5,   # Reducido de 0.6 para mejor seguimiento
             )
             
             self.logger.info("MediaPipe Hands + Pose inicializados (cuerpo completo)")
+            self.logger.info("  Umbrales de confianza: 0.5 (optimizados para detección en condiciones reales)")
         except Exception as e:
             self.logger.warning(f"Error inicializando MediaPipe: {e}")
             self.use_mediapipe = False
@@ -313,15 +314,22 @@ class BodyTracker:
                         dy = current_pos[1] - self.previous_hand_pos[1]
                         hand_velocity = (dx ** 2 + dy ** 2) ** 0.5  # Distancia euclidiana
                     self.previous_hand_pos = current_pos
+                
+                self.logger.debug(f"Mano detectada: {len(hand_landmarks)} landmarks, velocidad: {hand_velocity:.6f}")
+            else:
+                self.logger.debug("No se detectó mano en este frame")
             
             # Detectar pose (cuerpo)
             pose_results = self.pose_detector.process(frame_rgb)
             pose_landmarks = None
-            if pose_results.landmarks:
+            if pose_results.pose_landmarks:
                 pose_landmarks = {
-                    'landmarks': [(lm.x, lm.y, lm.z) for lm in pose_results.landmarks],
-                    'visibility': [lm.visibility for lm in pose_results.landmarks]
+                    'landmarks': [(lm.x, lm.y, lm.z) for lm in pose_results.pose_landmarks],
+                    'visibility': [lm.visibility for lm in pose_results.pose_landmarks]
                 }
+                self.logger.debug(f"Pose detectada: {len(pose_results.pose_landmarks)} landmarks")
+            else:
+                self.logger.debug("No se detectó pose en este frame")
             
             self.hand_landmarks = hand_landmarks
             self.pose_landmarks = pose_landmarks
@@ -333,7 +341,7 @@ class BodyTracker:
                 "hand_velocity": hand_velocity
             }
         except Exception as e:
-            self.logger.debug(f"Error en detección: {e}")
+            self.logger.error(f"Error en detección: {e}", exc_info=True)
             return {"hand_landmarks": None, "pose_landmarks": None, "hand_velocity": 0.0}
     
     def draw_full_body(self, frame: np.ndarray) -> np.ndarray:
@@ -589,6 +597,88 @@ class DrawingPreprocessor:
 # APLICACIÓN PRINCIPAL
 # ============================================================================
 
+def validate_setup(ia_dir: str, camera_id: int = 0, logger: logging.Logger = None) -> Tuple[bool, str]:
+    """
+    Valida que el setup está correcto antes de ejecutar la aplicación.
+    
+    Returns:
+        (success: bool, message: str)
+    """
+    logger = logger or logging.getLogger()
+    
+    checks = []
+    
+    # 1. Validar folder IA
+    ia_path = Path(ia_dir)
+    if not ia_path.exists():
+        checks.append(f"[X] Carpeta IA no encontrada: {ia_dir}")
+    else:
+        checks.append(f"[OK] Carpeta IA encontrada: {ia_dir}")
+    
+    # 2. Validar modelo info
+    model_info_path = ia_path / "model_info.json"
+    if not model_info_path.exists():
+        checks.append(f"[X] model_info.json no encontrado")
+    else:
+        checks.append(f"[OK] model_info.json encontrado")
+    
+    # 3. Validar modelo (keras o h5)
+    model_exists = (ia_path / "sketch_classifier_model.keras").exists() or \
+                   (ia_path / "sketch_classifier_model.h5").exists()
+    if not model_exists and TENSORFLOW_AVAILABLE:
+        checks.append(f"[X] Modelo (keras/h5) no encontrado")
+    else:
+        checks.append(f"[OK] Modelo encontrado")
+    
+    # 4. Validar dependencias
+    if not TENSORFLOW_AVAILABLE:
+        checks.append(f"[!] TensorFlow no disponible (funcionara en modo demo)")
+    else:
+        checks.append(f"[OK] TensorFlow disponible")
+    
+    if not MEDIAPIPE_AVAILABLE:
+        checks.append(f"[X] MediaPipe no disponible (esencial para deteccion)")
+    else:
+        checks.append(f"[OK] MediaPipe disponible")
+    
+    # 5. Validar camara
+    try:
+        cap = cv2.VideoCapture(camera_id)
+        if not cap.isOpened():
+            checks.append(f"[X] No se puede acceder a la camara {camera_id}")
+        else:
+            # Obtener propiedades
+            width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+            height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+            fps = int(cap.get(cv2.CAP_PROP_FPS))
+            checks.append(f"[OK] Camara {camera_id} accesible (resolucion: {width}x{height}, FPS: {fps})")
+        cap.release()
+    except Exception as e:
+        checks.append(f"[X] Error al acceder a la camara: {e}")
+    
+    # Imprimir reporte
+    logger.info("\n" + "=" * 70)
+    logger.info("VALIDACION DE SETUP")
+    logger.info("=" * 70)
+    for check in checks:
+        logger.info(check)
+    logger.info("=" * 70 + "\n")
+    
+    # Determinar éxito
+    success = not any(check.startswith("[X]") for check in checks) and MEDIAPIPE_AVAILABLE
+    
+    if not success:
+        message = "Setup invalido. Verifica los errores arriba."
+    else:
+        message = "Setup validado correctamente."
+    
+    return success, message
+
+
+# ============================================================================
+# APLICACIÓN PRINCIPAL
+# ============================================================================
+
 class PictionaryLive:
     """Aplicación principal de Pictionary en vivo."""
     
@@ -622,6 +712,16 @@ class PictionaryLive:
         # Inferencia
         self.inference_log_path = Path("./inference.log")
         
+        # Diagnóstico y rendimiento
+        self.frame_count = 0
+        self.last_time = time.time()
+        self.fps = 0
+        self.detection_stats = {
+            'hands_detected': 0,
+            'pose_detected': 0,
+            'avg_hand_velocity': 0.0
+        }
+        
         # Validar y cargar
         if not self._initialize():
             raise RuntimeError("Inicialización fallida")
@@ -639,9 +739,9 @@ class PictionaryLive:
             
             # Stroke accumulator con parámetros mejorados
             self.stroke_accumulator = StrokeAccumulator(
-                pause_threshold_ms=300,      # Más tiempo para pausa
-                velocity_threshold=0.005,    # Umbral de velocidad
-                min_points=15,               # Mínimo de puntos para trazo válido
+                pause_threshold_ms=500,      # Más tiempo para pausas naturales
+                velocity_threshold=0.003,    # Más sensible a movimientos lentos
+                min_points=10,               # Trazos más cortos válidos
                 logger=self.logger
             )
             
@@ -755,14 +855,30 @@ class PictionaryLive:
             self._cleanup()
     
     def _init_camera(self) -> bool:
-        """Inicializa captura de cámara."""
+        """Inicializa captura de cámara con configuración óptima."""
         try:
             self.cap = cv2.VideoCapture(self.camera_id)
             if not self.cap.isOpened():
                 self.logger.error(f"No se puede abrir cámara {self.camera_id}")
                 return False
             
-            self.logger.info("Cámara {} abierta".format(self.camera_id))
+            # Configurar resolución óptima (1280x720)
+            self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
+            self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
+            
+            # Configurar otros parámetros
+            self.cap.set(cv2.CAP_PROP_FPS, 30)
+            self.cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)  # Minimizar latencia
+            
+            # Obtener parámetros reales
+            width = int(self.cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+            height = int(self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+            fps = int(self.cap.get(cv2.CAP_PROP_FPS))
+            
+            self.logger.info(f"Cámara {self.camera_id} abierta")
+            self.logger.info(f"  Resolución: {width}x{height}")
+            self.logger.info(f"  FPS: {fps}")
+            self.logger.info(f"  Buffer mínimo para baja latencia")
             return True
         except Exception as e:
             self.logger.error(f"Error al inicializar cámara: {e}")
@@ -799,20 +915,33 @@ class PictionaryLive:
         """Dibuja UI overlay mejorado en el frame."""
         h, w = frame.shape[:2]
         
+        # Actualizar FPS
+        self.frame_count += 1
+        current_time = time.time()
+        if current_time - self.last_time >= 1.0:
+            self.fps = self.frame_count / (current_time - self.last_time)
+            self.frame_count = 0
+            self.last_time = current_time
+        
         # Panel superior (información)
         overlay = frame.copy()
-        cv2.rectangle(overlay, (0, 0), (w, 100), (0, 0, 0), -1)
+        cv2.rectangle(overlay, (0, 0), (w, 120), (0, 0, 0), -1)
         cv2.addWeighted(overlay, 0.4, frame, 0.6, 0, frame)
         
         # Título principal
         cv2.putText(frame, "PICTIONARY LIVE - Dibuja en el aire", (20, 35),
                    cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 255, 0), 3)
         
-        # Estado de trazo
-        stroke_count = len(self.stroke_accumulator.points)
-        status_text = f"Puntos del trazo: {stroke_count}"
-        cv2.putText(frame, status_text, (20, 65),
+        # FPS y diagnóstico
+        diag_text = f"FPS: {self.fps:.1f} | Puntos trazo: {len(self.stroke_accumulator.points)} | Manos: {'SI' if self.body_tracker.hand_landmarks else 'NO'}"
+        cv2.putText(frame, diag_text, (20, 65),
                    cv2.FONT_HERSHEY_SIMPLEX, 0.9, (100, 200, 255), 2)
+        
+        # Información de velocidad si hay mano detectada
+        if self.body_tracker.hand_velocity > 0:
+            vel_text = f"Velocidad dedo: {self.body_tracker.hand_velocity:.4f}"
+            cv2.putText(frame, vel_text, (20, 95),
+                       cv2.FONT_HERSHEY_SIMPLEX, 0.8, (100, 255, 100), 2)
         
         # Última predicción (si existe)
         if hasattr(self, 'last_prediction') and self.last_prediction:
@@ -824,12 +953,12 @@ class PictionaryLive:
             x_pos = w - text_size[0] - 30
             
             # Fondo para predicción
-            cv2.rectangle(frame, (x_pos - 10, 25), (w - 10, 75), (50, 100, 150), -1)
-            cv2.rectangle(frame, (x_pos - 10, 25), (w - 10, 75), (0, 200, 255), 2)
+            cv2.rectangle(frame, (x_pos - 10, 25), (w - 10, 95), (50, 100, 150), -1)
+            cv2.rectangle(frame, (x_pos - 10, 25), (w - 10, 95), (0, 200, 255), 2)
             
             cv2.putText(frame, "Predicción:", (x_pos, 50),
                        cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 200, 255), 1)
-            cv2.putText(frame, pred_text, (x_pos, 75),
+            cv2.putText(frame, pred_text, (x_pos, 80),
                        cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
             
             # Mostrar top-3
@@ -843,9 +972,9 @@ class PictionaryLive:
                                cv2.FONT_HERSHEY_SIMPLEX, 0.6, (100, 150, 255), 1)
         
         # Controles (abajo)
-        controls_text = "q=SALIR | s=GUARDAR | Dibuja con el dedo indice"
+        controls_text = "q=SALIR | s=GUARDAR | Dibuja con el dedo indice | Iluminacion frontal + fondo plano = Mejor deteccion"
         cv2.putText(frame, controls_text, (20, h - 15),
-                   cv2.FONT_HERSHEY_SIMPLEX, 0.7, (200, 200, 200), 1)
+                   cv2.FONT_HERSHEY_SIMPLEX, 0.6, (200, 200, 200), 1)
     
     def _log_inference(self, label: str, prob: float, top3: List[Tuple[str, float]]):
         """Guarda log de inferencia."""
@@ -891,6 +1020,14 @@ Ejemplos:
   python pictionary_live.py --ia-dir ./IA
   python pictionary_live.py --ia-dir ./IA --debug
   python pictionary_live.py --ia-dir ./IA --dry-run
+  python pictionary_live.py --ia-dir ./IA --camera-id 1
+
+Requisitos mínimos para detección óptima:
+  - Iluminación: Luz frontal blanca uniforme
+  - Fondo: Plano y contrastante (verde/azul sólido)
+  - Cámara: Resolución 1280x720 o superior, centrada
+  - Distancia: 60-80 cm de la mano
+  - Python: 3.10, 3.11 o 3.12
         """
     )
     
@@ -904,22 +1041,35 @@ Ejemplos:
         "--camera-id",
         type=int,
         default=0,
-        help="ID de cámara a usar (default: 0)"
+        help="ID de cámara a usar (default: 0, prueba 1, 2 si no funciona)"
     )
     parser.add_argument(
         "--debug",
         action="store_true",
-        help="Habilitar logging DEBUG"
+        help="Habilitar logging DEBUG (más detallado)"
     )
     parser.add_argument(
         "--dry-run",
         action="store_true",
-        help="Validar modelo sin abrir cámara"
+        help="Validar modelo y setup sin abrir cámara"
     )
     
     args = parser.parse_args()
     
     try:
+        # Crear logger para validación
+        logger = setup_logging(debug=args.debug)
+        
+        # Validar setup ANTES de crear la app
+        success, message = validate_setup(args.ia_dir, args.camera_id, logger)
+        
+        if not success:
+            logger.error(message)
+            sys.exit(1)
+        
+        logger.info(message)
+        
+        # Crear y ejecutar aplicación
         app = PictionaryLive(
             ia_dir=args.ia_dir,
             camera_id=args.camera_id,
@@ -927,6 +1077,7 @@ Ejemplos:
             dry_run=args.dry_run
         )
         app.run()
+    
     except Exception as e:
         logging.error(f"Error fatal: {e}")
         sys.exit(1)

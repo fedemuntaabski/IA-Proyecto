@@ -1,6 +1,0 @@
-2025-11-16 00:34:31,720 - PictionaryLive - INFO - ======================================================================
-2025-11-16 00:34:31,720 - PictionaryLive - INFO - PICTIONARY LIVE - Inicializando
-2025-11-16 00:34:31,720 - PictionaryLive - INFO - ======================================================================
-2025-11-16 00:34:31,720 - PictionaryLive - INFO - Modelo info cargado: 228 clases
-2025-11-16 00:34:31,720 - PictionaryLive - WARNING - TensorFlow no disponible. Funcionando en modo demo.
-2025-11-16 00:34:31,723 - PictionaryLive - WARNING - MediaPipe no disponible. Funcionando en modo demo.
