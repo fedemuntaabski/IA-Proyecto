@@ -207,3 +207,31 @@ class HandDetector:
         if self.hand_landmarks and len(self.hand_landmarks) > 8:
             return self.hand_landmarks[8]
         return None
+
+    def is_fist(self) -> bool:
+        """
+        Heurística simple para detectar puño cerrado usando landmarks.
+        Retorna True si la mayoría de las puntas de los dedos (index, middle, ring, pinky)
+        están plegadas respecto a sus articulaciones PIP.
+        """
+        if not self.hand_landmarks or len(self.hand_landmarks) < 21:
+            return False
+
+        # Índices de landmarks
+        tips = [8, 12, 16, 20]
+        pips = [6, 10, 14, 18]
+
+        folded = 0
+        for tip_idx, pip_idx in zip(tips, pips):
+            tip = self.hand_landmarks[tip_idx]
+            pip = self.hand_landmarks[pip_idx]
+            # Si la punta está más cerca del centro de la palma (mayor y en coordenada normalizada)
+            # en la mayoría de las orientaciones tip.y > pip.y suele indicar dedo plegado (dependiendo de la orientación de la mano)
+            try:
+                if tip[1] > pip[1]:
+                    folded += 1
+            except Exception:
+                continue
+
+        # Considerar puño si 3 o más dedos plegados
+        return folded >= 3

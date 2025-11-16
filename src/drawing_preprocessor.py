@@ -26,9 +26,12 @@ class DrawingPreprocessor:
         self.min_stroke_length = self.config.get("min_stroke_length", 0.05)
         self.min_points = self.config.get("min_points", 5)
         self.blur_kernel = self.config.get("blur_kernel", 3)
-        self.blur_sigma = self.config.get("blur_sigma", 0.5)
-        self.thickness_base = self.config.get("thickness_base", 2)
-        self.thickness_max = self.config.get("thickness_max", 4)
+        # Por defecto usar blur mínimo y trazos más delgados (coincide mejor con QuickDraw)
+        self.blur_sigma = self.config.get("blur_sigma", 0.0)
+        self.thickness_base = self.config.get("thickness_base", 1)
+        self.thickness_max = self.config.get("thickness_max", 2)
+        # Opcional: aplicar skeletonization (thinning) para normalizar grosor
+        self.skeletonize = self.config.get("skeletonize", False)
     
     def preprocess(self, points: List[Tuple[float, float]]) -> np.ndarray:
         """
@@ -57,8 +60,7 @@ class DrawingPreprocessor:
         # Dibujar el trazo con suavizado
         self._draw_smooth_stroke(canvas, scaled_points)
         
-        # Invertir (fondo blanco -> negro, trazo negro)
-        canvas = 255 - canvas
+        # No invertir colores: mantener trazo negro (0) sobre fondo blanco (255)
         
         # Normalizar a [0, 1]
         canvas = canvas.astype(np.float32) / 255.0
@@ -150,5 +152,30 @@ class DrawingPreprocessor:
             
             cv2.line(canvas, points[i-1], points[i], 0, thickness)
         
-        # Aplicar blur suave para reducir ruido de detección
-        canvas[:] = cv2.GaussianBlur(canvas, (self.blur_kernel, self.blur_kernel), self.blur_sigma)
+        # Aplicar blur suave solo si se configuró kernel>1 y sigma>0
+        if self.blur_kernel and self.blur_kernel > 1 and self.blur_sigma and self.blur_sigma > 0:
+            canvas[:] = cv2.GaussianBlur(canvas, (self.blur_kernel, self.blur_kernel), self.blur_sigma)
+
+        # Aplicar skeletonization si está activado
+        if self.skeletonize:
+            # Binarizar (0/255)
+            _, bw = cv2.threshold(canvas, 127, 255, cv2.THRESH_BINARY)
+            # Convertir a uint8
+            bw = bw.astype('uint8')
+            # Skeletonization via algoritmo iterativo de thinning (morphology)
+            skel = np.zeros(bw.shape, np.uint8)
+            element = cv2.getStructuringElement(cv2.MORPH_CROSS, (3, 3))
+            temp = np.zeros(bw.shape, np.uint8)
+            done = False
+            img = bw.copy()
+            while not done:
+                eroded = cv2.erode(img, element)
+                opened = cv2.dilate(eroded, element)
+                temp = cv2.subtract(img, opened)
+                skel = cv2.bitwise_or(skel, temp)
+                img = eroded.copy()
+                if cv2.countNonZero(img) == 0:
+                    done = True
+
+            # skel tiene 255 para esqueleto
+            canvas = skel

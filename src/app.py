@@ -91,6 +91,10 @@ class PictionaryLive:
         except Exception as e:
             self.logger.error(f"Error al inicializar PictionaryUI: {e}")
             self.ui = None
+        # Lista de trazos completados (para dibujos compuestos)
+        self.drawing_strokes = []
+        # Indica si el usuario actualmente tiene la mano en modo puño
+        self.hand_in_fist = False
     
     def _validate_setup(self) -> bool:
         """Valida que todo está configurado correctamente, con fallbacks."""
@@ -218,43 +222,48 @@ class PictionaryLive:
                         self.logger.warning(f"Error al dibujar landmarks: {e}")
                     
                     # Procesar trazo si hay mano y componentes disponibles
+                    # Detectar puño (si el detector lo soporta)
+                    is_fist = False
+                    try:
+                        if self.hand_detector and hasattr(self.hand_detector, 'is_fist'):
+                            is_fist = self.hand_detector.is_fist()
+                    except Exception as e:
+                        self.logger.debug(f"Error al evaluar puño: {e}")
+
+                    # Si hay mano y componentes disponibles
                     if hand_landmarks and self.stroke_accumulator and self.preprocessor and self.classifier:
                         try:
                             index_pos = self.hand_detector.get_index_finger_position() if self.hand_detector else None
                             if index_pos:
-                                stroke_complete = self.stroke_accumulator.add_point(
-                                    index_pos[0], index_pos[1], hand_velocity
-                                )
-                                
-                                # Si trazo completado, realizar inferencia
-                                if stroke_complete:
-                                    stroke = self.stroke_accumulator.get_stroke()
-                                    if stroke:
-                                        drawing = self.preprocessor.preprocess(stroke)
-                                        label, conf, top3 = self.classifier.predict(drawing)
-                                        
-                                        self.logger.info(f"Predicción: {label} ({conf:.1%})")
-                                        if self.ui:
-                                            self.ui.last_prediction = (label, conf, top3)
-                                        
-                                        # Log
-                                        try:
-                                            with open(inference_log, 'a', encoding='utf-8') as f:
-                                                top3_str = "; ".join([f"{l}: {p:.1%}" for l, p in top3])
-                                                f.write(f"{current_time:.0f} | {label} ({conf:.1%}) | Top-3: {top3_str}\n")
-                                        except Exception as log_e:
-                                            self.logger.warning(f"Error al escribir log: {log_e}")
-                                    
-                                    self.stroke_accumulator.reset()
-                                
-                                # Dibujar trazo en tiempo real
-                                if self.stroke_accumulator and self.ui:
-                                    stroke_info = self.stroke_accumulator.get_stroke_info()
-                                    if stroke_info["is_active"]:
-                                        frame = self.ui.draw_stroke_preview(frame, self.stroke_accumulator.points)
+                                # Si el usuario tiene la mano en puño, no agregar puntos; si se acaba de cerrar, terminar el trazo
+                                if is_fist:
+                                    # Si estamos entrando en estado puño y hay un trazo activo, guardarlo
+                                    if self.stroke_accumulator and self.stroke_accumulator.stroke_active:
+                                        stroke = self.stroke_accumulator.get_stroke()
+                                        if stroke:
+                                            self.drawing_strokes.append(stroke)
+                                            self.logger.info(f"Trazo añadido a dibujo compuesto (puño detectado): {len(stroke)} puntos")
+                                        self.stroke_accumulator.reset()
+                                    self.hand_in_fist = True
+                                else:
+                                    # Si abrimos la mano y antes estaba en puño, simplemente resume
+                                    if self.hand_in_fist:
+                                        self.hand_in_fist = False
+
+                                    # Agregar punto normalmente
+                                    stroke_complete = self.stroke_accumulator.add_point(
+                                        index_pos[0], index_pos[1], hand_velocity
+                                    )
+
+                                    # Si trazo completado, anexarlo a los trazos compuestos (pero no hacer inferencia automática)
+                                    if stroke_complete:
+                                        stroke = self.stroke_accumulator.get_stroke()
+                                        if stroke:
+                                            self.drawing_strokes.append(stroke)
+                                            self.logger.info(f"Trazo completado y añadido al dibujo compuesto: {len(stroke)} puntos")
+                                        self.stroke_accumulator.reset()
                         except Exception as e:
                             self.logger.warning(f"Error en procesamiento de trazo: {e} - continuando")
-                    
                     elif self.stroke_accumulator and self.stroke_accumulator.stroke_active:
                         # Sin mano detectada, resetear trazo si está muy viejo
                         try:
@@ -263,6 +272,26 @@ class PictionaryLive:
                                 self.stroke_accumulator.reset()
                         except Exception as e:
                             self.logger.warning(f"Error al resetear trazo: {e}")
+
+                    # Dibujar trazos previos (composite) en el frame
+                    if self.drawing_strokes:
+                        h_f, w_f = frame.shape[:2]
+                        for s in self.drawing_strokes:
+                            if not s or len(s) < 2:
+                                continue
+                            pixel_points = [(int(p[0]*w_f), int(p[1]*h_f)) for p in s]
+                            for i in range(1, len(pixel_points)):
+                                cv2.line(frame, pixel_points[i-1], pixel_points[i], (0, 255, 255), 2)
+
+                    # Dibujar trazo en tiempo real
+                    if self.stroke_accumulator and self.ui:
+                        stroke_info = self.stroke_accumulator.get_stroke_info()
+                        if stroke_info["is_active"]:
+                            frame = self.ui.draw_stroke_preview(frame, self.stroke_accumulator.points)
+
+                    # Si no hay mano detectada pero el usuario previamente estaba en puño, resetear el estado
+                    if not hand_landmarks:
+                        self.hand_in_fist = False
                     
                     # Actualizar UI
                     try:
@@ -273,7 +302,8 @@ class PictionaryLive:
                                 hand_detected=hand_landmarks is not None,
                                 stroke_points=len(self.stroke_accumulator.points) if self.stroke_accumulator else 0,
                                 hand_velocity=hand_velocity,
-                                prediction=self.ui.last_prediction if self.ui else None
+                                prediction=self.ui.last_prediction if self.ui else None,
+                                hand_in_fist=self.hand_in_fist,
                             )
                     except Exception as e:
                         self.logger.warning(f"Error al renderizar UI: {e}")
@@ -291,6 +321,70 @@ class PictionaryLive:
                             self._save_screenshot(frame)
                         except Exception as e:
                             self.logger.warning(f"Error al guardar screenshot: {e}")
+                    elif key == 13:  # Enter - finalizar dibujo compuesto y predecir
+                        try:
+                            # Si hay un trazo activo, añadirlo primero
+                            if self.stroke_accumulator:
+                                stroke = self.stroke_accumulator.get_stroke()
+                                if stroke:
+                                    self.drawing_strokes.append(stroke)
+                                    self.stroke_accumulator.reset()
+
+                            # Combinar todos los trazos en una sola lista de puntos
+                            combined = []
+                            for s in self.drawing_strokes:
+                                combined.extend(s)
+
+                            if combined and self.preprocessor and self.classifier:
+                                drawing = self.preprocessor.preprocess(combined)
+                                label, conf, top3 = self.classifier.predict(drawing)
+                                self.logger.info(f"[ENTER] Predicción compuesta: {label} ({conf:.1%})")
+                                if self.ui:
+                                    self.ui.last_prediction = (label, conf, top3)
+
+                                try:
+                                    with open(inference_log, 'a', encoding='utf-8') as f:
+                                        top3_str = "; ".join([f"{l}: {p:.1%}" for l, p in top3])
+                                        f.write(f"{current_time:.0f} | {label} ({conf:.1%}) | Top-3: {top3_str}\n")
+                                except Exception as log_e:
+                                    self.logger.warning(f"Error al escribir log (enter): {log_e}")
+
+                                # Limpiar dibujo compuesto para nuevo dibujo
+                                self.drawing_strokes = []
+                        except Exception as e:
+                            self.logger.warning(f"Error al procesar Enter: {e}")
+                    elif key == ord('c'):
+                        # Guardar ejemplo combinado para etiquetado / re-entrenamiento
+                        try:
+                            # Si hay un trazo activo, añadirlo primero
+                            if self.stroke_accumulator:
+                                stroke = self.stroke_accumulator.get_stroke()
+                                if stroke:
+                                    self.drawing_strokes.append(stroke)
+                                    self.stroke_accumulator.reset()
+
+                            combined = []
+                            for s in self.drawing_strokes:
+                                combined.extend(s)
+
+                            if combined and self.preprocessor:
+                                drawing = self.preprocessor.preprocess(combined)
+                                # Guardar imagen y puntos para etiquetado manual
+                                import os, json
+                                out_dir = Path("collected/unsorted")
+                                out_dir.mkdir(parents=True, exist_ok=True)
+                                timestamp = time.strftime("%Y%m%d_%H%M%S")
+                                img_arr = (drawing.squeeze() * 255).astype('uint8')
+                                img_path = out_dir / f"sample_{timestamp}.png"
+                                cv2.imwrite(str(img_path), img_arr)
+                                pts_path = out_dir / f"sample_{timestamp}.json"
+                                with open(pts_path, 'w', encoding='utf-8') as f:
+                                    json.dump({"strokes": self.drawing_strokes}, f)
+                                self.logger.info(f"Ejemplo guardado: {img_path} (+{pts_path}) - etiquetar y mover a collected/labels/<label>/")
+
+                                # No limpiar drawing_strokes para permitir seguir construyendo si se desea
+                        except Exception as e:
+                            self.logger.warning(f"Error al guardar ejemplo: {e}")
                     
                     # Verificar si la ventana fue cerrada con el botón X
                     try:

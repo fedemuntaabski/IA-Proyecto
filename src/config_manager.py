@@ -39,6 +39,12 @@ class StrokeConfig(BaseModel):
     min_points: int = Field(8, gt=0)
     max_stroke_age_ms: int = Field(3000, gt=0)
     min_stroke_length: float = Field(0.05, gt=0.0)
+    # Número de frames consecutivos de baja velocidad requeridos antes de cerrar trazos
+    low_vel_consecutive: int = Field(3, gt=0)
+    # Umbral mínimo de desplazamiento (en coordenadas normalizadas) que cuenta como movimiento
+    min_movement_delta: float = Field(0.0005, gt=0.0)
+    # Permite agregar puntos con desplazamiento pequeño aún si la velocidad medida es baja
+    allow_low_velocity_append: bool = Field(False)
 
 
 class PreprocessingConfig(BaseModel):

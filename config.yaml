@@ -31,8 +31,14 @@ stroke:
   pause_threshold_ms: 400
   velocity_threshold: 0.002
   min_points: 8
-  max_stroke_age_ms: 3000
+  max_stroke_age_ms: 15000
   min_stroke_length: 0.05  # Longitud mínima normalizada para considerar válido
+  # Requerir N frames consecutivos de baja velocidad antes de cerrar el trazo
+  low_vel_consecutive: 3
+  # Permite agregar puntos con desplazamiento pequeño aún si la velocidad medida es baja
+  allow_low_velocity_append: true
+  # Umbral mínimo de desplazamiento (coordenadas normalizadas) para contar como movimiento
+  min_movement_delta: 0.0005
 
 # ============================================================================
 # CONFIGURACIÓN DE MODELO
@@ -42,6 +48,8 @@ model:
   demo_mode: true
   use_quantized_model: true
   prefer_gpu: true
+  # Ensemble ligero en inferencia (1=on, 0=off)
+  use_ensemble: 1
 
 # ============================================================================
 # CONFIGURACIÓN DE PREPROCESAMIENTO
@@ -54,6 +62,8 @@ preprocessing:
   blur_sigma: 0.5  # Sigma para Gaussian blur
   thickness_base: 2  # Grosor base de línea
   thickness_max: 4  # Grosor máximo variable
+  # Aplicar thinning/esqueletización para normalizar el grosor de la línea
+  skeletonize: true
 
 # ============================================================================
 # CONFIGURACIÓN DE UI

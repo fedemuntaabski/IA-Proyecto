@@ -37,7 +37,8 @@ class PictionaryUI:
         hand_detected: bool,
         stroke_points: int,
         hand_velocity: float,
-        prediction: Optional[Tuple[str, float, List[Tuple[str, float]]]] = None
+        prediction: Optional[Tuple[str, float, List[Tuple[str, float]]]] = None,
+        hand_in_fist: bool = False,
     ) -> np.ndarray:
         """
         Renderiza la UI en el frame.
@@ -114,6 +115,15 @@ class PictionaryUI:
             frame, controls, (20, h - 15),
             cv2.FONT_HERSHEY_SIMPLEX, 0.6, (200, 200, 200), 1
         )
+
+        # Indicador visual cuando se detecta puño (dibujo pausado)
+        if hand_in_fist:
+            fist_text = "PUÑO: DIBUJO EN PAUSA"
+            # Dibujar fondo semitransparente en rojo en la esquina superior derecha
+            text_size = cv2.getTextSize(fist_text, cv2.FONT_HERSHEY_SIMPLEX, 0.7, 2)[0]
+            x_pos = max(w - text_size[0] - 30, 420)
+            cv2.rectangle(frame, (x_pos - 10, 120), (w - 10, 160), (0, 0, 200), -1)
+            cv2.putText(frame, fist_text, (x_pos, 150), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
         
         # Top-3 predicciones (abajo a la izquierda)
         if self.last_prediction and len(self.last_prediction[2]) > 0:

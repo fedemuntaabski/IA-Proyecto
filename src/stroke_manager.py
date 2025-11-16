@@ -20,6 +20,10 @@ class StrokeAccumulator:
         """
         self.config = config
         self.logger = logger
+        # Contador para detectar múltiples frames de baja velocidad consecutivos
+        self.low_vel_count = 0
+        # Por compatibilidad, si no se especifica en config usar 1 (comportamiento previo)
+        self.low_vel_required = int(self.config.get("low_vel_consecutive", 1)) if isinstance(config, dict) else 1
         self.reset()
     
     def reset(self):
@@ -29,6 +33,7 @@ class StrokeAccumulator:
         self.last_significant_move_time = None
         self.stroke_active = False
         self.stroke_start_time = None
+        self.low_vel_count = 0
     
     def add_point(self, x: float, y: float, velocity: float = 0.0) -> bool:
         """
@@ -46,15 +51,36 @@ class StrokeAccumulator:
             
             # Umbral de velocidad para ignorar ruido
             velocity_threshold = self.config.get("velocity_threshold", 0.002)
-            
+            # Umbral mínimo de desplazamiento para considerar movimiento aunque la velocidad sea baja
+            min_movement_delta = self.config.get("min_movement_delta", 0.0005)
+
             # Si movimiento lento/pausa
             if velocity < velocity_threshold:
+                # Opcional: permitir registrar pequeños desplazamientos aun con velocidad baja
+                allow_append = bool(self.config.get("allow_low_velocity_append", False))
+                if allow_append and self.points:
+                    last = self.points[-1]
+                    dx = x - last[0]
+                    dy = y - last[1]
+                    dist = (dx*dx + dy*dy) ** 0.5
+                    if dist > min_movement_delta:
+                        # Considerar como movimiento significativo aunque la velocidad medida sea baja
+                        self.points.append((x, y))
+                        self.last_point_time = current_time
+                        self.last_significant_move_time = current_time
+                        self.low_vel_count = 0
+                        return False
+
+                # No hubo desplazamiento suficiente o no está habilitado -> aumentar contador de frames lentos
+                self.low_vel_count += 1
+                low_required = int(self.config.get("low_vel_consecutive", self.low_vel_required))
                 if self.stroke_active and len(self.points) >= self.config.get("min_points", 8):
                     if self.last_significant_move_time:
                         time_since_move = current_time - self.last_significant_move_time
                         pause_threshold = self.config.get("pause_threshold_ms", 400)
-                        if time_since_move > pause_threshold:
-                            self.logger.debug(f"Trazo completado: {len(self.points)} puntos, pausa de {time_since_move:.0f}ms")
+                        # Requerir N frames lentos además del umbral temporal
+                        if time_since_move > pause_threshold and self.low_vel_count >= low_required:
+                            self.logger.debug(f"Trazo completado: {len(self.points)} puntos, pausa de {time_since_move:.0f}ms (con {self.low_vel_count} frames lentos)")
                             return True
                 return False
             
@@ -66,6 +92,8 @@ class StrokeAccumulator:
                 self.last_significant_move_time = current_time
                 self.stroke_active = True
                 self.stroke_start_time = current_time
+                # reset contador de baja velocidad
+                self.low_vel_count = 0
                 self.logger.debug("Nuevo trazo iniciado")
                 return False
             
@@ -73,13 +101,17 @@ class StrokeAccumulator:
             self.points.append((x, y))
             self.last_point_time = current_time
             self.last_significant_move_time = current_time
+            # reset contador de baja velocidad
+            self.low_vel_count = 0
             
-            # Verificar si el trazo es demasiado antiguo (timeout)
+            # Verificar si el trazo es demasiado antiguo (timeout) usando tiempo desde el último movimiento
             max_age = self.config.get("max_stroke_age_ms", 3000)
-            if self.stroke_start_time and (current_time - self.stroke_start_time) > max_age:
-                if len(self.points) >= self.config.get("min_points", 8):
-                    self.logger.debug(f"Trazo finalizado por timeout: {len(self.points)} puntos")
-                    return True
+            if self.stroke_start_time:
+                last_move_time = self.last_significant_move_time or self.stroke_start_time
+                if (current_time - last_move_time) > max_age:
+                    if len(self.points) >= self.config.get("min_points", 8):
+                        self.logger.debug(f"Trazo finalizado por timeout (inactividad): {len(self.points)} puntos")
+                        return True
             
             return False
         except Exception as e:

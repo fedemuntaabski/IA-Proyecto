@@ -184,16 +184,83 @@ class SketchClassifier:
             (etiqueta_top1, confianza, top3_predictions)
         """
         try:
-            # Si tenemos modelo real
-            if self.model is not None and TENSORFLOW_AVAILABLE:
-                if hasattr(self.model, 'invoke'):  # Es un modelo TFLite
-                    return self._predict_tflite(drawing)
-                else:  # Modelo Keras normal
-                    return self._predict_keras(drawing)
-            else:
-                # Modo demo: predicción aleatoria
+            # Si no hay modelo, usar demo
+            if self.model is None or not TENSORFLOW_AVAILABLE:
                 return self._demo_predict()
-        
+
+            # Predicción inicial
+            if hasattr(self.model, 'invoke'):
+                result = self._predict_tflite(drawing)
+            else:
+                result = self._predict_keras(drawing)
+
+            # Si la confianza es baja, intentar la versión invertida de la imagen
+            top1_label, top1_prob, top3 = result
+            low_conf_threshold = float(self.config.get("low_conf_threshold", 0.35))
+            if top1_prob < low_conf_threshold:
+                try:
+                    # Crear variante invertida (1 - pixel)
+                    inverted = (1.0 - drawing).astype(drawing.dtype)
+                    if hasattr(self.model, 'invoke'):
+                        inv_result = self._predict_tflite(inverted)
+                    else:
+                        inv_result = self._predict_keras(inverted)
+
+                    # Elegir la predicción con mayor probabilidad top1
+                    if inv_result[1] > top1_prob:
+                        result = inv_result
+                        top1_label, top1_prob, top3 = result
+                except Exception as e:
+                    self.logger.debug(f"Error al predecir con variante invertida: {e}")
+
+            # Ensemble de augmentaciones: rotaciones pequeñas y flips para mejorar robustez
+            try:
+                if float(self.config.get("use_ensemble", 1)) == 1:
+                    aug_rots = [0, -10, 10]
+                    candidates = [result]
+                    for ang in aug_rots:
+                        if ang == 0:
+                            continue
+                        # rotar la imagen en el centro usando OpenCV
+                        try:
+                            import cv2
+                            img2d = drawing.squeeze()
+                            h, w = img2d.shape[:2]
+                            center = (w // 2, h // 2)
+                            M = cv2.getRotationMatrix2D(center, ang, 1.0)
+                            rot = cv2.warpAffine((img2d * 255).astype('uint8'), M, (w, h), flags=cv2.INTER_LINEAR, borderValue=0)
+                            rot = rot.astype('float32') / 255.0
+                            rot_img = np.expand_dims(rot, axis=-1)
+                        except Exception:
+                            # Fallback: skip rotation if OpenCV no disponible
+                            continue
+                        if hasattr(self.model, 'invoke'):
+                            r = self._predict_tflite(rot_img)
+                        else:
+                            r = self._predict_keras(rot_img)
+                        candidates.append(r)
+
+                    # también probar versión invertida de la original si no ya probada
+                    inv = (1.0 - drawing).astype(drawing.dtype)
+                    if hasattr(self.model, 'invoke'):
+                        inv_r = self._predict_tflite(inv)
+                    else:
+                        inv_r = self._predict_keras(inv)
+                    candidates.append(inv_r)
+
+                    # elegir la predicción con mayor top1 prob
+                    best = result
+                    for cand in candidates:
+                        if cand[1] > best[1]:
+                            best = cand
+                    result = best
+                    top1_label, top1_prob, top3 = result
+            except Exception as e:
+                # Ignorar fallos de ensemble
+                self.logger.debug(f"Ensemble prediction failed: {e}")
+
+            return result
+
         except Exception as e:
             self.logger.error(f"Error en predicción: {e}")
             return self._demo_predict()
