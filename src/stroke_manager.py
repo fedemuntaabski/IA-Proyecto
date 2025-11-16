@@ -88,9 +88,9 @@ class StrokeAccumulator:
             return False
     
     def get_stroke(self) -> Optional[List[Tuple[float, float]]]:
-        """Retorna el trazo actual si tiene suficientes puntos."""
+        """Retorna el trazo actual si tiene suficientes puntos y calidad."""
         min_points = self.config.get("min_points", 8)
-        if len(self.points) >= min_points:
+        if len(self.points) >= min_points and self._is_stroke_valid():
             return self.points.copy()
         return None
     
@@ -99,5 +99,35 @@ class StrokeAccumulator:
         return {
             "points_count": len(self.points),
             "is_active": self.stroke_active,
-            "age_ms": (time.time() * 1000 - self.stroke_start_time) if self.stroke_start_time else 0
+            "age_ms": (time.time() * 1000 - self.stroke_start_time) if self.stroke_start_time else 0,
+            "is_valid": self._is_stroke_valid() if len(self.points) >= self.config.get("min_points", 8) else False
         }
+    
+    def _is_stroke_valid(self) -> bool:
+        """Valida la calidad del trazo actual."""
+        if len(self.points) < 2:
+            return False
+        
+        # Calcular longitud total
+        total_length = 0.0
+        for i in range(1, len(self.points)):
+            dx = self.points[i][0] - self.points[i-1][0]
+            dy = self.points[i][1] - self.points[i-1][1]
+            total_length += (dx*dx + dy*dy) ** 0.5
+        
+        # Longitud mínima
+        min_length = self.config.get("min_stroke_length", 0.05)
+        if total_length < min_length:
+            return False
+        
+        # Calcular varianza para detectar ruido
+        xs = [p[0] for p in self.points]
+        ys = [p[1] for p in self.points]
+        var_x = sum((x - sum(xs)/len(xs))**2 for x in xs) / len(xs)
+        var_y = sum((y - sum(ys)/len(ys))**2 for y in ys) / len(ys)
+        
+        # Si la varianza es muy baja, es un punto casi estático
+        if var_x + var_y < 0.0001:
+            return False
+        
+        return True

@@ -11,7 +11,8 @@ from typing import Optional
 
 from config import (
     MEDIAPIPE_CONFIG, CAMERA_CONFIG, STROKE_CONFIG, MODEL_CONFIG,
-    UI_CONFIG, LOGGING_CONFIG, DETECTION_CONFIG, PERFORMANCE_CONFIG
+    UI_CONFIG, LOGGING_CONFIG, DETECTION_CONFIG, PERFORMANCE_CONFIG,
+    PREPROCESSING_CONFIG
 )
 from hand_detector import HandDetector
 from stroke_manager import StrokeAccumulator
@@ -80,7 +81,7 @@ class PictionaryLive:
         
         try:
             input_shape = self.classifier.get_input_shape() if self.classifier else [28, 28, 1]
-            self.preprocessor = DrawingPreprocessor(input_shape)
+            self.preprocessor = DrawingPreprocessor(input_shape, PREPROCESSING_CONFIG)
         except Exception as e:
             self.logger.error(f"Error al inicializar DrawingPreprocessor: {e}")
             self.preprocessor = None

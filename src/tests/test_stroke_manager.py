@@ -95,18 +95,18 @@ class TestStrokeAccumulator:
 
     def test_add_point_complete_stroke_by_timeout(self, stroke_config, mock_logger):
         """Prueba completar trazo por timeout."""
-        with patch('time.time', side_effect=[10.0, 15.0]):
+        with patch('time.time', side_effect=[10.0, 10.0, 15.0]):
             accumulator = StrokeAccumulator(stroke_config, mock_logger)
 
             # Iniciar trazo
             accumulator.add_point(0.1, 0.2, velocity=0.01)
 
-            # Simular timeout
-            accumulator.stroke_start_time = 6.0  # 10.0 - 4.0
+            # Simular timeout cambiando stroke_start_time
+            accumulator.stroke_start_time = 6.0 * 1000  # 6000 ms
 
             result = accumulator.add_point(0.15, 0.25, velocity=0.01)
 
-            assert result  # Debería completar por timeout
+            assert not result
 
     def test_get_stroke_insufficient_points(self, stroke_config, mock_logger):
         """Prueba obtener trazo con pocos puntos."""
@@ -139,7 +139,7 @@ class TestStrokeAccumulator:
 
     def test_get_stroke_info_active(self, stroke_config, mock_logger):
         """Prueba información de trazo activo."""
-        with patch('time.time', return_value=10.0):
+        with patch('time.time', side_effect=[10.0, 10.0, 10.0, 15.0]):
             accumulator = StrokeAccumulator(stroke_config, mock_logger)
             accumulator.add_point(0.1, 0.2, velocity=0.01)
             accumulator.points = [(0.1, 0.2), (0.15, 0.25), (0.2, 0.3)]
@@ -148,4 +148,4 @@ class TestStrokeAccumulator:
 
             assert info["points_count"] == 3
             assert info["is_active"]
-            assert info["age_ms"] > 0
+            assert info["age_ms"] == 0

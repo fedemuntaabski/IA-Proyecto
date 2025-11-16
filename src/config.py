@@ -36,6 +36,12 @@ STROKE_CONFIG = app_config.stroke.model_dump()
 MODEL_CONFIG = app_config.model.model_dump()
 
 # ============================================================================
+# CONFIGURACIÓN DE PREPROCESAMIENTO
+# ============================================================================
+
+PREPROCESSING_CONFIG = app_config.preprocessing.model_dump()
+
+# ============================================================================
 # CONFIGURACIÓN DE UI
 # ============================================================================
 
