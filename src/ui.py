@@ -66,7 +66,7 @@ class PictionaryUI:
         # Título
         cv2.putText(
             frame, "PICTIONARY LIVE", (20, 30),
-            cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 255, 0), 3
+            cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 255, 0), 3
         )
         
         # Información de diagnostico (separada en líneas)
@@ -76,7 +76,7 @@ class PictionaryUI:
             cv2.FONT_HERSHEY_SIMPLEX, 0.7, (100, 200, 255), 2
         )
         
-        mano_text = f"Mano: {'✓' if hand_detected else '✗'}"
+        mano_text = f"Mano: {'SI' if hand_detected else 'NO'}"
         cv2.putText(
             frame, mano_text, (20, 70),
             cv2.FONT_HERSHEY_SIMPLEX, 0.7, (100, 200, 255), 2
@@ -87,14 +87,6 @@ class PictionaryUI:
             frame, puntos_text, (20, 90),
             cv2.FONT_HERSHEY_SIMPLEX, 0.7, (100, 200, 255), 2
         )
-        
-        # Velocidad de la mano
-        if hand_detected and hand_velocity > 0:
-            vel_text = f"Velocidad: {hand_velocity:.4f}"
-            cv2.putText(
-                frame, vel_text, (20, 110),
-                cv2.FONT_HERSHEY_SIMPLEX, 0.7, (100, 255, 100), 2
-            )
         
         # Línea divisoria
         cv2.line(frame, (0, 125), (w, 125), (255, 255, 255), 1)

@@ -11,6 +11,7 @@ MEDIAPIPE_CONFIG = {
     "hands": {
         "static_image_mode": False,
         "max_num_hands": 2,
+        "model_complexity": 0,  # 0=ligero, 1=medio, 2=pesado (para mejor FPS)
         "min_detection_confidence": 0.2,  # Muy bajo para máxima detección
         "min_tracking_confidence": 0.2,   # Muy bajo para mejor seguimiento
     },
