@@ -1,0 +1,22 @@
+# Pictionary Live - Dependencias
+
+# Captura y procesamiento de video
+opencv-python>=4.8.0
+
+# Deep Learning (elegir según plataforma)
+# Para GPU: tensorflow>=2.13.0
+# Para CPU: tensorflow-cpu>=2.13.0
+tensorflow>=2.13.0
+
+# Detección de manos
+mediapipe>=0.10.0
+
+# Procesamiento numérico
+numpy>=1.24.0
+
+# Lectura de datos NDJSON
+ndjson>=0.3.1
+
+# Línea de comandos (incluido en stdlib, pero aquí para documentación)
+# argparse (incluido en Python 3+)
+# logging (incluido en Python 3+)

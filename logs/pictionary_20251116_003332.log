@@ -1,0 +1,10 @@
+2025-11-16 00:33:32,548 - PictionaryLive - INFO - ======================================================================
+2025-11-16 00:33:32,548 - PictionaryLive - INFO - PICTIONARY LIVE - Inicializando
+2025-11-16 00:33:32,548 - PictionaryLive - INFO - ======================================================================
+2025-11-16 00:33:32,549 - PictionaryLive - INFO - Modelo info cargado: 228 clases
+2025-11-16 00:33:32,549 - PictionaryLive - WARNING - TensorFlow no disponible. Funcionando en modo demo.
+2025-11-16 00:33:32,554 - PictionaryLive - WARNING - MediaPipe no disponible. Funcionando en modo demo.
+2025-11-16 00:33:38,742 - PictionaryLive - INFO - Cámara 0 abierta
+2025-11-16 00:33:38,742 - PictionaryLive - INFO - 
+[VIVO] Iniciando captura. Presiona 'q' para salir, 's' para guardar.
+2025-11-16 00:33:40,389 - PictionaryLive - INFO - Aplicación cerrada

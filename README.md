@@ -1,111 +1,251 @@
-# IA Proyecto - Clasificador de Sketches para Pictionary
+# Pictionary Live 🎨
 
-Clasificador de sketches basado en deep learning para un entrenador de IA en el juego Pictionary, con aplicación completa de dibujo en el aire.
+Aplicación Python interactiva para jugar **Pictionary en vivo** usando detección de gestos con las manos y clasificación de sketches con inteligencia artificial.
 
-## 🚀 Características
+## Características
 
-- **Clasificación en tiempo real**: 228+ clases usando CNN entrenada con Quick Draw dataset
-- **Detección de manos**: Procesamiento avanzado con background subtraction y optical flow
-- **Interfaz intuitiva**: UI mejorada con feedback visual, tooltips y controles contextuales
-- **Multi-idioma**: Soporte completo para español e inglés con detección automática
-- **Performance optimizada**: Procesamiento asíncrono, aceleración GPU y monitoring de FPS
-- **Sistema robusto**: Fallback automático cuando TensorFlow no está disponible
-- **Testing completo**: Framework de pruebas con cobertura unitaria e integración
-- **✨ Sensibilidad Adaptativa**: Ajuste automático de thresholds según condiciones ambientales
-- **✨ Compensación de Iluminación**: Normalización automática en diferentes condiciones de luz
-- **✨ Monitor de Diagnóstico**: Chequeos de salud en tiempo real y recomendaciones
-- **✨ Optimización de ROI**: Detección dinámica del área de búsqueda para mayor eficiencia
-- **✨ Análisis de Calidad de Frame**: Optimización automática de resolución según FPS disponible
+- 🎥 **Captura en tiempo real**: Lee video de la cámara web
+- ✋ **Detección de manos**: Usa MediaPipe para tracking de manos en 3D
+- ✍️ **Acumulación de trazo**: Detecta cuando dibujas en el aire y acumula la trayectoria
+- 🤖 **Inferencia en vivo**: Clasifica sketches usando modelos Keras/TensorFlow
+- 📊 **Predicción visualizada**: Muestra top-1 y top-3 predicciones en pantalla
+- 💾 **Logging automático**: Registra cada inferencia con timestamp
+- 🖼️ **Captura de screenshots**: Guarda predicciones en `./predictions/`
 
-## 📦 Instalación
+## Requisitos
 
-```bash
-# Instalar dependencias
-pip install -r requirements.txt
-
-# Compilar traducciones (opcional)
-python compile_translations.py
-```
-
-## 🎮 Uso
-
-```bash
-# Aplicación principal
-python main.py
-
-# Ejecutar tests
-python tests/test_runner.py
-```
-
-## 🎯 Controles
-
-- `SPACE` - Forzar clasificación
-- `r` - Limpiar dibujo
-- `h` - Mostrar/ocultar ayuda
-- `d` - Mostrar diagnóstico del sistema
-- `q` - Salir
-
-## 📁 Estructura del Proyecto
-
-```
-├── main.py                 # Aplicación principal
-├── air_draw_classifier.py  # Versión simplificada
-├── PictionaryTrainer.ipynb # Notebook de entrenamiento
-├── src/core/              # Módulos principales
-│   ├── detection/         # Detección de manos
-│   ├── classification/    # Clasificación de sketches
-│   ├── ui/               # Interfaz de usuario
-│   └── utils/            # Utilidades (GPU, async, analytics)
-├── tests/                # Framework de testing
-├── locale/               # Traducciones
-└── IA/                   # Modelos y datos
-```
-
-## 🔧 Requisitos
-
+### Python
 - Python 3.8+
-- TensorFlow 2.10+ (opcional - funciona con fallback)
-- OpenCV, NumPy, MediaPipe
-- psutil (para monitoring del sistema)
 
-## 📈 Mejoras Implementadas
+### Dependencias principales
+- `opencv-python` — captura y procesamiento de video
+- `tensorflow` (o `tensorflow-cpu` para CPU) — cargar y ejecutar modelos Keras
+- `mediapipe` — detección de manos (recomendado)
+- `numpy` — procesamiento de arrays
+- `ndjson` — lectura de archivos NDJSON (si se necesita explorar datos)
 
-### Detección y Iluminación
-- ✅ **Compensación Automática de Iluminación**: Análisis de histograma por regiones, corrección gamma y CLAHE
-- ✅ **Detección y Mitigación de Sombras**: Identificación automática de áreas sombreadas
-- ✅ **Rangos HSV Adaptativos**: Ajuste dinámico según condiciones de luz
+### Estructura de carpeta `IA`
+Debe contener los siguientes archivos:
+```
+IA/
+├── model_info.json                          # Metadatos del modelo
+├── sketch_classifier_model.keras            # Modelo Keras (preferido)
+├── sketch_classifier_model.h5               # Modelo alternativo (HDF5)
+├── reduced_full_simplified_ambulance.ndjson # Datos de ejemplo
+└── PictionaryTrainer.ipynb                  # Notebook de referencia (no se ejecuta)
+```
 
-### Sensibilidad y Precisión
-- ✅ **Sensibilidad Adaptativa**: Ajuste automático basado en calidad de frame, ruido y rendimiento
-- ✅ **Análisis de Ruido**: Detección de ruido ambiental para mejorar detección
-- ✅ **Estabilidad Multi-Frame**: Buffer circular y filtrado temporal para contornos estables
+#### Contenido de `model_info.json`
+```json
+{
+  "input_shape": [28, 28, 1],           # (height, width, channels)
+  "num_classes": 228,                    # Número de clases
+  "classes": ["ambulance", "airplane", ...],  # Lista de etiquetas
+  "test_accuracy": 0.8026,               # Accuracy del modelo
+  "image_size": 28
+}
+```
 
-### Rendimiento y Optimización
-- ✅ **Optimización de ROI**: Detección dinámica del área de búsqueda (Region of Interest)
-- ✅ **Optimización de Resolución**: Ajuste automático de calidad según FPS disponible
-- ✅ **GPU Acceleration**: Aceleración automática con TensorFlow
-- ✅ **Procesamiento Asíncrono**: Clasificación en segundo plano sin bloqueos
+#### Formato NDJSON
+Cada línea es un JSON con un sketch:
+```json
+{
+  "word": "ambulance",
+  "drawing": [[[x1, x2, ...], [y1, y2, ...]], ...],  # Trazos (lista de lista de coordenadas)
+  "recognized": true,
+  "countrycode": "NL",
+  ...
+}
+```
 
-### Monitoreo y Diagnóstico
-- ✅ **Monitor de Diagnóstico**: Chequeos de salud del sistema en tiempo real
-- ✅ **Health Check Completo**: Verificación de Python, dependencias, cámara, disco, memoria y permisos
-- ✅ **Recomendaciones Dinámicas**: Sugerencias de optimización basadas en condiciones actuales
-- ✅ **Análisis de Calidad de Frame**: Métricas de nitidez y contraste
+## Instalación
 
-### Gestos y Tracking
-- ✅ **Análisis Avanzado de Gestos**: Tracking multi-mano con estados estables
-- ✅ **Análisis de Movimiento**: Detección de velocidad, dirección y estabilidad de gestos
-- ✅ **Análisis de Estabilidad de Contornos**: Seguimiento histórico para mejor precisión
+### 1. Clonar o descargar el repositorio
+```bash
+cd tu_repo
+```
 
-### Configuración y Usabilidad
-- ✅ **Configuración Avanzada**: Sistema de settings con validación y perfiles
-- ✅ **Bootstrap del Sistema**: Inicialización automática con chequeos integrados
-- ✅ **Diagnosticador en Tiempo Real**: Presionar 'D' para ver estado del sistema
+### 2. Crear entorno virtual (recomendado)
+```bash
+python -m venv venv
+# En Windows
+venv\Scripts\activate
+# En Linux/Mac
+source venv/bin/activate
+```
 
-## 🎯 Mejoras Futuras
+### 3. Instalar dependencias
+```bash
+pip install -r requirements.txt
+```
 
-Ver [`IMPROVEMENTS.md`](IMPROVEMENTS.md) para funcionalidades planificadas como MediaPipe integration, model quantization, y sistema de feedback.
+O instalar manualmente:
+```bash
+pip install opencv-python tensorflow mediapipe numpy ndjson
+```
 
-## 📄 Licencia
+**Nota sobre TensorFlow:**
+- Para GPU: `pip install tensorflow` (requiere CUDA/cuDNN)
+- Para CPU: `pip install tensorflow-cpu`
 
-Proyecto educativo - uso libre para fines de aprendizaje.
+## Uso
+
+### Ejecución básica
+```bash
+python src/pictionary_live.py --ia-dir ./IA
+```
+
+### Con opciones
+```bash
+# Habilitar logging DEBUG
+python src/pictionary_live.py --ia-dir ./IA --debug
+
+# Usar cámara 1 en lugar de 0
+python src/pictionary_live.py --ia-dir ./IA --camera-id 1
+
+# Validar modelo sin abrir cámara (dry-run)
+python src/pictionary_live.py --ia-dir ./IA --dry-run
+```
+
+### Controles en vivo
+- **Dibujar**: Levanta la mano y mueve el dedo índice en el aire
+- **Pausa detección**: El trazo se clasifica automáticamente cuando paras ~200ms
+- **`s`** — Guardar frame actual + predicción en `./predictions/`
+- **`q`** — Salir
+
+## Cómo funciona
+
+1. **Inicialización**
+   - Lee `model_info.json` (metadatos: tamaño, etiquetas)
+   - Carga modelo desde `*.keras` (preferido) o `*.h5`
+
+2. **Captura y detección**
+   - Abre cámara web
+   - Detecta landmarks de la mano con MediaPipe
+   - Rastrea el dedo índice (landmark 8)
+
+3. **Acumulación de trazo**
+   - Almacena puntos (x, y) normalizados mientras detecta movimiento
+   - Cuando detecta pausa (200ms sin movimiento), dispara inferencia
+
+4. **Preprocesado**
+   - Normaliza puntos a canvas 28×28
+   - Dibuja trazo (líneas anti-aliased)
+   - Normaliza valores a [0, 1]
+   - Reshape a (28, 28, 1) para el modelo
+
+5. **Inferencia**
+   - Ejecuta `model.predict()`
+   - Obtiene top-1 y top-3 predicciones
+   - Muestra en overlay del video
+
+6. **Logging**
+   - Guarda cada predicción en `./inference.log`
+   - Formato: `timestamp | etiqueta (prob%) | Top-3: ...`
+
+## Salida
+
+### Logs
+- `logs/pictionary_YYYYMMDD_HHMMSS.log` — Log completo de ejecución (DEBUG/INFO)
+- `inference.log` — Log de inferencias (timestamp, etiqueta, probabilidad)
+
+### Capturas
+- `predictions/frame_YYYYMMDD_HHMMSS_ffffff.png` — Frames guardados con `s`
+
+## Arquitectura interna
+
+```
+PictionaryLive (aplicación principal)
+├── ModelLoader         → Carga modelo y metadatos
+├── HandTracker         → Detección de manos (MediaPipe)
+├── StrokeAccumulator   → Acumula puntos del trazo
+├── DrawingPreprocessor → Convierte trazo a imagen 28×28
+└── [OpenCV UI]         → Renderizado en pantalla
+```
+
+## Dependencias opcionales
+
+### MediaPipe (recomendado)
+Para mejor detección de manos:
+```bash
+pip install mediapipe
+```
+
+Si no está disponible, el código intenta usar detección de contornos (fallback menos preciso).
+
+## Troubleshooting
+
+### "TensorFlow no está instalado"
+```bash
+pip install tensorflow
+# O para CPU:
+pip install tensorflow-cpu
+```
+
+### "Cámara no se abre"
+- Verifica que no esté en uso por otra aplicación
+- Intenta con `--camera-id 1` o mayor
+- En Linux, asegúrate de tener permisos: `sudo usermod -a -G video $USER`
+
+### "MediaPipe no disponible"
+```bash
+pip install mediapipe
+```
+Sin MediaPipe, el sistema usa fallback de movimiento (menos preciso).
+
+### "model_info.json no encontrado"
+- Verifica que la carpeta IA existe y está en la ruta correcta
+- Usa: `python pictionary_live.py --ia-dir /ruta/a/IA`
+
+### Bajo rendimiento en GPU
+- Asegúrate de que TensorFlow detecta GPU: `python -c "import tensorflow as tf; print(tf.config.list_physical_devices('GPU'))"`
+- En Windows, verifica CUDA/cuDNN
+
+## Ejemplos de uso
+
+### Juego simple
+```bash
+cd e:\IA
+python src\pictionary_live.py --ia-dir .\IA
+```
+
+### Debugging
+```bash
+python src\pictionary_live.py --ia-dir ./IA --debug
+# Verifica logs en logs/pictionary_*.log
+```
+
+### Validar configuración antes de jugar
+```bash
+python src\pictionary_live.py --ia-dir ./IA --dry-run
+# Muestra: modelo cargado, clases disponibles, etc.
+```
+
+## Notas técnicas
+
+### Preprocesado
+- Puntos de entrada: normalizados a [0, 1] desde landmarks de MediaPipe
+- Canvas: 28×28 (blanco = 255, trazo = 0)
+- Normalización: [0, 255] → [0, 1]
+- Shape final: (28, 28, 1) para modelo CNN
+
+### Detección de pausa
+- Umbral: 200ms sin nuevos puntos
+- Mínimo de puntos: 5 (para evitar ruido)
+
+### Modelo
+- Entrada: (28, 28, 1) — escala de grises
+- Salida: 228 clases (Quick, Draw! dataset)
+- Accuracy: ~80.3%
+
+## Licencia
+
+Interno — Proyecto IA
+
+## Autor
+
+Generado con Copilot
+
+---
+
+¿Preguntas? Revisa los logs en `logs/` para más detalles.

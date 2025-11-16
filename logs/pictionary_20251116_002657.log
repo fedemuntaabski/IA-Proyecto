@@ -1,0 +1,11 @@
+2025-11-16 00:26:57,819 - PictionaryLive - INFO - ======================================================================
+2025-11-16 00:26:57,819 - PictionaryLive - INFO - PICTIONARY LIVE - Inicializando
+2025-11-16 00:26:57,820 - PictionaryLive - INFO - ======================================================================
+2025-11-16 00:26:57,820 - PictionaryLive - INFO - Modelo info cargado: 228 clases
+2025-11-16 00:26:57,820 - PictionaryLive - WARNING - TensorFlow no disponible. Funcionando en modo demo.
+2025-11-16 00:26:57,841 - PictionaryLive - WARNING - MediaPipe no disponible. Usando fallback con detectores de movimiento.
+2025-11-16 00:26:57,844 - PictionaryLive - INFO - 
+[DRY RUN] Validando configuración...
+2025-11-16 00:26:57,844 - PictionaryLive - INFO -   Modelo info shape: [28, 28, 1]
+2025-11-16 00:26:57,844 - PictionaryLive - INFO -   Total de clases: 228
+2025-11-16 00:26:57,844 - PictionaryLive - INFO -   Primeras 10 clases: ['The Eiffel Tower', 'The Great Wall of China', 'The Mona Lisa', 'aircraft carrier', 'airplane', 'alarm clock', 'ambulance', 'arm', 'asparagus', 'axe']
