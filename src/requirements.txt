@@ -3,36 +3,40 @@
 # Versiones específicas compatibles para evitar conflictos
 
 # Procesamiento de imágenes y video
-numpy>=1.24.0
-opencv-python>=4.5.0
+numpy>=1.26.0
+opencv-python>=4.8.0
 
 # Detección de manos (CRÍTICO para la aplicación)
-# MediaPipe requiere protobuf compatible
-mediapipe>=0.10.0
+# MediaPipe versión actualizada compatible
+mediapipe>=0.10.14
 
 # Inferencia de modelos (opcional para modo demo)
-# TensorFlow versión específica compatible
-tensorflow-cpu==2.18.0
+# TensorFlow versión actualizada compatible
+tensorflow-cpu>=2.17.0
 
-# Protobuf - versión específica compatible con TensorFlow 2.18.0 y MediaPipe
-protobuf==4.25.3
+# Protobuf - versión compatible con TensorFlow y MediaPipe
+protobuf>=4.25.0
 
 # Utilidades
 ndjson>=0.3.0
 pydantic>=2.0.0
 pyyaml>=6.0.0
 
+# Reemplazo moderno para pkg_resources (Python < 3.8)
+importlib-metadata>=4.0.0; python_version < "3.8"
+
 # Testing
 pytest>=7.0.0
 pytest-mock>=3.10.0
 
 # Seguridad (opcional, para escaneo de vulnerabilidades)
-safety>=2.0.0
+safety>=3.0.0
 
 # NOTAS DE INSTALACIÓN:
 # 1. Usar Python 3.10, 3.11 o 3.12
 # 2. En Windows, podría necesitar Visual C++ redistributable
 # 3. El archivo main.py instala dependencias automáticamente
 # 4. MediaPipe está optimizado para CPU (mejor performance que GPU en este caso)
-# 5. Versiones específicas para evitar conflictos con protobuf (4.25.3 funciona con TF 2.18.0 y MediaPipe)
+# 5. Versiones actualizadas para resolver warnings de deprecación
+# 6. importlib-metadata solo necesario para Python < 3.8
 

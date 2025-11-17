@@ -12,7 +12,13 @@ import sys
 from pathlib import Path
 from typing import Optional, List, Dict, Any
 import logging
-import pkg_resources
+
+# Reemplazar pkg_resources con importlib.metadata (Python 3.8+)
+try:
+    from importlib.metadata import version, PackageNotFoundError
+except ImportError:
+    # Fallback para versiones muy antiguas de Python
+    from importlib_metadata import version, PackageNotFoundError
 
 
 class SecurityError(Exception):
@@ -165,17 +171,16 @@ def check_dependencies_vulnerabilities() -> List[Dict[str, Any]]:
 
     # Verificar versiones críticas manualmente
     critical_packages = {
-        'tensorflow': '2.18.0',  # Versión conocida segura
-        'protobuf': '4.25.3',   # Compatible con TF
-        'opencv-python': '4.5.0',
-        'mediapipe': '0.10.0'
+        'tensorflow': '2.17.0',  # Versión mínima recomendada
+        'protobuf': '4.25.0',   # Compatible con TF actualizado
+        'opencv-python': '4.8.0',
+        'mediapipe': '0.10.14'
     }
 
     try:
-        import pkg_resources
         for pkg, safe_version in critical_packages.items():
             try:
-                installed = pkg_resources.get_distribution(pkg).version
+                installed = version(pkg)
                 if installed != safe_version:
                     vulnerabilities.append({
                         'package': pkg,
@@ -184,9 +189,9 @@ def check_dependencies_vulnerabilities() -> List[Dict[str, Any]]:
                         'severity': 'medium',
                         'description': f'Versión no recomendada para {pkg}'
                     })
-            except pkg_resources.DistributionNotFound:
+            except PackageNotFoundError:
                 continue
-    except (ImportError, pkg_resources.DistributionNotFound, ValueError, StopIteration) as e:
+    except (ImportError, PackageNotFoundError, ValueError, StopIteration) as e:
         logging.warning(f"Error al verificar versiones manualmente: {e}")
 
     return vulnerabilities

@@ -84,12 +84,13 @@ class TestSecurity:
         with pytest.raises(SecurityError, match="no permitido"):
             validate_json_data({"key": set([1, 2, 3])})
 
-    @patch('pkg_resources.get_distribution')
-    def test_check_dependencies_vulnerabilities_no_safety(self, mock_get_dist):
+    @patch('importlib.metadata.version')
+    def test_check_dependencies_vulnerabilities_no_safety(self, mock_version):
         """Prueba verificación de vulnerabilidades sin safety instalado."""
-        mock_dist_tf = type('obj', (object,), {'version': '2.18.0'})()
-        mock_dist_pb = type('obj', (object,), {'version': '4.25.3'})()
-        mock_get_dist.side_effect = [mock_dist_tf, mock_dist_pb]
+        mock_version.side_effect = lambda pkg: {
+            'tensorflow': '2.18.0',
+            'protobuf': '4.25.3'
+        }.get(pkg, '1.0.0')
 
         vulnerabilities = check_dependencies_vulnerabilities()
         # Debería encontrar versiones no recomendadas o ninguna
