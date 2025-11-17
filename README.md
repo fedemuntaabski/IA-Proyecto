@@ -4,11 +4,14 @@ Aplicación Python interactiva para jugar **Pictionary en vivo** usando detecci�
 
 ## Características
 
+- 🎮 **Modo de Juego Interactivo**: Interfaz Tkinter con predicción de palabras aleatorias
 - 🎥 Captura en tiempo real desde cámara web
 - ✋ Detección de manos con MediaPipe
 - ✍️ Acumulación de trazos en el aire
 - 🤖 Clasificación de sketches con TensorFlow/Keras
 - 📊 Visualización de predicciones en pantalla
+- 🎨 Múltiples temas (Cyberpunk, Light, Dark)
+- 🏆 Sistema de puntuación y rachas
 
 ## Requisitos
 
@@ -85,23 +88,32 @@ pytest src/tests/test_model.py -v
 python main.py
 ```
 
-### Opciones
+### Opciones disponibles
 ```bash
-python main.py --debug          # Logging detallado
-python main.py --camera-id 1    # Cambiar cámara
-python main.py --dry-run        # Validar sin abrir cámara
+python main.py --theme light     # Tema claro
+python main.py --theme dark      # Tema oscuro
+python main.py --camera-id 1     # Cambiar cámara
+python main.py --debug           # Logging detallado
 ```
 
-### Controles
+### Controles del juego
 - Dibuja en el aire con el dedo índice
-- `s` — Guardar captura
-- `q` — Salir
+- `Enter` — Predecir dibujo
+- `Escape` — Salir del juego
 
 ## Troubleshooting
 
+### Problemas comunes
+- **Tkinter no encontrado**: Instala `python3-tk` (Linux) o reinstala Python con Tkinter (Windows/macOS)
+- **Pillow no instalado**: `pip install pillow`
+- **Interfaz no responde**: Verifica que tengas display gráfico disponible
 - **Cámara no abre**: Prueba `--camera-id 1`
 - **Modelo no carga**: Verifica carpeta `IA/`
 - **Bajo rendimiento**: Usa `tensorflow-cpu` para CPU
+
+### Diagnóstico
+- **Errores de MediaPipe**: Actualiza protobuf: `pip install --upgrade protobuf`
+- **Logs detallados**: Usa `--debug` para más información
 
 ## Licencia
 

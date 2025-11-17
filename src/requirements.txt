@@ -26,10 +26,17 @@ pyyaml>=6.0.0
 pytest>=7.0.0
 pytest-mock>=3.10.0
 
+# Modo Juego con Tkinter
+pillow>=9.0.0  # Para ImageTk (visualización de frames en Tkinter)
+# Nota: Tkinter viene incluido en Python en la mayoría de distribuciones
+# En Linux: sudo apt-get install python3-tk
+# En macOS: brew install python-tk
+
 # NOTAS DE INSTALACIÓN:
 # 1. Usar Python 3.10, 3.11 o 3.12
 # 2. En Windows, podría necesitar Visual C++ redistributable
 # 3. El archivo main.py instala dependencias automáticamente
 # 4. MediaPipe está optimizado para CPU (mejor performance que GPU en este caso)
 # 5. Versiones específicas para evitar conflictos con protobuf (4.25.3 funciona con TF 2.18.0 y MediaPipe)
+# 6. Para el modo juego, asegurar que Tkinter esté instalado (generalmente viene con Python)
 
