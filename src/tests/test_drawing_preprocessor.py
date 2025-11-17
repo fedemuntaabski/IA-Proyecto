@@ -87,5 +87,17 @@ class TestDrawingPreprocessor:
         result = preprocessor.preprocess(stroke)
 
         assert result.shape == input_shape
-        # Debería ser un canvas blanco (unos)
-        assert np.all(result == 1)
+        # Debería ser un canvas negro (cero) para stroke vacío (fondo invertido)
+        assert np.all(result == 0)
+
+    def test_visualize_preprocessing(self, preprocessor_config):
+        """Prueba visualización del preprocesamiento."""
+        input_shape = (28, 28, 1)
+        preprocessor = DrawingPreprocessor(input_shape, preprocessor_config)
+        
+        stroke = [(0.1, 0.2), (0.15, 0.25), (0.2, 0.3)]
+
+        result = preprocessor.visualize_preprocessing([stroke])
+
+        assert result.shape == (28, 28, 3)  # RGB
+        assert result.dtype == np.uint8
