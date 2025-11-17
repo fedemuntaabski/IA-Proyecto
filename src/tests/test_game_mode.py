@@ -126,7 +126,7 @@ class TestGameMode:
     @pytest.fixture
     def mock_predict_callback(self):
         """Callback de predicción mock."""
-        def predict(drawing):
+        def predict():
             return ("guitar", 0.95, [("guitar", 0.95), ("violin", 0.03), ("piano", 0.02)])
         return predict
     
@@ -189,7 +189,7 @@ class TestGameMode:
         """Verifica que la puntuación aumenta con predicción correcta."""
         game = GameMode(
             labels=sample_labels,
-            predict_callback=lambda x: ("guitar", 0.95, []),
+            predict_callback=lambda: ("guitar", 0.95, []),
         )
         game.current_word = "guitar"
         
@@ -210,7 +210,7 @@ class TestGameMode:
         """Verifica que la racha se resetea en predicción incorrecta."""
         game = GameMode(
             labels=sample_labels,
-            predict_callback=lambda x: ("piano", 0.95, []),
+            predict_callback=lambda: ("piano", 0.95, []),
         )
         game.current_word = "guitar"
         game.streak = 5
@@ -283,7 +283,7 @@ class TestGameModeIntegration:
         if sample_labels is None:
             sample_labels = ["guitar", "piano", "violin"]
         
-        def predict_correct(drawing):
+        def predict_correct():
             return ("guitar", 0.95, [("guitar", 0.95), ("violin", 0.03)])
         
         game = GameMode(
@@ -308,7 +308,7 @@ class TestGameModeIntegration:
         if sample_labels is None:
             sample_labels = ["guitar", "piano", "violin"]
         
-        def predict_incorrect(drawing):
+        def predict_incorrect():
             return ("piano", 0.80, [("piano", 0.80), ("violin", 0.10)])
         
         game = GameMode(

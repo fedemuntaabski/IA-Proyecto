@@ -112,7 +112,7 @@ class GameMode:
     def __init__(
         self,
         labels: List[str],
-        predict_callback: Callable[[np.ndarray], Tuple[str, float, List[Tuple[str, float]]]],
+        predict_callback: Callable[[], Tuple[str, float, List[Tuple[str, float]]]],
         config: Optional[GameConfig] = None,
         logger: Optional[logging.Logger] = None,
     ):
@@ -360,9 +360,21 @@ class GameMode:
         )
         predict_btn.pack(side=tk.LEFT, padx=(0, 10))
         
+        clear_btn = tk.Button(
+            footer_frame,
+            text="🧹 LIMPIAR (L)",
+            command=self.clear_predictions,
+            bg=self._get_color("warning"),
+            fg=self._get_color("bg_primary"),
+            font=(self.config.font_family, self.config.font_size_normal, "bold"),
+            padx=20,
+            pady=10,
+        )
+        clear_btn.pack(side=tk.LEFT, padx=(0, 10))
+        
         next_btn = tk.Button(
             footer_frame,
-            text="⏭️  SIGUIENTE (N)",
+            text="⏭️  SIGUIENTE (C)",
             command=self._select_next_word,
             bg=self._get_color("accent_secondary"),
             fg=self._get_color("bg_primary"),
@@ -370,40 +382,14 @@ class GameMode:
             padx=20,
             pady=10,
         )
-        next_btn.pack(side=tk.LEFT, padx=(0, 10))
-        
-        reset_btn = tk.Button(
-            footer_frame,
-            text="🔄 REINICIAR (R)",
-            command=self.reset_game,
-            bg=self._get_color("warning"),
-            fg=self._get_color("bg_primary"),
-            font=(self.config.font_family, self.config.font_size_normal, "bold"),
-            padx=20,
-            pady=10,
-        )
-        reset_btn.pack(side=tk.LEFT, padx=(0, 10))
-        
-        quit_btn = tk.Button(
-            footer_frame,
-            text="❌ SALIR (Q)",
-            command=self.quit_game,
-            bg="#666666",
-            fg=self._get_color("text_primary"),
-            font=(self.config.font_family, self.config.font_size_normal, "bold"),
-            padx=20,
-            pady=10,
-        )
-        quit_btn.pack(side=tk.LEFT)
+        next_btn.pack(side=tk.LEFT)
         
         # Binding de teclas
         self.root.bind('<Return>', lambda e: self.predict_drawing())
-        self.root.bind('<n>', lambda e: self._select_next_word())
-        self.root.bind('<N>', lambda e: self._select_next_word())
-        self.root.bind('<r>', lambda e: self.reset_game())
-        self.root.bind('<R>', lambda e: self.reset_game())
-        self.root.bind('<q>', lambda e: self.quit_game())
-        self.root.bind('<Q>', lambda e: self.quit_game())
+        self.root.bind('<l>', lambda e: self.clear_predictions())
+        self.root.bind('<L>', lambda e: self.clear_predictions())
+        self.root.bind('<c>', lambda e: self._select_next_word())
+        self.root.bind('<C>', lambda e: self._select_next_word())
     
     def _select_next_word(self):
         """Selecciona la siguiente palabra aleatoria."""
@@ -526,8 +512,14 @@ class GameMode:
         self.streak = 0
         self.recent_words = []
         self._update_score_label()
-        self._select_next_word()
         self.logger.info("Juego reiniciado")
+    
+    def clear_predictions(self):
+        """Limpia las predicciones mostradas en la pantalla."""
+        self.prediction_label.config(text="(Sin predicción)")
+        self.confidence_label.config(text="")
+        self.top3_label.config(text="")
+        self.logger.info("Predicciones limpiadas")
     
     def quit_game(self):
         """Cierra la aplicación."""
