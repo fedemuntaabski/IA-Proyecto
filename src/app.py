@@ -21,6 +21,7 @@ from drawing_preprocessor import DrawingPreprocessor
 from model import SketchClassifier
 from ui import PictionaryUI
 from logger_setup import setup_logging
+from security import validate_path_safety, sanitize_filename, validate_json_data, SecurityError
 
 
 class PictionaryLive:
@@ -336,16 +337,18 @@ class PictionaryLive:
                                 all_strokes.append(self.stroke_accumulator.points)
 
                             if all_strokes:
-                                # 2. Serializar: convertir a listas anidadas para JSON
-                                # Esto es necesario porque json.dump no serializa tuplas por defecto
-                                serializable_strokes = [[[float(p[0]), float(p[1])] for p in stroke] for stroke in all_strokes]
+                                # 2. Validar y serializar datos
+                                serializable_strokes = validate_json_data([[[float(p[0]), float(p[1])] for p in stroke] for stroke in all_strokes])
                                 
-                                # 3. Guardar en el archivo esperado por el test de diagnóstico
-                                with open('test_stroke_data.json', 'w') as f:
+                                # 3. Validar ruta y guardar
+                                stroke_file_path = validate_path_safety("test_stroke_data.json", base_dir=Path.cwd(), allow_absolute=False)
+                                with open(stroke_file_path, 'w') as f:
                                     json.dump(serializable_strokes, f)
                                 self.logger.info("✓ Trazos guardados en 'test_stroke_data.json'.")
                             else:
                                 self.logger.info("No hay trazos activos o compuestos para guardar.")
+                        except SecurityError as e:
+                            self.logger.error(f"Error de seguridad al guardar trazos: {e}")
                         except Exception as e:
                             self.logger.warning(f"Error al guardar trazos JSON: {e}")
                     elif key == 13:  # Enter - finalizar dibujo compuesto y predecir
@@ -374,8 +377,11 @@ class PictionaryLive:
                                 cv2.imwrite(str(dbg_path), img_arr)
                                 self.logger.info(f"[DEBUG] Guardada entrada modelo: {dbg_path}")
                                 # También guardar strokes serializados
-                                with open(out_dbg / f"strokes_{dbg_ts}.json", "w", encoding="utf-8") as jf:
-                                    json.dump(serializable_strokes, jf)
+                                strokes_file_path = out_dbg / f"strokes_{dbg_ts}.json"
+                                validated_strokes_file = validate_path_safety(str(strokes_file_path), base_dir=Path.cwd())
+                                validated_data = validate_json_data(serializable_strokes)
+                                with open(validated_strokes_file, "w", encoding="utf-8") as jf:
+                                    json.dump(validated_data, jf)
 
                                 label, conf, top3 = self.classifier.predict(drawing)
                                 self.logger.info(f"[ENTER] Predicción compuesta: {label} ({conf:.1%})")
@@ -410,21 +416,25 @@ class PictionaryLive:
                             if combined and self.preprocessor:
                                 drawing = self.preprocessor.preprocess(combined)
                                 # Guardar imagen y puntos para etiquetado manual
-                                # import os, json # Ya se importó arriba
-                                out_dir = Path("collected/unsorted")
+                                out_dir = validate_path_safety("collected/unsorted", base_dir=Path.cwd())
                                 out_dir.mkdir(parents=True, exist_ok=True)
                                 timestamp = time.strftime("%Y%m%d_%H%M%S")
+                                filename = sanitize_filename(f"sample_{timestamp}")
+                                img_path = out_dir / f"{filename}.png"
+                                pts_path = out_dir / f"{filename}.json"
+                                
                                 img_arr = (drawing.squeeze() * 255).astype('uint8')
-                                img_path = out_dir / f"sample_{timestamp}.png"
                                 cv2.imwrite(str(img_path), img_arr)
-                                pts_path = out_dir / f"sample_{timestamp}.json"
+                                
+                                # Validar datos JSON antes de guardar
+                                strokes_data = validate_json_data({"strokes": [[[float(p[0]), float(p[1])] for p in stroke] for stroke in self.drawing_strokes]})
                                 with open(pts_path, 'w', encoding='utf-8') as f:
-                                    # Serializar tuplas a listas para JSON
-                                    serializable_strokes = [[[float(p[0]), float(p[1])] for p in stroke] for stroke in self.drawing_strokes]
-                                    json.dump({"strokes": serializable_strokes}, f)
-                                self.logger.info(f"Ejemplo guardado: {img_path} (+{pts_path}) - etiquetar y mover a collected/labels/<label>/")
+                                    json.dump(strokes_data, f)
+                                self.logger.info(f"Ejemplo guardado: {img_path.name} (+{pts_path.name}) - etiquetar y mover a collected/labels/<label>/")
 
                                 # No limpiar drawing_strokes para permitir seguir construyendo si se desea
+                        except SecurityError as e:
+                            self.logger.error(f"Error de seguridad al guardar ejemplo: {e}")
                         except Exception as e:
                             self.logger.warning(f"Error al guardar ejemplo: {e}")
                     
@@ -483,13 +493,19 @@ class PictionaryLive:
     
     def _save_screenshot(self, frame):
         """Guarda una captura de pantalla."""
-        pred_dir = Path("./predictions")
-        pred_dir.mkdir(exist_ok=True)
-        
-        timestamp = time.strftime("%Y%m%d_%H%M%S")
-        path = pred_dir / f"frame_{timestamp}.png"
-        cv2.imwrite(str(path), frame)
-        self.logger.info(f"[OK] Captura guardada: {path.name}")
+        try:
+            pred_dir = validate_path_safety("./predictions", base_dir=Path.cwd())
+            pred_dir.mkdir(exist_ok=True)
+            
+            timestamp = time.strftime("%Y%m%d_%H%M%S")
+            filename = sanitize_filename(f"frame_{timestamp}.png")
+            path = pred_dir / filename
+            cv2.imwrite(str(path), frame)
+            self.logger.info(f"[OK] Captura guardada: {path.name}")
+        except SecurityError as e:
+            self.logger.error(f"Error de seguridad al guardar captura: {e}")
+        except Exception as e:
+            self.logger.error(f"Error al guardar captura: {e}")
     
     def _cleanup(self):
         """Limpia recursos."""

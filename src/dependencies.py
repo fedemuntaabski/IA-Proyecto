@@ -12,6 +12,8 @@ except ImportError:
     # Fallback para versiones antiguas de Python
     from importlib_metadata import version
 
+from security import check_dependencies_vulnerabilities, setup_secure_environment
+
 
 REQUIRED_PACKAGES = {
     "opencv-python": ">=4.5.0",
@@ -165,6 +167,9 @@ def main():
     print("=" * 70)
     print()
     
+    # Configurar entorno seguro
+    setup_secure_environment()
+    
     # Verificar Python
     if not check_python_version():
         sys.exit(1)
@@ -190,6 +195,22 @@ def main():
     
     # Validar compatibilidad
     validate_compatibility()
+    
+    # Verificar vulnerabilidades de seguridad
+    print("\n[CHEQUEO] Verificando vulnerabilidades de seguridad...")
+    vulnerabilities = check_dependencies_vulnerabilities()
+    if vulnerabilities:
+        print(f"  ⚠️  Encontradas {len(vulnerabilities)} vulnerabilidades potenciales:")
+        for vuln in vulnerabilities:
+            severity = vuln.get('severity', 'unknown')
+            print(f"    - {vuln['package']}: {vuln.get('description', 'Vulnerabilidad detectada')}")
+            if 'recommended' in vuln:
+                print(f"      Recomendado: {vuln['recommended']} (instalado: {vuln.get('installed', 'desconocido')})")
+        
+        print("\n  💡 Recomendación: Actualizar dependencias vulnerables")
+        print("     pip install --upgrade <package>")
+    else:
+        print("  ✅ No se encontraron vulnerabilidades conocidas")
     
     # Verificar opcional
     print("\n[CHEQUEO] Verificando dependencias opcionales...")
