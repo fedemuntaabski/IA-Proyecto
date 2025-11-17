@@ -22,6 +22,9 @@ sys.path.insert(0, str(Path(__file__).parent / "src"))
 from dependencies import main as check_dependencies
 check_dependencies()
 
+# Importar módulo de seguridad
+from security import validate_ia_directory, validate_camera_id, SecurityError
+
 # Importar config_manager para validar configuración al inicio
 try:
     from config_manager import get_config
@@ -86,11 +89,19 @@ Requisitos para mejor detección:
     
     args = parser.parse_args()
     
+    # Validar inputs de seguridad
+    try:
+        validated_ia_dir = str(validate_ia_directory(args.ia_dir))
+        validated_camera_id = validate_camera_id(args.camera_id)
+    except SecurityError as e:
+        print(f"[ERROR] Validación de seguridad fallida: {e}", file=sys.stderr)
+        sys.exit(1)
+    
     try:
         # Crear y ejecutar aplicación
         app = PictionaryLive(
-            ia_dir=args.ia_dir,
-            camera_id=args.camera_id,
+            ia_dir=validated_ia_dir,
+            camera_id=validated_camera_id,
             debug=args.debug,
             dry_run=args.dry_run
         )

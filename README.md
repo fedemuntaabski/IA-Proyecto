@@ -12,7 +12,7 @@ Aplicación Python interactiva para jugar **Pictionary en vivo** usando detecci�
 
 ## Requisitos
 
-- Python 3.8+
+- Python 3.10+
 - Dependencias: `opencv-python`, `tensorflow`, `mediapipe`, `numpy`
 - Carpeta `IA/` con `model_info.json`, modelo `.keras` o `.h5`, y datos opcionales
 
@@ -21,6 +21,8 @@ Aplicación Python interactiva para jugar **Pictionary en vivo** usando detecci�
 1. Clona o descarga el repositorio
 2. Crea entorno virtual: `python -m venv venv` y activa
 3. Instala dependencias: `pip install -r src/requirements.txt`
+
+**Nota**: Las dependencias han sido actualizadas para resolver warnings de deprecación y mejorar compatibilidad.
 
 ## Configuración
 

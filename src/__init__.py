@@ -26,4 +26,5 @@ __all__ = [
     "app",
     "logger_setup",
     "dependencies",
+    "security",
 ]

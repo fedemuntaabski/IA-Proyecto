@@ -8,6 +8,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
 import pytest
 import numpy as np
+import cv2
 from unittest.mock import Mock, patch
 
 from ui import PictionaryUI
@@ -39,9 +40,10 @@ class TestPictionaryUI:
     def test_update_fps(self, ui_config):
         """Prueba actualización de FPS."""
         ui = PictionaryUI(ui_config)
+        ui.last_time = 0.0  # Resetear tiempo inicial
 
-        ui.update_fps(1000.0)  # Tiempo inicial
-        ui.update_fps(1001.0)  # 1 segundo después
+        ui.update_fps(0.0)  # Tiempo inicial
+        ui.update_fps(1.0)  # 1 segundo después
 
         # FPS debería ser calculado
         assert ui.fps > 0
@@ -64,6 +66,14 @@ class TestPictionaryUI:
 
         assert result.shape == original.shape
         assert not np.array_equal(result, original)  # Debería haber cambios
+
+    def test_fit_text_scale(self, ui_config):
+        """Prueba ajuste de escala de texto."""
+        ui = PictionaryUI(ui_config)
+
+        scale = ui._fit_text_scale("Test Text", cv2.FONT_HERSHEY_SIMPLEX, 200, 1.0)
+
+        assert 0.3 <= scale <= 1.0
 
     def test_draw_stroke_preview(self, ui_config):
         """Prueba dibujo de preview de trazo."""

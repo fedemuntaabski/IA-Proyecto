@@ -16,7 +16,7 @@ except ImportError:
     TENSORFLOW_AVAILABLE = False
     tf = None
     keras = None
-except Exception as e:
+except (ImportError, AttributeError, ModuleNotFoundError) as e:
     # Silenciar errores de importación como AttributeError
     print(f"AVISO: Error al importar TensorFlow: {e}")
     TENSORFLOW_AVAILABLE = False
@@ -69,7 +69,7 @@ class SketchClassifier:
             else:
                 self.logger.info("Modo demo activado")
                 self.demo_mode = True
-        except Exception as e:
+        except (OSError, ValueError, KeyError) as e:
             self.logger.error(f"Error crítico en inicialización del clasificador: {e} - usando modo demo")
             self.demo_mode = True
             self.labels = ["demo"]
@@ -91,7 +91,7 @@ class SketchClassifier:
             
             self.logger.info(f"Modelo info cargado: {len(self.labels)} clases")
             return True
-        except Exception as e:
+        except (IOError, OSError, json.JSONDecodeError, UnicodeDecodeError) as e:
             self.logger.warning(f"Error al cargar model_info.json: {e}")
             return False
     
@@ -137,7 +137,7 @@ class SketchClassifier:
                     model_type = "cuantizado (TFLite)" if "quantized" in model_path.name else "normal"
                     self.logger.info(f"Modelo {model_type} cargado: {model_path.name}")
                     return True
-                except Exception as e:
+                except (OSError, ValueError, tf.errors.OpError) as e:
                     self.logger.warning(f"Error al cargar {model_path.name}: {e}")
         
         self.logger.info("No se encontró modelo, usando predicciones demo")
@@ -158,7 +158,7 @@ class SketchClassifier:
             else:
                 self.logger.info("GPU no disponible, usando CPU")
                 return "/CPU:0"
-        except Exception as e:
+        except (RuntimeError, tf.errors.InternalError) as e:
             self.logger.warning(f"Error configurando GPU: {e}, usando CPU")
             return "/CPU:0"
     
@@ -169,7 +169,7 @@ class SketchClassifier:
             interpreter.allocate_tensors()
             self.logger.info("Modelo TFLite cargado exitosamente")
             return interpreter
-        except Exception as e:
+        except (ValueError, tf.errors.OpError) as e:
             self.logger.error(f"Error cargando modelo TFLite: {e}")
             raise
     
@@ -189,9 +189,10 @@ class SketchClassifier:
                 return self._demo_predict()
 
             # Predicción inicial
-            if hasattr(self.model, 'invoke'):
+            try:
+                self.model.get_input_details()
                 result = self._predict_tflite(drawing)
-            else:
+            except AttributeError:
                 result = self._predict_keras(drawing)
 
             # Si la confianza es baja, intentar la versión invertida de la imagen
@@ -201,16 +202,17 @@ class SketchClassifier:
                 try:
                     # Crear variante invertida (1 - pixel)
                     inverted = (1.0 - drawing).astype(drawing.dtype)
-                    if hasattr(self.model, 'invoke'):
+                    try:
+                        self.model.get_input_details()
                         inv_result = self._predict_tflite(inverted)
-                    else:
+                    except AttributeError:
                         inv_result = self._predict_keras(inverted)
 
                     # Elegir la predicción con mayor probabilidad top1
                     if inv_result[1] > top1_prob:
                         result = inv_result
                         top1_label, top1_prob, top3 = result
-                except Exception as e:
+                except (ValueError, RuntimeError) as e:
                     self.logger.debug(f"Error al predecir con variante invertida: {e}")
 
             # Ensemble de augmentaciones: rotaciones pequeñas y flips para mejorar robustez
@@ -231,20 +233,22 @@ class SketchClassifier:
                             rot = cv2.warpAffine((img2d * 255).astype('uint8'), M, (w, h), flags=cv2.INTER_LINEAR, borderValue=0)
                             rot = rot.astype('float32') / 255.0
                             rot_img = np.expand_dims(rot, axis=-1)
-                        except Exception:
+                        except (ImportError, cv2.error, ValueError):
                             # Fallback: skip rotation if OpenCV no disponible
                             continue
-                        if hasattr(self.model, 'invoke'):
+                        try:
+                            self.model.get_input_details()
                             r = self._predict_tflite(rot_img)
-                        else:
+                        except AttributeError:
                             r = self._predict_keras(rot_img)
                         candidates.append(r)
 
                     # también probar versión invertida de la original si no ya probada
                     inv = (1.0 - drawing).astype(drawing.dtype)
-                    if hasattr(self.model, 'invoke'):
+                    try:
+                        self.model.get_input_details()
                         inv_r = self._predict_tflite(inv)
-                    else:
+                    except AttributeError:
                         inv_r = self._predict_keras(inv)
                     candidates.append(inv_r)
 
@@ -261,7 +265,7 @@ class SketchClassifier:
 
             return result
 
-        except Exception as e:
+        except (ValueError, RuntimeError, tf.errors.OpError) as e:
             self.logger.error(f"Error en predicción: {e}")
             return self._demo_predict()
     
@@ -288,6 +292,9 @@ class SketchClassifier:
         ]
         
         return top1_label, top1_prob, top3
+    
+    def _predict_tflite(self, drawing: np.ndarray) -> Tuple[str, float, List[Tuple[str, float]]]:
+        """Predicción con modelo TFLite cuantizado."""
     
     def _predict_tflite(self, drawing: np.ndarray) -> Tuple[str, float, List[Tuple[str, float]]]:
         """Predicción con modelo TFLite cuantizado."""

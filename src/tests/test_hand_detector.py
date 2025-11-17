@@ -181,3 +181,43 @@ class TestHandDetector:
 
         pos = detector.get_index_finger_position()
         assert pos == (0.0, 0.0)
+
+    def test_is_fist_no_landmarks(self, hand_config, mock_logger):
+        """Prueba detección de puño sin landmarks."""
+        detector = HandDetector(hand_config, mock_logger)
+        detector.hand_landmarks = None
+
+        assert not detector.is_fist()
+
+    def test_is_fist_with_fist(self, hand_config, mock_logger):
+        """Prueba detección de puño cerrado."""
+        detector = HandDetector(hand_config, mock_logger)
+        # Simular landmarks de puño cerrado (tips por encima de PIPs)
+        detector.hand_landmarks = [(0.0, 0.0)] * 21
+        # Tips (8,12,16,20) con y > PIPs (6,10,14,18)
+        detector.hand_landmarks[6] = (0.1, 0.1)  # PIP índice
+        detector.hand_landmarks[8] = (0.1, 0.2)  # Tip índice > PIP
+        detector.hand_landmarks[10] = (0.2, 0.1)  # PIP medio
+        detector.hand_landmarks[12] = (0.2, 0.2)  # Tip medio > PIP
+        detector.hand_landmarks[14] = (0.3, 0.1)  # PIP anular
+        detector.hand_landmarks[16] = (0.3, 0.2)  # Tip anular > PIP
+        detector.hand_landmarks[18] = (0.4, 0.1)  # PIP meñique
+        detector.hand_landmarks[20] = (0.4, 0.2)  # Tip meñique > PIP
+
+        assert detector.is_fist()
+
+    def test_is_fist_open_hand(self, hand_config, mock_logger):
+        """Prueba detección de mano abierta."""
+        detector = HandDetector(hand_config, mock_logger)
+        detector.hand_landmarks = [(0.0, 0.0)] * 21
+        # Tips por debajo de PIPs
+        detector.hand_landmarks[6] = (0.1, 0.2)  # PIP índice
+        detector.hand_landmarks[8] = (0.1, 0.1)  # Tip índice < PIP
+        detector.hand_landmarks[10] = (0.2, 0.2)  # PIP medio
+        detector.hand_landmarks[12] = (0.2, 0.1)  # Tip medio < PIP
+        detector.hand_landmarks[14] = (0.3, 0.2)  # PIP anular
+        detector.hand_landmarks[16] = (0.3, 0.1)  # Tip anular < PIP
+        detector.hand_landmarks[18] = (0.4, 0.2)  # PIP meñique
+        detector.hand_landmarks[20] = (0.4, 0.1)  # Tip meñique < PIP
+
+        assert not detector.is_fist()

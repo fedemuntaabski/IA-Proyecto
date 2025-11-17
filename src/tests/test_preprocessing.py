@@ -33,8 +33,14 @@ def test_preprocessing():
     img1 = create_test_image(test_points, invert=False)
     print(f"   Rango: [{img1.min():.3f}, {img1.max():.3f}]")
     print(f"   Promedio: {img1.mean():.3f}")
-    cv2.imwrite("test_capture_format.png", (img1.squeeze() * 255).astype('uint8'))
-    print("   ✅ Guardado: test_capture_format.png")
+    
+    # Crear directorio si no existe
+    diag_dir = Path("diagnosis_results")
+    diag_dir.mkdir(exist_ok=True)
+    
+    capture_path = diag_dir / "test_capture_format.png"
+    cv2.imwrite(str(capture_path), (img1.squeeze() * 255).astype('uint8'))
+    print(f"   ✅ Guardado: {capture_path}")
     print()
     
     # Configuración 2: Fondo blanco, trazos negros (Quick Draw estándar)
@@ -42,8 +48,10 @@ def test_preprocessing():
     img2 = create_test_image(test_points, invert=True)
     print(f"   Rango: [{img2.min():.3f}, {img2.max():.3f}]")
     print(f"   Promedio: {img2.mean():.3f}")
-    cv2.imwrite("test_quickdraw_format.png", (img2.squeeze() * 255).astype('uint8'))
-    print("   ✅ Guardado: test_quickdraw_format.png")
+    
+    quickdraw_path = diag_dir / "test_quickdraw_format.png"
+    cv2.imwrite(str(quickdraw_path), (img2.squeeze() * 255).astype('uint8'))
+    print(f"   ✅ Guardado: {quickdraw_path}")
     print()
     
     print("="*60)
@@ -51,12 +59,12 @@ def test_preprocessing():
     print("="*60)
     print("Compara las imágenes generadas con las de tu entrenamiento:")
     print()
-    print("  📁 test_capture_format.png   - Tu formato actual")
-    print("  📁 test_quickdraw_format.png - Formato Quick Draw")
+    print(f"  📁 {capture_path}   - Tu formato actual")
+    print(f"  📁 {quickdraw_path} - Formato Quick Draw")
     print()
     print("Si tus imágenes de ENTRENAMIENTO se parecen a:")
-    print("  → test_capture_format.png: usar invert_colors = False")
-    print("  → test_quickdraw_format.png: usar invert_colors = True")
+    print(f"  → {capture_path.name}: usar invert_colors = False")
+    print(f"  → {quickdraw_path.name}: usar invert_colors = True")
     print()
     
     # Verificar si hay ejemplos de entrenamiento
