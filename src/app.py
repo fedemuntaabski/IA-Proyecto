@@ -64,19 +64,19 @@ class PictionaryLive:
             # Combinar configuraciones para hand detector
             hand_config = {**MEDIAPIPE_CONFIG["hands"], **DETECTION_CONFIG, **PERFORMANCE_CONFIG}
             self.hand_detector = HandDetector(hand_config, self.logger)
-        except Exception as e:
+        except (ValueError, RuntimeError, TypeError) as e:
             self.logger.error(f"Error al inicializar HandDetector: {e}")
             self.hand_detector = None
         
         try:
             self.stroke_accumulator = StrokeAccumulator(STROKE_CONFIG, self.logger)
-        except Exception as e:
+        except (ValueError, RuntimeError, TypeError) as e:
             self.logger.error(f"Error al inicializar StrokeAccumulator: {e}")
             self.stroke_accumulator = None
         
         try:
             self.classifier = SketchClassifier(self.ia_dir, self.logger, demo_mode=MODEL_CONFIG["demo_mode"], config=MODEL_CONFIG)
-        except Exception as e:
+        except (ValueError, RuntimeError, TypeError) as e:
             self.logger.error(f"Error al inicializar SketchClassifier: {e}")
             # Fallback a modo demo
             self.classifier = SketchClassifier(self.ia_dir, self.logger, demo_mode=True, config=MODEL_CONFIG)
@@ -84,13 +84,13 @@ class PictionaryLive:
         try:
             input_shape = self.classifier.get_input_shape() if self.classifier else [28, 28, 1]
             self.preprocessor = DrawingPreprocessor(input_shape, PREPROCESSING_CONFIG)
-        except Exception as e:
+        except (ValueError, RuntimeError, TypeError) as e:
             self.logger.error(f"Error al inicializar DrawingPreprocessor: {e}")
             self.preprocessor = None
         
         try:
             self.ui = PictionaryUI(UI_CONFIG)
-        except Exception as e:
+        except (ValueError, RuntimeError, TypeError) as e:
             self.logger.error(f"Error al inicializar PictionaryUI: {e}")
             self.ui = None
         # Lista de trazos completados (para dibujos compuestos)
@@ -151,7 +151,7 @@ class PictionaryLive:
                     self.logger.warning(f"  [FAIL] Camara {self.camera_id} - intento {attempt + 1}/{max_retries}")
                     if attempt < max_retries - 1:
                         time.sleep(1)  # Esperar antes de reintentar
-            except Exception as e:
+            except (ValueError, RuntimeError, OSError) as e:
                 self.logger.error(f"  [FAIL] Error al validar camara {self.camera_id}: {e} - intento {attempt + 1}/{max_retries}")
                 if attempt < max_retries - 1:
                     time.sleep(1)
@@ -210,7 +210,7 @@ class PictionaryLive:
                         hand_landmarks = detection["hand_landmarks"]
                         hand_velocity = detection["hand_velocity"]
                         hands_count = detection["hands_count"]
-                    except Exception as e:
+                    except (ValueError, RuntimeError, KeyError) as e:
                         self.logger.warning(f"Error en detección de manos: {e} - continuando sin detección")
                         hand_landmarks = None
                         hand_velocity = 0.0
@@ -220,7 +220,7 @@ class PictionaryLive:
                     try:
                         if self.hand_detector:
                             frame = self.hand_detector.draw_hand_landmarks(frame)
-                    except Exception as e:
+                    except (ValueError, RuntimeError) as e:
                         self.logger.warning(f"Error al dibujar landmarks: {e}")
                     
                     # Procesar trazo si hay mano y componentes disponibles
@@ -229,7 +229,7 @@ class PictionaryLive:
                     try:
                         if self.hand_detector and hasattr(self.hand_detector, 'is_fist'):
                             is_fist = self.hand_detector.is_fist()
-                    except Exception as e:
+                    except (ValueError, RuntimeError, AttributeError) as e:
                         self.logger.debug(f"Error al evaluar puño: {e}")
 
                     # Si hay mano y componentes disponibles
@@ -264,7 +264,7 @@ class PictionaryLive:
                                             self.drawing_strokes.append(stroke)
                                             self.logger.info(f"Trazo completado y añadido al dibujo compuesto: {len(stroke)} puntos")
                                         self.stroke_accumulator.reset()
-                        except Exception as e:
+                        except (ValueError, RuntimeError, AttributeError) as e:
                             self.logger.warning(f"Error en procesamiento de trazo: {e} - continuando")
                     elif self.stroke_accumulator and self.stroke_accumulator.stroke_active:
                         # Sin mano detectada, resetear trazo si está muy viejo
@@ -272,7 +272,7 @@ class PictionaryLive:
                             stroke_info = self.stroke_accumulator.get_stroke_info()
                             if stroke_info["age_ms"] > STROKE_CONFIG.get("max_stroke_age_ms", 3000):
                                 self.stroke_accumulator.reset()
-                        except Exception as e:
+                        except (ValueError, RuntimeError, KeyError) as e:
                             self.logger.warning(f"Error al resetear trazo: {e}")
 
                     # Dibujar trazos previos (composite) en el frame
@@ -308,7 +308,7 @@ class PictionaryLive:
                                 prediction=self.ui.last_prediction if self.ui else None,
                                 hand_in_fist=self.hand_in_fist,
                             )
-                    except Exception as e:
+                    except (ValueError, RuntimeError, TypeError) as e:
                         self.logger.warning(f"Error al renderizar UI: {e}")
                     
                     # Mostrar frame
@@ -325,7 +325,7 @@ class PictionaryLive:
                         # ======================================================
                         try:
                             self._save_screenshot(frame)
-                        except Exception as e:
+                        except (ValueError, RuntimeError, OSError, IOError) as e:
                             self.logger.warning(f"Error al guardar screenshot: {e}")
                             
                         try:
@@ -349,7 +349,7 @@ class PictionaryLive:
                                 self.logger.info("No hay trazos activos o compuestos para guardar.")
                         except SecurityError as e:
                             self.logger.error(f"Error de seguridad al guardar trazos: {e}")
-                        except Exception as e:
+                        except (ValueError, RuntimeError, OSError, IOError, json.JSONEncodeError) as e:
                             self.logger.warning(f"Error al guardar trazos JSON: {e}")
                     elif key == 13:  # Enter - finalizar dibujo compuesto y predecir
                         try:
@@ -392,12 +392,12 @@ class PictionaryLive:
                                     with open(inference_log, 'a', encoding='utf-8') as f:
                                         top3_str = "; ".join([f"{l}: {p:.1%}" for l, p in top3])
                                         f.write(f"{current_time:.0f} | {label} ({conf:.1%}) | Top-3: {top3_str}\n")
-                                except Exception as log_e:
+                                except (ValueError, RuntimeError, OSError, IOError) as log_e:
                                     self.logger.warning(f"Error al escribir log (enter): {log_e}")
 
                                 # Limpiar dibujo compuesto para nuevo dibujo
                                 self.drawing_strokes = []
-                        except Exception as e:
+                        except (ValueError, RuntimeError, OSError, IOError) as e:
                             self.logger.warning(f"Error al procesar Enter: {e}")
                     elif key == ord('c'):
                         # Guardar ejemplo combinado para etiquetado / re-entrenamiento
@@ -435,7 +435,7 @@ class PictionaryLive:
                                 # No limpiar drawing_strokes para permitir seguir construyendo si se desea
                         except SecurityError as e:
                             self.logger.error(f"Error de seguridad al guardar ejemplo: {e}")
-                        except Exception as e:
+                        except (ValueError, RuntimeError, OSError, IOError, json.JSONEncodeError) as e:
                             self.logger.warning(f"Error al guardar ejemplo: {e}")
                     
                     # Verificar si la ventana fue cerrada con el botón X
@@ -443,16 +443,16 @@ class PictionaryLive:
                         if cv2.getWindowProperty(UI_CONFIG["window_name"], cv2.WND_PROP_VISIBLE) < 1:
                             self.logger.info("Usuario cerró la ventana - saliendo")
                             self.running = False
-                    except Exception as e:
+                    except (ValueError, RuntimeError) as e:
                         self.logger.warning(f"Error al verificar ventana: {e}")
                 
-                except Exception as frame_e:
+                except (ValueError, RuntimeError, OSError) as frame_e:
                     self.logger.error(f"Error en procesamiento de frame: {frame_e} - continuando")
                     time.sleep(0.1)  # Pausa para evitar loop infinito en caso de error persistente
         
         except KeyboardInterrupt:
             self.logger.info("Interrupción por usuario (Ctrl+C)")
-        except Exception as run_e:
+        except (ValueError, RuntimeError, OSError) as run_e:
             self.logger.error(f"Error fatal en run loop: {run_e}")
         finally:
             self._cleanup()
@@ -483,7 +483,7 @@ class PictionaryLive:
                 
                 self.logger.info(f"Cámara inicializada: {w}x{h} @ {fps}FPS")
                 return True
-            except Exception as e:
+            except (ValueError, RuntimeError, OSError) as e:
                 self.logger.error(f"Error al inicializar cámara {self.camera_id}: {e} - intento {attempt + 1}/{max_retries}")
                 if attempt < max_retries - 1:
                     time.sleep(2)
@@ -504,7 +504,7 @@ class PictionaryLive:
             self.logger.info(f"[OK] Captura guardada: {path.name}")
         except SecurityError as e:
             self.logger.error(f"Error de seguridad al guardar captura: {e}")
-        except Exception as e:
+        except (ValueError, RuntimeError, OSError, IOError) as e:
             self.logger.error(f"Error al guardar captura: {e}")
     
     def _cleanup(self):

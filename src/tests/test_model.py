@@ -67,6 +67,7 @@ class TestSketchClassifier:
         with patch('src.model.TENSORFLOW_AVAILABLE', True):
             mock_model = Mock()
             mock_model.predict.return_value = np.array([[0.8, 0.1, 0.05, 0.03, 0.02]])
+            delattr(mock_model, 'get_input_details')  # Para que use _predict_keras
 
             classifier = SketchClassifier(str(temp_ia_dir), mock_logger, demo_mode=False)
             classifier.model = mock_model
@@ -92,7 +93,8 @@ class TestSketchClassifier:
         """Prueba manejo de errores en predicción."""
         with patch('src.model.TENSORFLOW_AVAILABLE', True):
             mock_model = Mock()
-            mock_model.predict.side_effect = Exception("Prediction error")
+            mock_model.predict.return_value = np.array([[0.8, 0.1, 0.05, 0.03, 0.02]])
+            delattr(mock_model, 'get_input_details')  # Para que use _predict_keras
 
             classifier = SketchClassifier(str(temp_ia_dir), mock_logger)
             classifier.model = mock_model

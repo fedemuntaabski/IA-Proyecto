@@ -64,7 +64,7 @@ def validate_path_safety(path: str, base_dir: Optional[Path] = None, allow_absol
                 resolved = (base_dir / p).resolve()
             else:
                 resolved = p.resolve()
-    except Exception as e:
+    except (OSError, ValueError, RuntimeError) as e:
         raise SecurityError(f"Error al resolver ruta '{path}': {e}")
 
     # Verificar que el directorio padre existe
@@ -160,7 +160,7 @@ def check_dependencies_vulnerabilities() -> List[Dict[str, Any]]:
     except ImportError:
         # Fallback: verificar manualmente versiones críticas
         pass
-    except Exception as e:
+    except (ImportError, RuntimeError) as e:
         logging.warning(f"Error al verificar vulnerabilidades con safety: {e}")
 
     # Verificar versiones críticas manualmente
@@ -186,7 +186,7 @@ def check_dependencies_vulnerabilities() -> List[Dict[str, Any]]:
                     })
             except pkg_resources.DistributionNotFound:
                 continue
-    except Exception as e:
+    except (ImportError, pkg_resources.DistributionNotFound, ValueError, StopIteration) as e:
         logging.warning(f"Error al verificar versiones manualmente: {e}")
 
     return vulnerabilities
