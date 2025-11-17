@@ -214,10 +214,10 @@ class PictionaryUI:
                         FONT_BOLD, conf_scale, COLORS["text_main"], 1, cv2.LINE_AA)
 
             
-       # ======================================================
+        # ======================================================
         # CONTROLES INFERIORES (texto compacto para no solapar)
         # ======================================================
-        controls = "Q = salir   |   S = guardar   |   Dibuja con tu dedo indice"
+        controls = "Q = salir | S = guardar | Z = borrar trazados | Dibuja con tu dedo indice"
         # Cambiamos la escala base de 0.55 a 0.45 para reducir el tamaño
         ctrl_scale = self._fit_text_scale(controls, FONT_REG, max_width=int(w * 0.9), base_scale=0.45)
         # Ajustamos la posicion vertical de h - 18 a h - 14 para moverlo un poco arriba

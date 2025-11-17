@@ -351,6 +351,12 @@ class PictionaryLive:
                             self.logger.error(f"Error de seguridad al guardar trazos: {e}")
                         except (ValueError, RuntimeError, OSError, IOError, json.JSONEncodeError) as e:
                             self.logger.warning(f"Error al guardar trazos JSON: {e}")
+                    elif key == ord('z'):
+                        # Borrar trazos
+                        self.drawing_strokes = []
+                        if self.stroke_accumulator:
+                            self.stroke_accumulator.reset()
+                        self.logger.info("Trazos borrados")
                     elif key == 13:  # Enter - finalizar dibujo compuesto y predecir
                         try:
                             # Si hay un trazo activo, añadirlo primero
