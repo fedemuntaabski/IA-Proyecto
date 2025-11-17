@@ -192,17 +192,13 @@ class TestGameMode:
             predict_callback=lambda: ("guitar", 0.95, []),
         )
         game.current_word = "guitar"
-        
+
         initial_score = game.score
         initial_streak = game.streak
-        
-        # Hacer predicción correcta
-        game.predict_drawing()
-        
-        # Esperar a que se complete el thread
-        import time
-        time.sleep(0.5)
-        
+
+        # Hacer predicción correcta (ahora en _select_next_word)
+        game._select_next_word()
+
         # Verificar que se incrementaron
         assert game.score > initial_score or game.streak > initial_streak
     
@@ -214,14 +210,10 @@ class TestGameMode:
         )
         game.current_word = "guitar"
         game.streak = 5
-        
+
         # Hacer predicción incorrecta
-        game.predict_drawing()
-        
-        # Esperar a que se complete el thread
-        import time
-        time.sleep(0.5)
-        
+        game._select_next_word()
+
         # Verificar que se resetea la racha
         assert game.streak == 0
     

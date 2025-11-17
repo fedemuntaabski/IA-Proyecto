@@ -81,6 +81,7 @@ class GameIntegration:
             predict_callback=predict_fn,
             config=self.game_config,
             logger=self.logger,
+            clear_callback=self.clear_drawing,
         )
         
         # Estado de captura
@@ -294,6 +295,13 @@ class GameIntegration:
         except Exception as e:
             self.logger.error(f"Error prediciendo dibujo: {e}")
             return ("error", 0.0, [])
+    
+    def clear_drawing(self):
+        """Limpia el dibujo actual (trazos acumulados)."""
+        self.drawing_strokes = []
+        if self.stroke_accumulator:
+            self.stroke_accumulator.reset()
+        self.logger.info("Dibujo limpiado")
     
     def run(self):
         """Inicia la aplicación integrada."""

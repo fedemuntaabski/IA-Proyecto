@@ -115,6 +115,7 @@ class GameMode:
         predict_callback: Callable[[], Tuple[str, float, List[Tuple[str, float]]]],
         config: Optional[GameConfig] = None,
         logger: Optional[logging.Logger] = None,
+        clear_callback: Optional[Callable[[], None]] = None,
     ):
         """
         Inicializa el modo de juego.
@@ -141,6 +142,10 @@ class GameMode:
         self.streak = 0
         self.recent_words = []  # Evitar repeticiones recientes
         self.max_recent = 5
+        
+        # Callbacks
+        self.predict_callback = predict_callback
+        self.clear_callback = clear_callback or (lambda: None)
         
         # Interfaz Tkinter
         self.root = tk.Tk()
@@ -348,18 +353,6 @@ class GameMode:
         footer_frame.pack(fill=tk.X, pady=(10, 0))
         
         # Botones
-        predict_btn = tk.Button(
-            footer_frame,
-            text="🎯 PREDECIR (Enter)",
-            command=self.predict_drawing,
-            bg=self._get_color("accent_primary"),
-            fg=self._get_color("bg_primary"),
-            font=(self.config.font_family, self.config.font_size_normal, "bold"),
-            padx=20,
-            pady=10,
-        )
-        predict_btn.pack(side=tk.LEFT, padx=(0, 10))
-        
         clear_btn = tk.Button(
             footer_frame,
             text="🧹 LIMPIAR (L)",
@@ -385,14 +378,39 @@ class GameMode:
         next_btn.pack(side=tk.LEFT)
         
         # Binding de teclas
-        self.root.bind('<Return>', lambda e: self.predict_drawing())
         self.root.bind('<l>', lambda e: self.clear_predictions())
         self.root.bind('<L>', lambda e: self.clear_predictions())
         self.root.bind('<c>', lambda e: self._select_next_word())
         self.root.bind('<C>', lambda e: self._select_next_word())
     
     def _select_next_word(self):
-        """Selecciona la siguiente palabra aleatoria."""
+        """Hace predicción si hay dibujo, luego selecciona la siguiente palabra aleatoria."""
+        # Hacer predicción primero si hay dibujo
+        try:
+            label, conf, top3 = self.predict_callback()
+            self._update_prediction(label, conf, top3)
+            
+            # Verificar si es correcta
+            is_correct = label.lower() == self.current_word.lower()
+            
+            if is_correct:
+                self.game_state = GameState.CORRECT
+                self.score += 1
+                self.streak += 1
+                self.logger.info(f"✅ ¡Correcto! Racha: {self.streak}")
+            else:
+                self.game_state = GameState.INCORRECT
+                self.streak = 0
+                self.logger.info(f"❌ Incorrecto. La palabra era: {self.current_word}")
+            
+            self._update_state_label()
+            self._update_score_label()
+        except Exception as e:
+            self.logger.error(f"Error en predicción: {e}")
+            self.game_state = GameState.WAITING_FOR_DRAW
+            self._update_state_label()
+        
+        # Ahora seleccionar siguiente palabra
         # Filtrar palabras no usadas recientemente
         available = [w for w in self.labels if w not in self.recent_words]
         
@@ -414,10 +432,8 @@ class GameMode:
         self.game_state = GameState.WAITING_FOR_DRAW
         self._update_state_label()
         
-        # Limpiar predicciones previas
-        self.prediction_label.config(text="(Sin predicción)")
-        self.confidence_label.config(text="")
-        self.top3_label.config(text="")
+        # Limpiar predicciones previas y trazas
+        self.clear_predictions()
         
         self.logger.info(f"Nueva palabra seleccionada: {self.current_word}")
     
@@ -458,8 +474,7 @@ class GameMode:
                 self.streak += 1
                 self.logger.info(f"✅ ¡Correcto! Racha: {self.streak}")
                 
-                # Cambiar palabra automáticamente después de un tiempo
-                self.root.after(self.config.auto_next_delay_ms, self._select_next_word)
+                # No cambiar palabra automáticamente
             else:
                 self.game_state = GameState.INCORRECT
                 self.streak = 0
@@ -519,7 +534,8 @@ class GameMode:
         self.prediction_label.config(text="(Sin predicción)")
         self.confidence_label.config(text="")
         self.top3_label.config(text="")
-        self.logger.info("Predicciones limpiadas")
+        self.clear_callback()  # Limpiar trazas dibujadas
+        self.logger.info("Predicciones y trazas limpiadas")
     
     def quit_game(self):
         """Cierra la aplicación."""
