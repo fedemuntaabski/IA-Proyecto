@@ -61,7 +61,7 @@ class GameMode:
     def __init__(
         self,
         labels: List[str],
-        predict_callback: Callable[[], Tuple[str, float, List[Tuple[str, float]]]],
+        predict_callback: Callable[[Optional[np.ndarray]], Tuple[str, float, List[Tuple[str, float]]]],
         config: Optional[GameConfig] = None,
         logger: Optional[logging.Logger] = None,
         clear_callback: Optional[Callable[[], None]] = None,
@@ -72,6 +72,7 @@ class GameMode:
         Args:
             labels: Lista de palabras disponibles para el juego
             predict_callback: Función que predice un dibujo. Signature: (drawing) -> (label, conf, top3)
+                              Si drawing es None, retorna predicción demo
             config: Configuración del juego
             logger: Logger para debugging
         """
@@ -185,49 +186,7 @@ class GameMode:
     
     def _select_next_word(self):
         """Hace predicción si hay dibujo, luego selecciona la siguiente palabra aleatoria."""
-        # Hacer predicción primero si hay dibujo
-        try:
-            label, conf, top3 = self.predict_callback()
-            is_correct = label.lower() == self.current_word.lower()
-            self.game_info.update_prediction(label, conf, top3, is_correct)
-            
-            # Verificar si es correcta
-            if is_correct:
-                self.game_state = GameState.CORRECT
-                self.score += 1
-                self.streak += 1
-                self.logger.info(f"✅ ¡Correcto! Racha: {self.streak}")
-            else:
-                self.game_state = GameState.INCORRECT
-                self.streak = 0
-                self.logger.info(f"❌ Incorrecto. La palabra era: {self.current_word}")
-            
-            state_map = {
-                GameState.WAITING_FOR_DRAW: ("🟢 Esperando dibujo", self.style_manager.get_color("success")),
-                GameState.DRAWING: ("🟡 Dibujando", self.style_manager.get_color("accent_secondary")),
-                GameState.PREDICTING: ("🔵 Prediciendo", self.style_manager.get_color("accent_primary")),
-                GameState.CORRECT: ("✅ ¡Correcto!", self.style_manager.get_color("success")),
-                GameState.INCORRECT: ("❌ Incorrecto", self.style_manager.get_color("warning")),
-                GameState.PAUSED: ("⏸️  Pausado", self.style_manager.get_color("text_dim")),
-            }
-            text, color = state_map.get(self.game_state, ("?", self.style_manager.get_color("text_dim")))
-            self.camera.update_state(text, color)
-            self.header.update_score(self.score, self.streak)
-        except Exception as e:
-            self.logger.error(f"Error en predicción: {e}")
-            self.game_state = GameState.WAITING_FOR_DRAW
-            state_map = {
-                GameState.WAITING_FOR_DRAW: ("🟢 Esperando dibujo", self.style_manager.get_color("success")),
-                GameState.DRAWING: ("🟡 Dibujando", self.style_manager.get_color("accent_secondary")),
-                GameState.PREDICTING: ("🔵 Prediciendo", self.style_manager.get_color("accent_primary")),
-                GameState.CORRECT: ("✅ ¡Correcto!", self.style_manager.get_color("success")),
-                GameState.INCORRECT: ("❌ Incorrecto", self.style_manager.get_color("warning")),
-                GameState.PAUSED: ("⏸️  Pausado", self.style_manager.get_color("text_dim")),
-            }
-            text, color = state_map.get(self.game_state, ("?", self.style_manager.get_color("text_dim")))
-            self.camera.update_state(text, color)
-        
-        # Ahora seleccionar siguiente palabra
+        # Seleccionar nueva palabra PRIMERO
         # Filtrar palabras no usadas recientemente
         available = [w for w in self.labels if w not in self.recent_words]
         
@@ -244,19 +203,17 @@ class GameMode:
         if len(self.recent_words) > self.max_recent:
             self.recent_words.pop(0)
         
+        # Hacer predicción DEMO (sin dibujo real)
+        try:
+            label, conf, top3 = self.predict_callback(None)  # Predicción demo
+            is_correct = False  # Nunca es correcta en predicción demo
+            self.game_info.update_prediction(label, conf, top3, is_correct)
+        except Exception as e:
+            self.logger.error(f"Error en predicción demo: {e}")
+        
         # Actualizar UI
         self.game_info.update_word(self.current_word.upper())
         self.game_state = GameState.WAITING_FOR_DRAW
-        state_map = {
-            GameState.WAITING_FOR_DRAW: ("🟢 Esperando dibujo", self.style_manager.get_color("success")),
-            GameState.DRAWING: ("🟡 Dibujando", self.style_manager.get_color("accent_secondary")),
-            GameState.PREDICTING: ("🔵 Prediciendo", self.style_manager.get_color("accent_primary")),
-            GameState.CORRECT: ("✅ ¡Correcto!", self.style_manager.get_color("success")),
-            GameState.INCORRECT: ("❌ Incorrecto", self.style_manager.get_color("warning")),
-            GameState.PAUSED: ("⏸️  Pausado", self.style_manager.get_color("text_dim")),
-        }
-        text, color = state_map.get(self.game_state, ("?", self.style_manager.get_color("text_dim")))
-        self.camera.update_state(text, color)
         
         # Limpiar predicciones previas y trazas
         self.clear_predictions()
@@ -295,7 +252,7 @@ class GameMode:
             # Llamar callback de predicción
             # Este método debería ser implementado por quien integre GameMode
             # Simulamos una predicción
-            label, conf, top3 = self.predict_callback()  # Sin argumentos
+            label, conf, top3 = self.predict_callback(None)  # Pasar None para predicción demo
             
             # Actualizar UI
             is_correct = label.lower() == self.current_word.lower()

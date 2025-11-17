@@ -73,7 +73,7 @@ class GameIntegration:
         labels = self.classifier.get_labels() if self.classifier else ["demo"]
         
         # Callback de predicción
-        def predict_fn(drawing):
+        def predict_fn(drawing=None):
             return self.classifier.predict(drawing) if drawing is not None else ("demo", 0.5, [])
         
         self.game_mode = GameMode(
@@ -362,6 +362,10 @@ class GameIntegration:
         if not self._init_camera():
             self.logger.error("No se pudo inicializar cámara")
             return
+        
+        # Intentar cargar el modelo ahora que MediaPipe está inicializado
+        if hasattr(self.classifier, 'load_model'):
+            self.classifier.load_model()
         
         # Actualizar callback de predicción en game_mode
         self.game_mode.predict_callback = self.predict_current_drawing

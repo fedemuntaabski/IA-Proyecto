@@ -8,26 +8,47 @@ import numpy as np
 from pathlib import Path
 from typing import Tuple, List, Dict, Any
 
-try:
-    import tensorflow as tf
-    import keras
-    TENSORFLOW_AVAILABLE = True
-except ImportError:
-    TENSORFLOW_AVAILABLE = False
-    tf = None
-    keras = None
-except Exception as e:
-    # Silenciar errores de importación como AttributeError
-    print(f"AVISO: Error al importar TensorFlow: {e}")
-    TENSORFLOW_AVAILABLE = False
-    tf = None
-    keras = None
+# Importación lazy de TensorFlow para evitar conflictos con MediaPipe
+TENSORFLOW_AVAILABLE = None
+tf = None
+keras = None
+
+def _ensure_tensorflow():
+    """Asegura que TensorFlow esté importado cuando sea necesario."""
+    global TENSORFLOW_AVAILABLE, tf, keras
+    
+    if TENSORFLOW_AVAILABLE is not None:
+        return TENSORFLOW_AVAILABLE
+    
+    try:
+        # Deshabilitar GPU completamente para evitar conflictos
+        import os
+        os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
+        os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+        
+        import tensorflow as tf
+        import keras
+        TENSORFLOW_AVAILABLE = True
+        
+        # Forzar uso de CPU
+        tf.config.set_visible_devices([], 'GPU')
+        
+        return True
+        
+    except ImportError as e:
+        print(f"AVISO: TensorFlow no disponible: {e}")
+        TENSORFLOW_AVAILABLE = False
+        return False
+    except Exception as e:
+        print(f"AVISO: Error al importar TensorFlow: {e}")
+        TENSORFLOW_AVAILABLE = False
+        return False
 
 
 class SketchClassifier:
     """Carga y realiza inferencia con el modelo de clasificación de sketches."""
     
-    def __init__(self, ia_dir: str, logger: logging.Logger, demo_mode: bool = True, config: Dict[str, Any] = None):
+    def __init__(self, ia_dir: str, logger: logging.Logger, demo_mode: bool = False, config: Dict[str, Any] = None):
         """
         Inicializa el clasificador.
         
@@ -62,17 +83,41 @@ class SketchClassifier:
                 self.labels = ["demo"]  # Al menos una etiqueta para evitar errores
             
             # Cargar modelo si TensorFlow disponible y no demo_mode
-            if TENSORFLOW_AVAILABLE and not self.demo_mode:
-                if not self._load_model():
-                    self.logger.warning("No se pudo cargar modelo - cambiando a modo demo")
-                    self.demo_mode = True
+            # Diferir la carga hasta después de la inicialización para evitar conflictos con MediaPipe
+            if not self.demo_mode:
+                self.logger.info(f"Carga del modelo diferida (demo_mode={self.demo_mode})")
             else:
-                self.logger.info("Modo demo activado")
+                self.logger.info(f"Modo demo activado (demo_mode={self.demo_mode})")
                 self.demo_mode = True
         except Exception as e:
             self.logger.error(f"Error crítico en inicialización del clasificador: {e} - usando modo demo")
             self.demo_mode = True
             self.labels = ["demo"]
+    
+    def load_model(self) -> bool:
+        """Carga el modelo después de la inicialización (para evitar conflictos con MediaPipe)."""
+        if self.demo_mode:
+            self.logger.info(f"Modo demo ya activado (demo_mode={self.demo_mode}), omitiendo carga del modelo")
+            return False
+        
+        try:
+            if _ensure_tensorflow():
+                if self._load_model():
+                    self.demo_mode = False
+                    self.logger.info("Modelo cargado exitosamente despues de la inicializacion")
+                    return True
+                else:
+                    self.logger.warning("No se pudo cargar modelo - permaneciendo en modo demo")
+                    self.demo_mode = True
+                    return False
+            else:
+                self.logger.warning("TensorFlow no disponible - permaneciendo en modo demo")
+                self.demo_mode = True
+                return False
+        except Exception as e:
+            self.logger.error(f"Error al cargar modelo posteriormente: {e}")
+            self.demo_mode = True
+            return False
     
     def _load_model_info(self) -> bool:
         """Carga model_info.json."""
@@ -97,7 +142,8 @@ class SketchClassifier:
     
     def _load_model(self) -> bool:
         """Carga el modelo Keras con optimizaciones de rendimiento."""
-        if not TENSORFLOW_AVAILABLE:
+        # Asegurar que TensorFlow esté disponible
+        if not _ensure_tensorflow():
             self.logger.info("TensorFlow no disponible, usando modo demo")
             return False
         
@@ -105,8 +151,13 @@ class SketchClassifier:
         device = self._get_device()
         self.logger.info(f"Usando dispositivo para inferencia: {device}")
         
-        # Intentar modelos en orden de preferencia: cuantizado primero, luego normal
-        model_paths = []
+        # Priorizar modelo H5 que sabemos que funciona
+        model_paths = [
+            self.ia_dir / "sketch_classifier_model.h5",
+            self.ia_dir / "sketch_classifier_model.keras",
+        ]
+        
+        # Agregar modelos cuantizados si están habilitados
         if self.use_quantized:
             model_paths.extend([
                 self.ia_dir / "sketch_classifier_model_quantized.tflite",
@@ -114,33 +165,50 @@ class SketchClassifier:
                 self.ia_dir / "sketch_classifier_model_quantized.h5",
             ])
         
-        # Modelos normales
-        model_paths.extend([
-            self.ia_dir / "sketch_classifier_model.keras",
-            self.ia_dir / "sketch_classifier_model.h5",
-        ])
-        
         for model_path in model_paths:
             if model_path.exists():
                 try:
+                    self.logger.info(f"Intentando cargar modelo: {model_path.name}")
+                    
                     if model_path.suffix == ".tflite":
                         # Modelo cuantizado TFLite
                         self.model = self._load_tflite_model(model_path, device)
                     else:
-                        # Modelo Keras normal
-                        with tf.device(device):
-                            if keras:
-                                self.model = keras.models.load_model(model_path)
-                            else:
-                                self.model = tf.keras.models.load_model(model_path)
+                        # Modelo Keras normal - usar CPU para evitar problemas de GPU
+                        with tf.device('/CPU:0'):  # Forzar CPU para estabilidad
+                            try:
+                                # Intentar con keras primero
+                                if keras:
+                                    self.model = keras.models.load_model(model_path, compile=False)
+                                else:
+                                    self.model = tf.keras.models.load_model(model_path, compile=False)
+                                
+                                # Recompilar el modelo para asegurar compatibilidad
+                                self.model.compile(
+                                    optimizer='adam',
+                                    loss='categorical_crossentropy',
+                                    metrics=['accuracy']
+                                )
+                                
+                            except Exception as load_error:
+                                self.logger.warning(f"Error específico al cargar {model_path.name}: {load_error}")
+                                # Intentar sin compile=False
+                                if keras:
+                                    self.model = keras.models.load_model(model_path)
+                                else:
+                                    self.model = tf.keras.models.load_model(model_path)
                     
                     model_type = "cuantizado (TFLite)" if "quantized" in model_path.name else "normal"
-                    self.logger.warning(f"✅ MODELO {model_type.upper()} CARGADO EXITOSAMENTE: {model_path.name}")
+                    self.logger.info(f"MODELO {model_type.upper()} CARGADO EXITOSAMENTE: {model_path.name}")
+                    self.logger.info(f"   Forma de entrada: {self.model.input_shape}")
                     return True
+                    
                 except Exception as e:
                     self.logger.warning(f"Error al cargar {model_path.name}: {e}")
+                    self.logger.warning(f"   Tipo de error: {type(e).__name__}")
+                    continue
         
-        self.logger.info("No se encontró modelo, usando predicciones demo")
+        self.logger.warning("No se pudo cargar ningún modelo, usando predicciones demo")
         return False
     
     def _get_device(self) -> str:
@@ -185,7 +253,7 @@ class SketchClassifier:
         """
         try:
             # Si no hay modelo, usar demo
-            if self.model is None or not TENSORFLOW_AVAILABLE:
+            if self.model is None or self.demo_mode:
                 self.logger.warning("Usando predicción demo (modelo no disponible)")
                 return self._demo_predict()
 

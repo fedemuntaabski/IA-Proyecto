@@ -8,8 +8,9 @@ Maneja la instalación automática de dependencias y el lanzamiento de la app.
 """
 
 import os
-# Reducir logs de TensorFlow
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+# Reducir logs de TensorFlow y deshabilitar GPU
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 
 import sys
 import argparse
@@ -80,7 +81,7 @@ def run_game_mode(args):
         logger.info("  [OK] StrokeAccumulator inicializado")
         
         # Classifier
-        classifier = SketchClassifier(args.ia_dir, logger, demo_mode=MODEL_CONFIG.get("demo_mode", True), config=MODEL_CONFIG)
+        classifier = SketchClassifier(args.ia_dir, logger, demo_mode=MODEL_CONFIG.get("demo_mode", False), config=MODEL_CONFIG)
         logger.info(f"  [OK] SketchClassifier inicializado ({len(classifier.get_labels())} clases)")
         
         # Preprocessor

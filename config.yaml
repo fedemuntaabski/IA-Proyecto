@@ -45,7 +45,7 @@ stroke:
 # ============================================================================
 model:
   input_shape: [28, 28, 1]
-  demo_mode: true
+  demo_mode: false
   use_quantized_model: true
   prefer_gpu: true
   # Ensemble ligero en inferencia (1=on, 0=off)
