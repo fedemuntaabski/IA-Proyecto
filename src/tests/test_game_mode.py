@@ -13,7 +13,7 @@ from unittest.mock import Mock, patch, MagicMock
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from game_mode import (
-    GameMode, GameState, GameConfig, ColorScheme
+    GameMode, GameState, GameConfig
 )
 
 
@@ -34,60 +34,6 @@ class TestGameState:
         assert GameState.WAITING_FOR_DRAW.value == "waiting"
         assert GameState.DRAWING.value == "drawing"
         assert GameState.PREDICTING.value == "predicting"
-
-
-class TestColorScheme:
-    """Pruebas para los esquemas de colores."""
-    
-    def test_cyberpunk_theme_has_all_colors(self):
-        """Verifica que el tema Cyberpunk tiene todos los colores."""
-        colors = ColorScheme.CYBERPUNK
-        required_keys = [
-            "bg_primary", "bg_secondary", "accent_primary", "accent_secondary",
-            "success", "warning", "text_primary", "text_secondary", "text_dim"
-        ]
-        for key in required_keys:
-            assert key in colors, f"Color {key} falta en CYBERPUNK"
-    
-    def test_light_theme_has_all_colors(self):
-        """Verifica que el tema Light tiene todos los colores."""
-        colors = ColorScheme.LIGHT
-        required_keys = [
-            "bg_primary", "bg_secondary", "accent_primary", "accent_secondary",
-            "success", "warning", "text_primary", "text_secondary", "text_dim"
-        ]
-        for key in required_keys:
-            assert key in colors, f"Color {key} falta en LIGHT"
-    
-    def test_dark_theme_has_all_colors(self):
-        """Verifica que el tema Dark tiene todos los colores."""
-        colors = ColorScheme.DARK
-        required_keys = [
-            "bg_primary", "bg_secondary", "accent_primary", "accent_secondary",
-            "success", "warning", "text_primary", "text_secondary", "text_dim"
-        ]
-        for key in required_keys:
-            assert key in colors, f"Color {key} falta en DARK"
-    
-    def test_get_scheme_cyberpunk(self):
-        """Prueba obtener esquema Cyberpunk."""
-        scheme = ColorScheme.get_scheme("cyberpunk")
-        assert scheme == ColorScheme.CYBERPUNK
-    
-    def test_get_scheme_light(self):
-        """Prueba obtener esquema Light."""
-        scheme = ColorScheme.get_scheme("light")
-        assert scheme == ColorScheme.LIGHT
-    
-    def test_get_scheme_dark(self):
-        """Prueba obtener esquema Dark."""
-        scheme = ColorScheme.get_scheme("dark")
-        assert scheme == ColorScheme.DARK
-    
-    def test_get_scheme_default(self):
-        """Prueba obtener esquema por defecto (cyberpunk)."""
-        scheme = ColorScheme.get_scheme("invalid_theme")
-        assert scheme == ColorScheme.CYBERPUNK
 
 
 class TestGameConfig:

@@ -18,6 +18,8 @@ import cv2
 from PIL import Image, ImageTk
 import numpy as np
 
+from ui_components import StyleManager, HeaderComponent, CameraComponent, GameInfoComponent, FooterComponent
+
 
 class GameState(Enum):
     """Estados del juego."""
@@ -41,59 +43,6 @@ class GameConfig:
     auto_next_delay_ms: int = 2000    # Milisegundos antes de cambiar palabra automáticamente
     min_drawing_points: int = 10      # Puntos mínimos para hacer predicción
     theme: str = "cyberpunk"          # Tema de colores: "cyberpunk", "light", "dark"
-
-
-class ColorScheme:
-    """Esquema de colores para la UI."""
-    
-    # Paleta Cyberpunk
-    CYBERPUNK = {
-        "bg_primary": "#0a1428",
-        "bg_secondary": "#192540",
-        "accent_primary": "#00ffff",
-        "accent_secondary": "#ffa000",
-        "success": "#64ff64",
-        "warning": "#ff6400",
-        "text_primary": "#ebebeb",
-        "text_secondary": "#b4b4be",
-        "text_dim": "#6a6a6e",
-    }
-    
-    # Paleta Light
-    LIGHT = {
-        "bg_primary": "#ffffff",
-        "bg_secondary": "#f5f5f5",
-        "accent_primary": "#0066cc",
-        "accent_secondary": "#ff9900",
-        "success": "#00aa00",
-        "warning": "#ff3300",
-        "text_primary": "#000000",
-        "text_secondary": "#333333",
-        "text_dim": "#999999",
-    }
-    
-    # Paleta Dark
-    DARK = {
-        "bg_primary": "#1e1e1e",
-        "bg_secondary": "#2d2d2d",
-        "accent_primary": "#4a9eff",
-        "accent_secondary": "#ff7043",
-        "success": "#66bb6a",
-        "warning": "#ef5350",
-        "text_primary": "#ffffff",
-        "text_secondary": "#e0e0e0",
-        "text_dim": "#9e9e9e",
-    }
-    
-    @staticmethod
-    def get_scheme(theme: str) -> dict:
-        """Obtiene el esquema de colores según el tema."""
-        schemes = {
-            "cyberpunk": ColorScheme.CYBERPUNK,
-            "light": ColorScheme.LIGHT,
-            "dark": ColorScheme.DARK,
-        }
-        return schemes.get(theme, ColorScheme.CYBERPUNK)
 
 
 class GameMode:
@@ -150,21 +99,18 @@ class GameMode:
         # Interfaz Tkinter
         self.root = tk.Tk()
         
-        # Esquema de colores (definir ANTES de usar)
-        self.colors = ColorScheme.get_scheme(self.config.theme)
+        # Gestor de estilos
+        self.style_manager = StyleManager(self.config.theme)
         
         self.root.title("Pictionary Live - Modo Juego")
         self.root.geometry(f"{self.config.window_width}x{self.config.window_height}")
-        self.root.configure(bg=self._get_color("bg_primary"))
+        self.root.configure(bg=self.style_manager.get_color("bg_primary"))
         
-        # Variables de UI
-        self.camera_label = None
-        self.word_label = None
-        self.state_label = None
-        self.score_label = None
-        self.prediction_label = None
-        self.confidence_label = None
-        self.top3_label = None
+        # Componentes UI
+        self.header = None
+        self.camera = None
+        self.game_info = None
+        self.footer = None
         
         # Control de threading para video
         self.video_thread = None
@@ -192,17 +138,18 @@ class GameMode:
         return logger
     
     def _get_color(self, color_key: str) -> str:
-        """Obtiene un color del esquema actual."""
-        return self.colors.get(color_key, "#ffffff")
+        """Obtiene un color del gestor de estilos."""
+        return self.style_manager.get_color(color_key)
     
     def _init_ui(self):
-        """Inicializa la interfaz Tkinter."""
+        """Inicializa la interfaz Tkinter usando componentes modulares."""
         # Marco principal
         main_frame = ttk.Frame(self.root)
         main_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
         
         # Encabezado
-        self._init_header(main_frame)
+        self.header = HeaderComponent(main_frame, self.style_manager, self.logger)
+        self.header.build()
         
         # Contenedor principal con dos columnas
         content_frame = ttk.Frame(main_frame)
@@ -211,173 +158,26 @@ class GameMode:
         # Columna izquierda: Cámara
         left_frame = ttk.Frame(content_frame)
         left_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(0, 10))
-        self._init_camera_section(left_frame)
+        self.camera = CameraComponent(left_frame, self.style_manager, self.logger)
+        self.camera.build()
         
         # Columna derecha: Info del juego
         right_frame = ttk.Frame(content_frame)
         right_frame.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True, padx=(10, 0))
-        self._init_game_info_section(right_frame)
+        self.game_info = GameInfoComponent(right_frame, self.style_manager, self.logger)
+        self.game_info.build()
         
         # Pie de página: Controles
-        self._init_footer(main_frame)
-    
-    def _init_header(self, parent):
-        """Inicializa la sección de encabezado."""
-        header_frame = ttk.Frame(parent)
-        header_frame.pack(fill=tk.X, pady=(0, 10))
+        self.footer = FooterComponent(
+            main_frame,
+            self.style_manager,
+            self.logger,
+            on_clear=self.clear_predictions,
+            on_next=self._select_next_word
+        )
+        self.footer.build()
         
-        # Título
-        title_label = tk.Label(
-            header_frame,
-            text="🎮 PICTIONARY LIVE - MODO JUEGO",
-            font=(self.config.font_family, self.config.font_size_title, "bold"),
-            bg=self._get_color("bg_primary"),
-            fg=self._get_color("accent_primary"),
-        )
-        title_label.pack(side=tk.LEFT)
-        
-        # Score a la derecha
-        self.score_label = tk.Label(
-            header_frame,
-            text="Puntuación: 0 | Racha: 0",
-            font=(self.config.font_family, self.config.font_size_normal + 4, "bold"),
-            bg=self._get_color("bg_primary"),
-            fg=self._get_color("success"),
-        )
-        self.score_label.pack(side=tk.RIGHT)
-    
-    def _init_camera_section(self, parent):
-        """Inicializa la sección de cámara."""
-        # Marco de cámara
-        camera_frame = tk.LabelFrame(
-            parent,
-            text="📷 CÁMARA",
-            font=(self.config.font_family, self.config.font_size_normal, "bold"),
-            bg=self._get_color("bg_secondary"),
-            fg=self._get_color("accent_primary"),
-            padx=5,
-            pady=5,
-        )
-        camera_frame.pack(fill=tk.BOTH, expand=True)
-        
-        # Label para mostrar video
-        self.camera_label = tk.Label(
-            camera_frame,
-            bg=self._get_color("bg_primary"),
-            height=400,
-            width=500,
-        )
-        self.camera_label.pack(fill=tk.BOTH, expand=True)
-        
-        # Estado de conexión
-        self.state_label = tk.Label(
-            camera_frame,
-            text="🔴 Desconectado",
-            font=(self.config.font_family, self.config.font_size_normal),
-            bg=self._get_color("bg_primary"),
-            fg=self._get_color("warning"),
-        )
-        self.state_label.pack(fill=tk.X, pady=(5, 0))
-    
-    def _init_game_info_section(self, parent):
-        """Inicializa la sección de información del juego."""
-        # Marco de palabra
-        word_frame = tk.LabelFrame(
-            parent,
-            text="📝 PALABRA ACTUAL",
-            font=(self.config.font_family, self.config.font_size_normal, "bold"),
-            bg=self._get_color("bg_secondary"),
-            fg=self._get_color("accent_primary"),
-            padx=10,
-            pady=10,
-        )
-        word_frame.pack(fill=tk.BOTH, expand=False, pady=(0, 10))
-        
-        # Palabra grande
-        self.word_label = tk.Label(
-            word_frame,
-            text="--",
-            font=(self.config.font_family, self.config.font_size_word, "bold"),
-            bg=self._get_color("bg_secondary"),
-            fg=self._get_color("accent_secondary"),
-            wraplength=300,
-        )
-        self.word_label.pack(fill=tk.BOTH, expand=True)
-        
-        # Marco de predicción
-        pred_frame = tk.LabelFrame(
-            parent,
-            text="🤖 PREDICCIÓN",
-            font=(self.config.font_family, self.config.font_size_normal, "bold"),
-            bg=self._get_color("bg_secondary"),
-            fg=self._get_color("accent_primary"),
-            padx=10,
-            pady=10,
-        )
-        pred_frame.pack(fill=tk.BOTH, expand=True, pady=(0, 10))
-        
-        # Predicción principal
-        self.prediction_label = tk.Label(
-            pred_frame,
-            text="(Sin predicción)",
-            font=(self.config.font_family, self.config.font_size_normal + 6, "bold"),
-            bg=self._get_color("bg_secondary"),
-            fg=self._get_color("text_secondary"),
-        )
-        self.prediction_label.pack(fill=tk.X, pady=(0, 5))
-        
-        # Confianza
-        self.confidence_label = tk.Label(
-            pred_frame,
-            text="",
-            font=(self.config.font_family, self.config.font_size_normal),
-            bg=self._get_color("bg_secondary"),
-            fg=self._get_color("text_dim"),
-        )
-        self.confidence_label.pack(fill=tk.X)
-        
-        # Top-3
-        self.top3_label = tk.Label(
-            pred_frame,
-            text="",
-            font=(self.config.font_family, self.config.font_size_normal - 2),
-            bg=self._get_color("bg_secondary"),
-            fg=self._get_color("text_dim"),
-            justify=tk.LEFT,
-        )
-        self.top3_label.pack(fill=tk.BOTH, expand=True, pady=(10, 0))
-    
-    def _init_footer(self, parent):
-        """Inicializa la sección de controles."""
-        footer_frame = ttk.Frame(parent)
-        footer_frame.pack(fill=tk.X, pady=(10, 0))
-        
-        # Botones
-        clear_btn = tk.Button(
-            footer_frame,
-            text="🧹 LIMPIAR (L)",
-            command=self.clear_predictions,
-            bg=self._get_color("warning"),
-            fg=self._get_color("bg_primary"),
-            font=(self.config.font_family, self.config.font_size_normal, "bold"),
-            padx=20,
-            pady=10,
-        )
-        clear_btn.pack(side=tk.LEFT, padx=(0, 10))
-        
-        next_btn = tk.Button(
-            footer_frame,
-            text="⏭️  SIGUIENTE (C)",
-            command=self._select_next_word,
-            bg=self._get_color("accent_secondary"),
-            fg=self._get_color("bg_primary"),
-            font=(self.config.font_family, self.config.font_size_normal, "bold"),
-            padx=20,
-            pady=10,
-        )
-        next_btn.pack(side=tk.LEFT)
-        
-        # Binding de teclas
+        # Bindings de teclas
         self.root.bind('<l>', lambda e: self.clear_predictions())
         self.root.bind('<L>', lambda e: self.clear_predictions())
         self.root.bind('<c>', lambda e: self._select_next_word())
@@ -388,11 +188,10 @@ class GameMode:
         # Hacer predicción primero si hay dibujo
         try:
             label, conf, top3 = self.predict_callback()
-            self._update_prediction(label, conf, top3)
+            is_correct = label.lower() == self.current_word.lower()
+            self.game_info.update_prediction(label, conf, top3, is_correct)
             
             # Verificar si es correcta
-            is_correct = label.lower() == self.current_word.lower()
-            
             if is_correct:
                 self.game_state = GameState.CORRECT
                 self.score += 1
@@ -403,12 +202,30 @@ class GameMode:
                 self.streak = 0
                 self.logger.info(f"❌ Incorrecto. La palabra era: {self.current_word}")
             
-            self._update_state_label()
-            self._update_score_label()
+            state_map = {
+                GameState.WAITING_FOR_DRAW: ("🟢 Esperando dibujo", self.style_manager.get_color("success")),
+                GameState.DRAWING: ("🟡 Dibujando", self.style_manager.get_color("accent_secondary")),
+                GameState.PREDICTING: ("🔵 Prediciendo", self.style_manager.get_color("accent_primary")),
+                GameState.CORRECT: ("✅ ¡Correcto!", self.style_manager.get_color("success")),
+                GameState.INCORRECT: ("❌ Incorrecto", self.style_manager.get_color("warning")),
+                GameState.PAUSED: ("⏸️  Pausado", self.style_manager.get_color("text_dim")),
+            }
+            text, color = state_map.get(self.game_state, ("?", self.style_manager.get_color("text_dim")))
+            self.camera.update_state(text, color)
+            self.header.update_score(self.score, self.streak)
         except Exception as e:
             self.logger.error(f"Error en predicción: {e}")
             self.game_state = GameState.WAITING_FOR_DRAW
-            self._update_state_label()
+            state_map = {
+                GameState.WAITING_FOR_DRAW: ("🟢 Esperando dibujo", self.style_manager.get_color("success")),
+                GameState.DRAWING: ("🟡 Dibujando", self.style_manager.get_color("accent_secondary")),
+                GameState.PREDICTING: ("🔵 Prediciendo", self.style_manager.get_color("accent_primary")),
+                GameState.CORRECT: ("✅ ¡Correcto!", self.style_manager.get_color("success")),
+                GameState.INCORRECT: ("❌ Incorrecto", self.style_manager.get_color("warning")),
+                GameState.PAUSED: ("⏸️  Pausado", self.style_manager.get_color("text_dim")),
+            }
+            text, color = state_map.get(self.game_state, ("?", self.style_manager.get_color("text_dim")))
+            self.camera.update_state(text, color)
         
         # Ahora seleccionar siguiente palabra
         # Filtrar palabras no usadas recientemente
@@ -428,9 +245,18 @@ class GameMode:
             self.recent_words.pop(0)
         
         # Actualizar UI
-        self.word_label.config(text=self.current_word.upper())
+        self.game_info.update_word(self.current_word.upper())
         self.game_state = GameState.WAITING_FOR_DRAW
-        self._update_state_label()
+        state_map = {
+            GameState.WAITING_FOR_DRAW: ("🟢 Esperando dibujo", self.style_manager.get_color("success")),
+            GameState.DRAWING: ("🟡 Dibujando", self.style_manager.get_color("accent_secondary")),
+            GameState.PREDICTING: ("🔵 Prediciendo", self.style_manager.get_color("accent_primary")),
+            GameState.CORRECT: ("✅ ¡Correcto!", self.style_manager.get_color("success")),
+            GameState.INCORRECT: ("❌ Incorrecto", self.style_manager.get_color("warning")),
+            GameState.PAUSED: ("⏸️  Pausado", self.style_manager.get_color("text_dim")),
+        }
+        text, color = state_map.get(self.game_state, ("?", self.style_manager.get_color("text_dim")))
+        self.camera.update_state(text, color)
         
         # Limpiar predicciones previas y trazas
         self.clear_predictions()
@@ -444,7 +270,16 @@ class GameMode:
             return
         
         self.game_state = GameState.PREDICTING
-        self._update_state_label()
+        state_map = {
+            GameState.WAITING_FOR_DRAW: ("🟢 Esperando dibujo", self.style_manager.get_color("success")),
+            GameState.DRAWING: ("🟡 Dibujando", self.style_manager.get_color("accent_secondary")),
+            GameState.PREDICTING: ("🔵 Prediciendo", self.style_manager.get_color("accent_primary")),
+            GameState.CORRECT: ("✅ ¡Correcto!", self.style_manager.get_color("success")),
+            GameState.INCORRECT: ("❌ Incorrecto", self.style_manager.get_color("warning")),
+            GameState.PAUSED: ("⏸️  Pausado", self.style_manager.get_color("text_dim")),
+        }
+        text, color = state_map.get(self.game_state, ("?", self.style_manager.get_color("text_dim")))
+        self.camera.update_state(text, color)
         
         # Ejecutar predicción en thread separado para no bloquear UI
         thread = threading.Thread(target=self._do_prediction, daemon=True)
@@ -463,11 +298,10 @@ class GameMode:
             label, conf, top3 = self.predict_callback()  # Sin argumentos
             
             # Actualizar UI
-            self._update_prediction(label, conf, top3)
+            is_correct = label.lower() == self.current_word.lower()
+            self.game_info.update_prediction(label, conf, top3, is_correct)
             
             # Verificar si es correcta
-            is_correct = label.lower() == self.current_word.lower()
-            
             if is_correct:
                 self.game_state = GameState.CORRECT
                 self.score += 1
@@ -480,60 +314,43 @@ class GameMode:
                 self.streak = 0
                 self.logger.info(f"❌ Incorrecto. La palabra era: {self.current_word}")
             
-            self._update_state_label()
-            self._update_score_label()
+            state_map = {
+                GameState.WAITING_FOR_DRAW: ("🟢 Esperando dibujo", self.style_manager.get_color("success")),
+                GameState.DRAWING: ("🟡 Dibujando", self.style_manager.get_color("accent_secondary")),
+                GameState.PREDICTING: ("🔵 Prediciendo", self.style_manager.get_color("accent_primary")),
+                GameState.CORRECT: ("✅ ¡Correcto!", self.style_manager.get_color("success")),
+                GameState.INCORRECT: ("❌ Incorrecto", self.style_manager.get_color("warning")),
+                GameState.PAUSED: ("⏸️  Pausado", self.style_manager.get_color("text_dim")),
+            }
+            text, color = state_map.get(self.game_state, ("?", self.style_manager.get_color("text_dim")))
+            self.camera.update_state(text, color)
+            self.header.update_score(self.score, self.streak)
         
         except Exception as e:
             self.logger.error(f"Error en predicción: {e}")
             self.game_state = GameState.WAITING_FOR_DRAW
-            self._update_state_label()
-    
-    def _update_prediction(self, label: str, conf: float, top3: List[Tuple[str, float]]):
-        """Actualiza los labels de predicción en la UI."""
-        # Predicción principal
-        color = self._get_color("success") if label.lower() == self.current_word.lower() else self._get_color("warning")
-        self.prediction_label.config(text=label.upper(), fg=color)
-        
-        # Confianza
-        self.confidence_label.config(text=f"Confianza: {conf*100:.1f}%")
-        
-        # Top-3
-        top3_text = "Top-3:\n" + "\n".join([f"  • {l}: {p*100:.1f}%" for l, p in top3[:3]])
-        self.top3_label.config(text=top3_text)
-    
-    def _update_state_label(self):
-        """Actualiza el label de estado."""
-        state_map = {
-            GameState.WAITING_FOR_DRAW: ("🟢 Esperando dibujo", self._get_color("success")),
-            GameState.DRAWING: ("🟡 Dibujando", self._get_color("accent_secondary")),
-            GameState.PREDICTING: ("🔵 Prediciendo", self._get_color("accent_primary")),
-            GameState.CORRECT: ("✅ ¡Correcto!", self._get_color("success")),
-            GameState.INCORRECT: ("❌ Incorrecto", self._get_color("warning")),
-            GameState.PAUSED: ("⏸️  Pausado", self._get_color("text_dim")),
-        }
-        
-        text, color = state_map.get(self.game_state, ("?", self._get_color("text_dim")))
-        self.state_label.config(text=text, fg=color)
-    
-    def _update_score_label(self):
-        """Actualiza el label de puntuación."""
-        self.score_label.config(
-            text=f"Puntuación: {self.score} | Racha: {self.streak}"
-        )
+            state_map = {
+                GameState.WAITING_FOR_DRAW: ("🟢 Esperando dibujo", self.style_manager.get_color("success")),
+                GameState.DRAWING: ("🟡 Dibujando", self.style_manager.get_color("accent_secondary")),
+                GameState.PREDICTING: ("🔵 Prediciendo", self.style_manager.get_color("accent_primary")),
+                GameState.CORRECT: ("✅ ¡Correcto!", self.style_manager.get_color("success")),
+                GameState.INCORRECT: ("❌ Incorrecto", self.style_manager.get_color("warning")),
+                GameState.PAUSED: ("⏸️  Pausado", self.style_manager.get_color("text_dim")),
+            }
+            text, color = state_map.get(self.game_state, ("?", self.style_manager.get_color("text_dim")))
+            self.camera.update_state(text, color)
     
     def reset_game(self):
         """Reinicia el juego."""
         self.score = 0
         self.streak = 0
         self.recent_words = []
-        self._update_score_label()
+        self.header.update_score(self.score, self.streak)
         self.logger.info("Juego reiniciado")
     
     def clear_predictions(self):
         """Limpia las predicciones mostradas en la pantalla."""
-        self.prediction_label.config(text="(Sin predicción)")
-        self.confidence_label.config(text="")
-        self.top3_label.config(text="")
+        self.game_info.clear_predictions()
         self.clear_callback()  # Limpiar trazas dibujadas
         self.logger.info("Predicciones y trazas limpiadas")
     
@@ -571,9 +388,8 @@ class GameMode:
             pil_image = Image.fromarray(rgb_frame)
             tk_image = ImageTk.PhotoImage(pil_image)
             
-            # Actualizar label
-            self.camera_label.config(image=tk_image)
-            self.camera_label.image = tk_image  # Mantener referencia
+            # Actualizar componente de cámara
+            self.camera.update_frame(tk_image)
         
         except Exception as e:
             self.logger.error(f"Error actualizando frame: {e}")
