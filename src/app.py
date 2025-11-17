@@ -6,6 +6,7 @@ import cv2
 import logging
 import sys
 import time
+import json # ### MODIFICACIÓN ###: Añadido para serializar los trazos
 from pathlib import Path
 from typing import Optional
 
@@ -297,6 +298,7 @@ class PictionaryLive:
                     try:
                         if self.ui:
                             self.ui.update_fps(current_time)
+                            self.ui.last_prediction = self.ui.last_prediction # Mantener la última predicción
                             frame = self.ui.render(
                                 frame,
                                 hand_detected=hand_landmarks is not None,
@@ -317,10 +319,35 @@ class PictionaryLive:
                         self.logger.info("Usuario presionó 'q' - saliendo")
                         self.running = False
                     elif key == ord('s'):
+                        # ======================================================
+                        # ### MODIFICACIÓN ###: Guardar Screenshot + Trazos JSON
+                        # ======================================================
                         try:
                             self._save_screenshot(frame)
                         except Exception as e:
                             self.logger.warning(f"Error al guardar screenshot: {e}")
+                            
+                        try:
+                            # 1. Obtener todos los trazos: completados + el activo
+                            all_strokes = list(self.drawing_strokes) # Trazos compuestos
+                            if self.stroke_accumulator and self.stroke_accumulator.points:
+                                # Agregar el trazo activo (si existe) sin modificar el estado
+                                # El objeto StrokeAccumulator mantiene sus puntos en 'points'
+                                all_strokes.append(self.stroke_accumulator.points)
+
+                            if all_strokes:
+                                # 2. Serializar: convertir a listas anidadas para JSON
+                                # Esto es necesario porque json.dump no serializa tuplas por defecto
+                                serializable_strokes = [[[float(p[0]), float(p[1])] for p in stroke] for stroke in all_strokes]
+                                
+                                # 3. Guardar en el archivo esperado por el test de diagnóstico
+                                with open('test_stroke_data.json', 'w') as f:
+                                    json.dump(serializable_strokes, f)
+                                self.logger.info("✓ Trazos guardados en 'test_stroke_data.json'.")
+                            else:
+                                self.logger.info("No hay trazos activos o compuestos para guardar.")
+                        except Exception as e:
+                            self.logger.warning(f"Error al guardar trazos JSON: {e}")
                     elif key == 13:  # Enter - finalizar dibujo compuesto y predecir
                         try:
                             # Si hay un trazo activo, añadirlo primero
@@ -337,6 +364,19 @@ class PictionaryLive:
 
                             if combined and self.preprocessor and self.classifier:
                                 drawing = self.preprocessor.preprocess(combined)
+                                # Debug: guardar la imagen 28x28 que se le pasa al modelo
+                                import os
+                                out_dbg = Path("./predictions/debug_inputs")
+                                out_dbg.mkdir(parents=True, exist_ok=True)
+                                dbg_ts = time.strftime("%Y%m%d_%H%M%S")
+                                img_arr = (drawing.squeeze() * 255).astype('uint8')  # assuming drawing in [0,1]
+                                dbg_path = out_dbg / f"input_28x28_{dbg_ts}.png"
+                                cv2.imwrite(str(dbg_path), img_arr)
+                                self.logger.info(f"[DEBUG] Guardada entrada modelo: {dbg_path}")
+                                # También guardar strokes serializados
+                                with open(out_dbg / f"strokes_{dbg_ts}.json", "w", encoding="utf-8") as jf:
+                                    json.dump(serializable_strokes, jf)
+
                                 label, conf, top3 = self.classifier.predict(drawing)
                                 self.logger.info(f"[ENTER] Predicción compuesta: {label} ({conf:.1%})")
                                 if self.ui:
@@ -370,7 +410,7 @@ class PictionaryLive:
                             if combined and self.preprocessor:
                                 drawing = self.preprocessor.preprocess(combined)
                                 # Guardar imagen y puntos para etiquetado manual
-                                import os, json
+                                # import os, json # Ya se importó arriba
                                 out_dir = Path("collected/unsorted")
                                 out_dir.mkdir(parents=True, exist_ok=True)
                                 timestamp = time.strftime("%Y%m%d_%H%M%S")
@@ -379,7 +419,9 @@ class PictionaryLive:
                                 cv2.imwrite(str(img_path), img_arr)
                                 pts_path = out_dir / f"sample_{timestamp}.json"
                                 with open(pts_path, 'w', encoding='utf-8') as f:
-                                    json.dump({"strokes": self.drawing_strokes}, f)
+                                    # Serializar tuplas a listas para JSON
+                                    serializable_strokes = [[[float(p[0]), float(p[1])] for p in stroke] for stroke in self.drawing_strokes]
+                                    json.dump({"strokes": serializable_strokes}, f)
                                 self.logger.info(f"Ejemplo guardado: {img_path} (+{pts_path}) - etiquetar y mover a collected/labels/<label>/")
 
                                 # No limpiar drawing_strokes para permitir seguir construyendo si se desea
