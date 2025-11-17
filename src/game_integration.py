@@ -93,6 +93,10 @@ class GameIntegration:
         self.drawing_strokes = []
         self.hand_in_fist = False
         
+        # Predicción en tiempo real
+        self.last_prediction_time = 0
+        self.prediction_interval = 0.5  # segundos entre predicciones
+        
         self.logger.info("GameIntegration inicializada")
     
     def _setup_default_logger(self) -> logging.Logger:
@@ -177,11 +181,9 @@ class GameIntegration:
                     if hand_landmarks:
                         if self.game_mode.game_state == GameState.WAITING_FOR_DRAW:
                             self.game_mode.game_state = GameState.DRAWING
-                            self.game_mode._update_state_label()
                     else:
                         if self.game_mode.game_state == GameState.DRAWING:
                             self.game_mode.game_state = GameState.WAITING_FOR_DRAW
-                            self.game_mode._update_state_label()
                     
                     # Procesar trazos
                     if hand_landmarks and not is_fist:
@@ -223,7 +225,7 @@ class GameIntegration:
                                 continue
                             pixel_points = [(int(p[0] * w), int(p[1] * h)) for p in stroke]
                             for i in range(1, len(pixel_points)):
-                                cv2.line(frame, pixel_points[i-1], pixel_points[i], (0, 255, 255), 2)
+                                cv2.line(frame, pixel_points[i-1], pixel_points[i], (0, 0, 0), 18)
                     
                     # Dibujar trazo activo
                     try:
@@ -235,9 +237,19 @@ class GameIntegration:
                                           int(self.stroke_accumulator.points[i-1][1] * h))
                                     p2 = (int(self.stroke_accumulator.points[i][0] * w), 
                                           int(self.stroke_accumulator.points[i][1] * h))
-                                    cv2.line(frame, p1, p2, (0, 255, 0), 2)
+                                    cv2.line(frame, p1, p2, (0, 0, 0), 18)
                     except Exception as e:
                         self.logger.debug(f"Error dibujando trazo activo: {e}")
+                    
+                    # Predicción en tiempo real
+                    current_time = time.time()
+                    if (current_time - self.last_prediction_time > self.prediction_interval and 
+                        len(self.drawing_strokes) > 0):
+                        try:
+                            self._do_real_time_prediction()
+                            self.last_prediction_time = current_time
+                        except Exception as e:
+                            self.logger.debug(f"Error en predicción en tiempo real: {e}")
                     
                     # Actualizar game mode UI con el frame
                     try:
@@ -258,6 +270,47 @@ class GameIntegration:
             if self.camera:
                 self.camera.release()
             self.logger.info("Capture loop finalizado")
+    
+    def _do_real_time_prediction(self):
+        """Realiza predicción en tiempo real y actualiza UI."""
+        try:
+            if not self.drawing_strokes:
+                return
+            
+            # Combinar todos los trazos
+            combined = []
+            for stroke in self.drawing_strokes:
+                combined.extend(stroke)
+            
+            if len(combined) < 10:  # Mínimo de puntos para predecir
+                return
+            
+            # Preprocesar
+            drawing = self.preprocessor.preprocess(combined)
+            
+            # Predecir
+            label, conf, top3 = self.classifier.predict(drawing)
+            
+            # Actualizar UI con predicción
+            self.game_mode.update_real_time_prediction(label, conf, top3)
+            
+            # Verificar si es correcta
+            current_word = self.game_mode.current_word
+            if current_word and label.lower() == current_word.lower():
+                # Mostrar popup
+                import tkinter.messagebox as messagebox
+                messagebox.showinfo("¡Correcto!", f"IA predijo que es '{label}'")
+                
+                # Limpiar dibujo
+                self.clear_drawing()
+                
+                # Seleccionar nueva palabra
+                self.game_mode._select_next_word()
+                
+                self.logger.info(f"Predicción correcta: {label}")
+        
+        except Exception as e:
+            self.logger.debug(f"Error en predicción en tiempo real: {e}")
     
     def predict_current_drawing(self) -> Tuple[str, float, List[Tuple[str, float]]]:
         """

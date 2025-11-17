@@ -73,24 +73,24 @@ def run_game_mode(args):
         # Hand Detector
         hand_config = {**MEDIAPIPE_CONFIG["hands"], **DETECTION_CONFIG, **PERFORMANCE_CONFIG}
         hand_detector = HandDetector(hand_config, logger)
-        logger.info("  ✓ HandDetector inicializado")
+        logger.info("  [OK] HandDetector inicializado")
         
         # Stroke Accumulator
         stroke_accumulator = StrokeAccumulator(STROKE_CONFIG, logger)
-        logger.info("  ✓ StrokeAccumulator inicializado")
+        logger.info("  [OK] StrokeAccumulator inicializado")
         
         # Classifier
         classifier = SketchClassifier(args.ia_dir, logger, demo_mode=MODEL_CONFIG.get("demo_mode", True), config=MODEL_CONFIG)
-        logger.info(f"  ✓ SketchClassifier inicializado ({len(classifier.get_labels())} clases)")
+        logger.info(f"  [OK] SketchClassifier inicializado ({len(classifier.get_labels())} clases)")
         
         # Preprocessor
         input_shape = classifier.get_input_shape() if classifier else [28, 28, 1]
         preprocessor = DrawingPreprocessor(input_shape, PREPROCESSING_CONFIG)
-        logger.info("  ✓ DrawingPreprocessor inicializado")
+        logger.info("  [OK] DrawingPreprocessor inicializado")
         
         # Game Config
         game_config = GameConfig(theme=args.theme)
-        logger.info(f"  ✓ GameConfig inicializado (tema: {args.theme})")
+        logger.info(f"  [OK] GameConfig inicializado (tema: {args.theme})")
         
         # Integration Config
         integration_config = IntegrationConfig(
@@ -98,7 +98,7 @@ def run_game_mode(args):
             ia_dir=args.ia_dir,
             debug=args.debug
         )
-        logger.info("  ✓ IntegrationConfig inicializado")
+        logger.info("  [OK] IntegrationConfig inicializado")
         
         # Game Integration
         logger.info("\n[INIT] Inicializando GameIntegration...")
@@ -111,7 +111,7 @@ def run_game_mode(args):
             integration_config=integration_config,
             logger=logger,
         )
-        logger.info("  ✓ GameIntegration inicializada")
+        logger.info("  [OK] GameIntegration inicializada")
         
         # Iniciar aplicación
         logger.info("\n[START] Iniciando aplicación...")

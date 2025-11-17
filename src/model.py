@@ -135,7 +135,7 @@ class SketchClassifier:
                                 self.model = tf.keras.models.load_model(model_path)
                     
                     model_type = "cuantizado (TFLite)" if "quantized" in model_path.name else "normal"
-                    self.logger.info(f"Modelo {model_type} cargado: {model_path.name}")
+                    self.logger.warning(f"✅ MODELO {model_type.upper()} CARGADO EXITOSAMENTE: {model_path.name}")
                     return True
                 except Exception as e:
                     self.logger.warning(f"Error al cargar {model_path.name}: {e}")
@@ -186,8 +186,11 @@ class SketchClassifier:
         try:
             # Si no hay modelo, usar demo
             if self.model is None or not TENSORFLOW_AVAILABLE:
+                self.logger.warning("Usando predicción demo (modelo no disponible)")
                 return self._demo_predict()
 
+            self.logger.debug("Usando modelo real para predicción")
+            
             # Predicción inicial
             if hasattr(self.model, 'invoke'):
                 result = self._predict_tflite(drawing)

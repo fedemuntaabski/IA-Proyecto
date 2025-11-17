@@ -367,6 +367,22 @@ class GameMode:
         self.logger.info("Iniciando interfaz del juego")
         self.root.mainloop()
     
+    def update_real_time_prediction(self, label: str, confidence: float, top3: List[Tuple[str, float]]):
+        """
+        Actualiza la predicción en tiempo real en la UI.
+        
+        Args:
+            label: Etiqueta predicha
+            confidence: Confianza de la predicción
+            top3: Lista de top 3 predicciones
+        """
+        try:
+            # Actualizar predicción principal
+            self.game_info.update_prediction(label, confidence, top3, False)  # No marcar como correcta aquí
+            
+        except Exception as e:
+            self.logger.error(f"Error actualizando predicción en tiempo real: {e}")
+    
     def update_frame(self, frame: np.ndarray):
         """
         Actualiza el frame de la cámara mostrado en la UI.

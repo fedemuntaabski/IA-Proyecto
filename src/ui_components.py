@@ -271,9 +271,13 @@ class GameInfoComponent:
         """Actualiza la palabra mostrada."""
         self.word_label.config(text=word.upper())
 
-    def update_prediction(self, label: str, confidence: float, top3: list, is_correct: bool):
+    def update_prediction(self, label: str, confidence: float, top3: list, is_correct: bool = False):
         """Actualiza la predicción."""
-        color = self.style.get_color("success") if is_correct else self.style.get_color("warning")
+        if is_correct:
+            color = self.style.get_color("success")
+        else:
+            color = self.style.get_color("text_primary")  # Color normal para tiempo real
+        
         self.prediction_label.config(text=label.upper(), fg=color)
         self.confidence_label.config(text=f"Confianza: {confidence*100:.1f}%")
 
