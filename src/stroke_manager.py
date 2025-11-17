@@ -50,9 +50,9 @@ class StrokeAccumulator:
             current_time = time.time() * 1000  # ms
             
             # Umbral de velocidad para ignorar ruido
-            velocity_threshold = self.config.get("velocity_threshold", 0.002)
+            velocity_threshold = self.config.get("velocity_threshold", 0.01)
             # Umbral mínimo de desplazamiento para considerar movimiento aunque la velocidad sea baja
-            min_movement_delta = self.config.get("min_movement_delta", 0.0005)
+            min_movement_delta = self.config.get("min_movement_delta", 0.003)
 
             # Si movimiento lento/pausa
             if velocity < velocity_threshold:
