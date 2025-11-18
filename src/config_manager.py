@@ -108,7 +108,13 @@ class AppConfig(BaseModel):
 class ConfigManager:
     """Gestor de configuración con carga y validación."""
 
-    def __init__(self, config_path: str = "config.yaml"):
+    def __init__(self, config_path: str = None):
+        if config_path is None:
+            # Buscar config.yaml en el directorio padre del directorio src
+            current_dir = Path(__file__).parent
+            project_root = current_dir.parent
+            config_path = project_root / "config.yaml"
+        
         self.config_path = Path(config_path)
         self.config: Optional[AppConfig] = None
         self.load_config()

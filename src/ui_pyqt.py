@@ -171,6 +171,109 @@ class VideoWidget(QLabel):
             painter.drawEllipse(fx - 6, fy - 6, 12, 12)
 
 
+class GameCard(QFrame):
+    """Tarjeta para mostrar objetivo, timer y puntaje."""
+    
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setObjectName("gameCard")
+        self.setMinimumWidth(300)
+        self.setMaximumWidth(400)
+        self._setup_ui()
+    
+    def _setup_ui(self):
+        """Configura la UI de la tarjeta de juego."""
+        layout = QVBoxLayout()
+        layout.setContentsMargins(20, 20, 20, 20)
+        layout.setSpacing(15)
+        
+        # Título
+        title = QLabel("🎯 OBJETIVO")
+        title.setObjectName("gameTitle")
+        title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(title)
+        
+        # Separador
+        separator = QFrame()
+        separator.setFrameShape(QFrame.Shape.HLine)
+        separator.setObjectName("separator")
+        layout.addWidget(separator)
+        
+        # Palabra objetivo (texto simple)
+        self.target_label = QLabel("--")
+        self.target_label.setObjectName("targetLabel")
+        self.target_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.target_label.setWordWrap(True)
+        self.target_label.setStyleSheet("color: #ffff00; font-size: 32px; font-weight: bold; padding: 15px;")
+        layout.addWidget(self.target_label)
+        
+        # Timer
+        timer_container = QFrame()
+        timer_container.setObjectName("timerContainer")
+        timer_layout = QVBoxLayout()
+        timer_title = QLabel("⏱️ TIEMPO")
+        timer_title.setObjectName("timerTitle")
+        timer_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        timer_layout.addWidget(timer_title)
+        
+        self.timer_label = QLabel("02:00")
+        self.timer_label.setObjectName("timerLabel")
+        self.timer_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.timer_label.setStyleSheet("color: #00ffff; font-size: 36px; font-weight: bold;")
+        timer_layout.addWidget(self.timer_label)
+        timer_container.setLayout(timer_layout)
+        layout.addWidget(timer_container)
+        
+        # Puntaje
+        score_container = QFrame()
+        score_container.setObjectName("scoreContainer")
+        score_layout = QVBoxLayout()
+        score_title = QLabel("🏆 PUNTAJE")
+        score_title.setObjectName("scoreTitle")
+        score_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        score_layout.addWidget(score_title)
+        
+        self.score_label = QLabel("0")
+        self.score_label.setObjectName("scoreLabel")
+        self.score_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.score_label.setStyleSheet("color: #64ff64; font-size: 48px; font-weight: bold;")
+        score_layout.addWidget(self.score_label)
+        score_container.setLayout(score_layout)
+        layout.addWidget(score_container)
+        
+        layout.addStretch()
+        self.setLayout(layout)
+        
+        # Efecto de sombra/glow
+        shadow = QGraphicsDropShadowEffect()
+        shadow.setBlurRadius(20)
+        shadow.setColor(QColor(0, 255, 255, 100))
+        shadow.setOffset(0, 0)
+        self.setGraphicsEffect(shadow)
+    
+    def update_target(self, target: str):
+        """Actualiza el objetivo mostrado."""
+        self.target_label.setText(target.upper())
+    
+    def update_timer(self, seconds: int):
+        """Actualiza el timer."""
+        minutes = seconds // 60
+        secs = seconds % 60
+        self.timer_label.setText(f"{minutes:02d}:{secs:02d}")
+        
+        # Cambiar color según tiempo restante
+        if seconds <= 30:
+            self.timer_label.setStyleSheet("color: #ff6400; font-size: 36px; font-weight: bold;")
+        elif seconds <= 60:
+            self.timer_label.setStyleSheet("color: #ffa000; font-size: 36px; font-weight: bold;")
+        else:
+            self.timer_label.setStyleSheet("color: #00ffff; font-size: 36px; font-weight: bold;")
+    
+    def update_score(self, score: int):
+        """Actualiza el puntaje."""
+        self.score_label.setText(str(score))
+
+
 class PredictionCard(QFrame):
     """Tarjeta moderna para mostrar predicciones."""
     
@@ -314,6 +417,7 @@ class PictionaryUIQt(QMainWindow):
     prediction_ready = pyqtSignal(str, float, list)
     clear_requested = pyqtSignal()
     mode_switched = pyqtSignal(bool)  # True=mano, False=mouse
+    timer_expired = pyqtSignal()
     
     def __init__(self, config: Dict[str, Any]):
         super().__init__()
@@ -322,6 +426,11 @@ class PictionaryUIQt(QMainWindow):
         self.last_time = time.time()
         self.fps = 0.0
         self.last_prediction = None
+        
+        # Estado del juego
+        self.current_target = None
+        self.score = 0
+        self.time_remaining = 120  # 2 minutos
         
         self._setup_window()
         self._setup_ui()
@@ -332,6 +441,11 @@ class PictionaryUIQt(QMainWindow):
         self.fps_timer = QTimer()
         self.fps_timer.timeout.connect(self._update_fps_display)
         self.fps_timer.start(500)
+        
+        # Timer del juego (cada 1 segundo)
+        self.game_timer = QTimer()
+        self.game_timer.timeout.connect(self._update_game_timer)
+        self.game_timer.start(1000)
     
     def _setup_window(self):
         """Configura la ventana principal."""
@@ -408,13 +522,17 @@ class PictionaryUIQt(QMainWindow):
         return header
     
     def _create_side_panel(self) -> QWidget:
-        """Crea el panel lateral con predicción y controles."""
+        """Crea el panel lateral con juego y predicción."""
         panel = QFrame()
         panel.setObjectName("sidePanel")
         
         layout = QVBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(15)
+        
+        # Tarjeta de juego (objetivo, timer, puntaje)
+        self.game_card = GameCard()
+        layout.addWidget(self.game_card)
         
         # Tarjeta de predicción
         self.prediction_card = PredictionCard()
@@ -444,7 +562,7 @@ class PictionaryUIQt(QMainWindow):
         layout = QHBoxLayout()
         layout.setContentsMargins(15, 10, 15, 10)
         
-        self.instructions = QLabel("Q = Salir  |  ESPACIO = Limpiar  |  Predicción automática al finalizar trazo")
+        self.instructions = QLabel("Q = Salir  |  C = Limpiar  |  S = Siguiente  |  R = Reiniciar")
         self.instructions.setObjectName("instructions")
         self.instructions.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(self.instructions)
@@ -518,6 +636,15 @@ class PictionaryUIQt(QMainWindow):
         """Maneja predicciones nuevas (thread-safe)."""
         self.last_prediction = (label, confidence, top3)
         self.prediction_card.update_prediction(label, confidence, top3)
+        
+        # Verificar si la predicción coincide con el objetivo
+        if self.current_target and label.lower() == self.current_target.lower():
+            self.score += 1
+            self.game_card.update_score(self.score)
+            # Limpiar canvas al acertar
+            self.clear_requested.emit()
+            # Seleccionar nuevo objetivo
+            self.select_new_target()
     
     def update_frame(self, frame: np.ndarray):
         """Actualiza el frame (llamar desde thread de video)."""
@@ -548,15 +675,46 @@ class PictionaryUIQt(QMainWindow):
             self.mode_button.setText("✋ CAMBIAR A MANO")
             self.state_indicator.setText("🖱️ MODO MOUSE")
             self.state_indicator.setStyleSheet("color: #ffa000;")
-            self.instructions.setText("Q = Salir  |  ESPACIO = Limpiar  |  Predicción Automática  |  Click y arrastra")
+            self.instructions.setText("Q = Salir  |  C = Limpiar  |  S = Siguiente  |  R = Reiniciar")
             self.mode_switched.emit(False)  # False = mouse
         else:
             self.current_mode = "hand"
             self.mode_button.setText("🖱️ CAMBIAR A MOUSE")
             self.state_indicator.setText("✋ MODO MANO")
             self.state_indicator.setStyleSheet("color: #64ff64;")
-            self.instructions.setText("Q = Salir  |  ESPACIO = Limpiar  |  Predicción Automática  |  Dibuja con dedo")
+            self.instructions.setText("Q = Salir  |  C = Limpiar  |  S = Siguiente  |  R = Reiniciar")
             self.mode_switched.emit(True)  # True = hand
+    
+    def _update_game_timer(self):
+        """Actualiza el timer del juego."""
+        if self.time_remaining > 0:
+            self.time_remaining -= 1
+            self.game_card.update_timer(self.time_remaining)
+        else:
+            self.game_timer.stop()
+            self.timer_expired.emit()
+    
+    def select_new_target(self):
+        """Selecciona un nuevo objetivo aleatorio."""
+        # Esta función será conectada desde app_pyqt.py con la lista de labels
+        pass
+    
+    def set_target(self, target: str):
+        """Establece el objetivo actual."""
+        self.current_target = target
+        self.game_card.update_target(target)
+    
+    def reset_timer(self):
+        """Reinicia el timer a 2 minutos."""
+        self.time_remaining = 120
+        self.game_card.update_timer(self.time_remaining)
+        if not self.game_timer.isActive():
+            self.game_timer.start(1000)
+    
+    def reset_score(self):
+        """Reinicia el puntaje."""
+        self.score = 0
+        self.game_card.update_score(self.score)
     
     def keyPressEvent(self, event):
         """Maneja eventos de teclado."""
@@ -565,9 +723,19 @@ class PictionaryUIQt(QMainWindow):
         if key == Qt.Key.Key_Q:
             # Salir
             self.close()
-        elif key == Qt.Key.Key_Space:
-            # Limpiar
+        elif key == Qt.Key.Key_C:
+            # C = Limpiar el tablero
             self.clear_requested.emit()
             self.prediction_card.clear()
+        elif key == Qt.Key.Key_S:
+            # S = Siguiente objetivo (sin limpiar)
+            self.select_new_target()
+        elif key == Qt.Key.Key_R:
+            # R = Reiniciar juego completo
+            self.reset_timer()
+            self.reset_score()
+            self.clear_requested.emit()
+            self.prediction_card.clear()
+            self.select_new_target()
         else:
             super().keyPressEvent(event)

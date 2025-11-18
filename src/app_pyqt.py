@@ -49,9 +49,14 @@ class VideoThread(QThread):
         self.drawing_strokes = []
         self.hand_in_fist = False
         
-        # Canvas de dibujo (256x256 blanco para acumular trazos negros de 8px)
+        # Canvas de dibujo (640x480 transparente con canal alpha para overlay)
+        # Este canvas se superpone al frame de video
+        self.overlay_canvas = np.zeros((CAMERA_CONFIG["height"], CAMERA_CONFIG["width"], 4), dtype=np.uint8)
+        
+        # Canvas interno para predicción (256x256 blanco para el modelo)
         self.drawing_canvas = np.ones((256, 256), dtype=np.uint8) * 255
         self.last_index_pos = None
+        self.last_canvas_pos = None  # Posición en canvas de predicción
         
         # Modo de entrada (hand/mouse) - SIEMPRE iniciar con mano
         self.use_mouse_input = False
@@ -59,6 +64,8 @@ class VideoThread(QThread):
         # Contador para predicción automática
         self.frames_since_last_stroke = 0
         self.auto_predict_threshold = 30  # ~1 segundo a 30 FPS
+        self.strokes_since_last_prediction = 0
+        self.auto_predict_enabled = True
         
     def run(self):
         """Loop principal de captura de video."""
@@ -125,26 +132,57 @@ class VideoThread(QThread):
                         index_pos = hand_detector.get_index_finger_position()
                         if index_pos:
                             if is_fist:
-                                # Puño cerrado: finalizar trazo
+                                # Puño cerrado: SOLO finalizar trazo (guardarlo)
+                                # El dibujo YA ESTÁ visible en overlay_canvas y persiste
                                 if stroke_accumulator.stroke_active:
                                     stroke = stroke_accumulator.get_stroke()
                                     if stroke:
                                         self.drawing_strokes.append(stroke)
                                     stroke_accumulator.reset()
+                                    
+                                    # Hacer predicción al guardar trazo
+                                    if np.sum(self.drawing_canvas < 250) > 30:
+                                        self.predict_drawing()
+                                
                                 self.hand_in_fist = True
                                 self.last_index_pos = None
+                                self.last_canvas_pos = None
                             else:
                                 if self.hand_in_fist:
                                     self.hand_in_fist = False
                                 
-                                # Dibujar línea negra de 8px en el canvas
-                                px = int(index_pos[0] * 255)
-                                py = int(index_pos[1] * 255)
+                                # Calcular posiciones en frame (640x480) y en canvas (256x256)
+                                h, w = frame.shape[:2]
+                                frame_x = int(index_pos[0] * w)
+                                frame_y = int(index_pos[1] * h)
                                 
+                                canvas_x = int(index_pos[0] * 255)
+                                canvas_y = int(index_pos[1] * 255)
+                                
+                                # Dibujar en overlay_canvas (visible sobre el video)
                                 if self.last_index_pos is not None:
-                                    cv2.line(self.drawing_canvas, self.last_index_pos, (px, py), 0, 8, cv2.LINE_AA)
+                                    # Línea en overlay (color verde brillante, grosor 8)
+                                    cv2.line(self.overlay_canvas, self.last_index_pos, (frame_x, frame_y), 
+                                            (0, 255, 0, 255), 8, cv2.LINE_AA)
                                 
-                                self.last_index_pos = (px, py)
+                                # Dibujar en canvas de predicción (línea negra)
+                                if self.last_canvas_pos is not None:
+                                    cv2.line(self.drawing_canvas, self.last_canvas_pos, (canvas_x, canvas_y), 
+                                            0, 8, cv2.LINE_AA)
+                                
+                                self.last_index_pos = (frame_x, frame_y)
+                                self.last_canvas_pos = (canvas_x, canvas_y)
+                                
+                                # Predicción automática continua mientras dibuja
+                                # Solo si hay suficiente contenido en el canvas
+                                if np.sum(self.drawing_canvas < 250) > 100:  # Al menos 100 píxeles dibujados
+                                    # Hacer predicción cada N frames para no saturar
+                                    if not hasattr(self, '_pred_frame_counter'):
+                                        self._pred_frame_counter = 0
+                                    self._pred_frame_counter += 1
+                                    if self._pred_frame_counter >= 10:  # Predecir cada 10 frames
+                                        self.predict_drawing()
+                                        self._pred_frame_counter = 0
                                 
                                 stroke_complete = stroke_accumulator.add_point(
                                     index_pos[0], index_pos[1], hand_velocity
@@ -155,11 +193,6 @@ class VideoThread(QThread):
                                     if stroke:
                                         self.drawing_strokes.append(stroke)
                                         self.strokes_since_last_prediction += 1
-                                        
-                                        # Predicción automática después de cada trazo
-                                        if self.auto_predict_enabled and self.strokes_since_last_prediction >= 1:
-                                            self.predict_drawing()
-                                            self.strokes_since_last_prediction = 0
                                     
                                     stroke_accumulator.reset()
                                     self.last_index_pos = None
@@ -170,12 +203,13 @@ class VideoThread(QThread):
                 if stroke_accumulator:
                     self.stroke_updated.emit(stroke_accumulator.points)
             
-            # Predicción automática después de inactividad
-            if len(self.drawing_strokes) > 0:
-                self.frames_since_last_stroke += 1
-                if self.frames_since_last_stroke >= self.auto_predict_threshold:
-                    self.predict_drawing()
-                    self.frames_since_last_stroke = 0
+            # Superponer el overlay_canvas al frame
+            # Mezclar solo donde hay contenido (alpha > 0)
+            if self.overlay_canvas is not None:
+                # Obtener máscara de áreas con dibujo
+                mask = self.overlay_canvas[:, :, 3] > 0
+                # Aplicar el dibujo sobre el frame
+                frame[mask] = self.overlay_canvas[mask, :3]
             
             # Emitir frame
             self.frame_ready.emit(frame)
@@ -249,19 +283,23 @@ class VideoThread(QThread):
             label, conf, top3 = classifier.predict(normalized)
             self.prediction_ready.emit(label, conf, top3)
             
-            # Limpiar después de predicción automática
-            self.drawing_strokes = []
-            self.drawing_canvas = np.ones((256, 256), dtype=np.uint8) * 255
+            # NO limpiar aquí - el canvas se limpiará solo cuando:
+            # 1. El usuario presiona ESPACIO (clear_strokes)
+            # 2. El usuario acierta el objetivo (desde la UI)
             
         except Exception as e:
             self.logger.error(f"Error en predicción: {e}")
     
     @pyqtSlot()
     def clear_strokes(self):
-        """Limpia los trazos y el canvas."""
+        """Limpia los trazos y ambos canvas."""
         self.drawing_strokes = []
-        self.drawing_canvas = np.ones((256, 256), dtype=np.uint8) * 255  # Resetear a blanco
+        # Limpiar overlay (visible sobre video)
+        self.overlay_canvas = np.zeros((CAMERA_CONFIG["height"], CAMERA_CONFIG["width"], 4), dtype=np.uint8)
+        # Limpiar canvas de predicción
+        self.drawing_canvas = np.ones((256, 256), dtype=np.uint8) * 255
         self.last_index_pos = None
+        self.last_canvas_pos = None
         stroke_accumulator = self.components.get("stroke_accumulator")
         if stroke_accumulator:
             stroke_accumulator.reset()
@@ -278,31 +316,39 @@ class VideoThread(QThread):
     def process_mouse_input(self, x: float, y: float, is_drawing: bool):
         """Procesa entrada del mouse para dibujo."""
         if not is_drawing:
-            # Fin de trazo
+            # Fin de trazo - SOLO guardar, NO predecir
             self.last_index_pos = None
+            self.last_canvas_pos = None
             stroke_accumulator = self.components.get("stroke_accumulator")
             if stroke_accumulator and stroke_accumulator.stroke_active:
                 stroke = stroke_accumulator.get_stroke()
                 if stroke:
                     self.drawing_strokes.append(stroke)
-                    self.strokes_since_last_prediction += 1
-                    
-                    # Predicción automática después de cada trazo
-                    if self.auto_predict_enabled and self.strokes_since_last_prediction >= 1:
-                        self.predict_drawing()
-                        self.strokes_since_last_prediction = 0
                 
                 stroke_accumulator.reset()
             return
         
-        # Dibujar en el canvas
-        px = int(x * 255)
-        py = int(y * 255)
+        # Calcular posiciones en frame (640x480) y en canvas (256x256)
+        h, w = CAMERA_CONFIG["height"], CAMERA_CONFIG["width"]
+        frame_x = int(x * w)
+        frame_y = int(y * h)
         
+        canvas_x = int(x * 255)
+        canvas_y = int(y * 255)
+        
+        # Dibujar en overlay_canvas (visible sobre el video)
         if self.last_index_pos is not None:
-            cv2.line(self.drawing_canvas, self.last_index_pos, (px, py), 0, 8, cv2.LINE_AA)
+            # Línea en overlay (color verde brillante, grosor 8)
+            cv2.line(self.overlay_canvas, self.last_index_pos, (frame_x, frame_y), 
+                    (0, 255, 0, 255), 8, cv2.LINE_AA)
         
-        self.last_index_pos = (px, py)
+        # Dibujar en canvas de predicción (línea negra)
+        if self.last_canvas_pos is not None:
+            cv2.line(self.drawing_canvas, self.last_canvas_pos, (canvas_x, canvas_y), 
+                    0, 8, cv2.LINE_AA)
+        
+        self.last_index_pos = (frame_x, frame_y)
+        self.last_canvas_pos = (canvas_x, canvas_y)
         
         # Agregar punto al acumulador
         stroke_accumulator = self.components.get("stroke_accumulator")
@@ -332,6 +378,9 @@ class PictionaryLiveQt:
         self.camera_id = camera_id
         self.debug = debug
         
+        # Cargar labels desde model_info.json
+        self.labels = self._load_labels()
+        
         # Inicializar QApplication
         self.app = QApplication(sys.argv)
         self.app.setApplicationName("Pictionary Live")
@@ -346,8 +395,35 @@ class PictionaryLiveQt:
         self.video_thread = VideoThread(camera_id, self.components, self.logger)
         self._connect_signals()
         
+        # Seleccionar objetivo inicial
+        self._select_random_target()
+        
         if debug:
             self.logger.info("Aplicación inicializada")
+    
+    def _load_labels(self) -> list:
+        """Carga las etiquetas desde model_info.json."""
+        try:
+            import json
+            from pathlib import Path
+            model_info_path = Path(self.ia_dir) / "model_info.json"
+            with open(model_info_path, 'r', encoding='utf-8') as f:
+                model_info = json.load(f)
+            labels = model_info.get("classes", [])
+            self.logger.info(f"Cargadas {len(labels)} etiquetas desde model_info.json")
+            return labels
+        except Exception as e:
+            self.logger.error(f"Error cargando labels: {e}")
+            # Fallback a lista simple
+            return ["cat", "dog", "house", "tree", "car"]
+    
+    def _select_random_target(self):
+        """Selecciona un objetivo aleatorio de las etiquetas."""
+        import random
+        if self.labels:
+            target = random.choice(self.labels)
+            self.ui.set_target(target)
+            self.logger.info(f"Nuevo objetivo: {target}")
     
     def _init_components(self) -> dict:
         """Inicializa los componentes de procesamiento."""
@@ -405,6 +481,9 @@ class PictionaryLiveQt:
         self.ui.clear_requested.connect(self.video_thread.clear_strokes)
         self.ui.mode_switched.connect(self.video_thread.switch_mode)
         
+        # Conectar selección de nuevo objetivo
+        self.ui.select_new_target = self._select_random_target
+        
         # Conectar señal del mouse para modo fallback
         self.ui.video_widget.mouse_draw.connect(self.video_thread.process_mouse_input)
     
@@ -425,7 +504,7 @@ class PictionaryLiveQt:
         self.ui.set_state("✋ MODO MANO", "#64ff64")
         self.ui.current_mode = "hand"
         self.ui.mode_button.setText("🖱️ CAMBIAR A MOUSE")
-        self.ui.instructions.setText("Q = Salir  |  ESPACIO = Limpiar  |  Predicción Automática  |  Dibuja con dedo")
+        self.ui.instructions.setText("Q = Salir  |  C = Limpiar  |  S = Siguiente  |  R = Reiniciar")
         
         # Iniciar thread de video
         self.video_thread.start()
