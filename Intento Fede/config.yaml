@@ -1,0 +1,103 @@
+# Configuración optimizada para Pictionary Live
+# Optimizada para máxima precisión y rendimiento con 1 mano
+
+# ============================================================================
+# CONFIGURACIÓN DE MEDIAPIPE
+# ============================================================================
+mediapipe:
+  hands:
+    static_image_mode: false
+    max_num_hands: 1  # Máximo 1 mano para mejor rendimiento
+    model_complexity: 0
+    min_detection_confidence: 0.7  # Aumentado para mejor precisión
+    min_tracking_confidence: 0.7   # Aumentado para mejor seguimiento
+  pose:
+    enabled: false
+
+# ============================================================================
+# CONFIGURACIÓN DE CÁMARA
+# ============================================================================
+camera:
+  width: 640
+  height: 480
+  fps: 30
+  buffer_size: 1
+  flip_horizontal: true
+
+# ============================================================================
+# CONFIGURACIÓN DE TRAZO
+# ============================================================================
+stroke:
+  pause_threshold_ms: 400
+  velocity_threshold: 0.005
+  min_points: 8
+  max_stroke_age_ms: 15000
+  min_stroke_length: 0.05  # Longitud mínima normalizada para considerar válido
+  # Requerir N frames consecutivos de baja velocidad antes de cerrar el trazo
+  low_vel_consecutive: 4
+  # Permite agregar puntos con desplazamiento pequeño aún si la velocidad medida es baja
+  allow_low_velocity_append: true
+  # Umbral mínimo de desplazamiento (coordenadas normalizadas) para contar como movimiento
+  min_movement_delta: 0.002
+
+# ============================================================================
+# CONFIGURACIÓN DE MODELO
+# ============================================================================
+model:
+  input_shape: [28, 28, 1]
+  demo_mode: true
+  use_quantized_model: true
+  prefer_gpu: true
+  # Ensemble ligero en inferencia (1=on, 0=off)
+  use_ensemble: 1
+
+# ============================================================================
+# CONFIGURACIÓN DE PREPROCESAMIENTO
+# ============================================================================
+preprocessing:
+  scale_factor: 0.8  # Factor de escala para ocupar el canvas (0.8 = 80%)
+  min_stroke_length: 0.05  # Longitud mínima normalizada del trazo
+  min_points: 5  # Mínimo número de puntos para considerar válido
+  blur_kernel: 3  # Tamaño del kernel de blur (3x3)
+  blur_sigma: 0.5  # Sigma para Gaussian blur
+  thickness_base: 2  # Grosor base de línea
+  thickness_max: 4  # Grosor máximo variable
+  # Aplicar thinning/esqueletización para normalizar el grosor de la línea
+  skeletonize: false
+
+# ============================================================================
+# CONFIGURACIÓN DE UI
+# ============================================================================
+ui:
+  window_name: "Pictionary Live - Dibuja en el aire"
+  window_width: 900  # Reducido para mejor rendimiento en pantallas pequeñas
+  window_height: 675   # Resolución aceptable y manejable
+  show_fps: true
+  show_diagnostics: true
+  show_top_predictions: 3
+
+# ============================================================================
+# CONFIGURACIÓN DE LOGGING
+# ============================================================================
+logging:
+  log_dir: "./logs"
+  inference_log_file: "./inference/inference.log"
+  level_debug: "DEBUG"
+  level_info: "INFO"
+
+# ============================================================================
+# CONFIGURACIÓN DE DETECCIÓN
+# ============================================================================
+detection:
+  hand_index_finger_id: 8
+  hand_landmark_count: 21
+  processing_resolution: 320
+
+# ============================================================================
+# CONFIGURACIÓN DE RENDIMIENTO
+# ============================================================================
+performance:
+  skip_frames: 0
+  thread_workers: 1
+  enable_profiling: false
+  async_processing: true
