@@ -312,8 +312,8 @@ class PictionaryUIQt(QMainWindow):
     # Señales para comunicación thread-safe
     frame_ready = pyqtSignal(np.ndarray)
     prediction_ready = pyqtSignal(str, float, list)
-    predict_requested = pyqtSignal()  # Nueva señal para solicitar predicción
-    clear_requested = pyqtSignal()    # Nueva señal para solicitar limpieza
+    clear_requested = pyqtSignal()
+    mode_switched = pyqtSignal(bool)  # True=mano, False=mouse
     
     def __init__(self, config: Dict[str, Any]):
         super().__init__()
@@ -420,6 +420,17 @@ class PictionaryUIQt(QMainWindow):
         self.prediction_card = PredictionCard()
         layout.addWidget(self.prediction_card)
         
+        # Botón de cambio de modo
+        self.mode_button = QPushButton("🖱️ CAMBIAR A MOUSE")
+        self.mode_button.setObjectName("modeButton")
+        self.mode_button.setMinimumHeight(50)
+        self.mode_button.clicked.connect(self._toggle_mode)
+        self.mode_button.setToolTip("Alternar entre detección de manos y dibujo con mouse")
+        layout.addWidget(self.mode_button)
+        
+        # Estado del modo actual
+        self.current_mode = "hand"  # Por defecto modo mano
+        
         layout.addStretch()
         
         panel.setLayout(layout)
@@ -433,7 +444,7 @@ class PictionaryUIQt(QMainWindow):
         layout = QHBoxLayout()
         layout.setContentsMargins(15, 10, 15, 10)
         
-        self.instructions = QLabel("Q = Salir  |  ESPACIO = Limpiar  |  ENTER = Predecir  |  Click y arrastra para dibujar")
+        self.instructions = QLabel("Q = Salir  |  ESPACIO = Limpiar  |  Predicción automática al finalizar trazo")
         self.instructions.setObjectName("instructions")
         self.instructions.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(self.instructions)
@@ -471,6 +482,17 @@ class PictionaryUIQt(QMainWindow):
                     #statusLabel { color: #b4b4be; font-size: 13px; }
                     #footer { background-color: #192540; border-radius: 8px; }
                     #instructions { color: #b4b4be; font-size: 12px; }
+                    #modeButton { 
+                        background-color: #ffa000; 
+                        color: #0a1428; 
+                        font-size: 16px; 
+                        font-weight: bold; 
+                        border: none; 
+                        border-radius: 10px; 
+                        padding: 15px; 
+                    }
+                    #modeButton:hover { background-color: #ffb000; }
+                    #modeButton:pressed { background-color: #ff9000; }
                 """
                 self.setStyleSheet(styles)
         except Exception as e:
@@ -519,6 +541,23 @@ class PictionaryUIQt(QMainWindow):
         self.state_indicator.setText(state)
         self.state_indicator.setStyleSheet(f"color: {color};")
     
+    def _toggle_mode(self):
+        """Cambia entre modo mano y modo mouse."""
+        if self.current_mode == "hand":
+            self.current_mode = "mouse"
+            self.mode_button.setText("✋ CAMBIAR A MANO")
+            self.state_indicator.setText("🖱️ MODO MOUSE")
+            self.state_indicator.setStyleSheet("color: #ffa000;")
+            self.instructions.setText("Q = Salir  |  ESPACIO = Limpiar  |  Predicción Automática  |  Click y arrastra")
+            self.mode_switched.emit(False)  # False = mouse
+        else:
+            self.current_mode = "hand"
+            self.mode_button.setText("🖱️ CAMBIAR A MOUSE")
+            self.state_indicator.setText("✋ MODO MANO")
+            self.state_indicator.setStyleSheet("color: #64ff64;")
+            self.instructions.setText("Q = Salir  |  ESPACIO = Limpiar  |  Predicción Automática  |  Dibuja con dedo")
+            self.mode_switched.emit(True)  # True = hand
+    
     def keyPressEvent(self, event):
         """Maneja eventos de teclado."""
         key = event.key()
@@ -526,9 +565,6 @@ class PictionaryUIQt(QMainWindow):
         if key == Qt.Key.Key_Q:
             # Salir
             self.close()
-        elif key == Qt.Key.Key_Return or key == Qt.Key.Key_Enter:
-            # Predecir
-            self.predict_requested.emit()
         elif key == Qt.Key.Key_Space:
             # Limpiar
             self.clear_requested.emit()

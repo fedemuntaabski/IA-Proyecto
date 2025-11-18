@@ -53,8 +53,12 @@ class VideoThread(QThread):
         self.drawing_canvas = np.ones((256, 256), dtype=np.uint8) * 255
         self.last_index_pos = None
         
-        # Modo de entrada (hand/mouse)
+        # Modo de entrada (hand/mouse) - SIEMPRE iniciar con mano
         self.use_mouse_input = False
+        
+        # Contador para predicción automática
+        self.frames_since_last_stroke = 0
+        self.auto_predict_threshold = 30  # ~1 segundo a 30 FPS
         
     def run(self):
         """Loop principal de captura de video."""
@@ -75,11 +79,13 @@ class VideoThread(QThread):
         preprocessor = self.components.get("preprocessor")
         classifier = self.components.get("classifier")
         
-        # Verificar si el detector de manos está disponible
+        # Verificar detector de manos (CRÍTICO - requerido)
         if hand_detector is None or not hasattr(hand_detector, 'hands_detector') or hand_detector.hands_detector is None:
-            self.use_mouse_input = True
-            self.logger.warning("MediaPipe no disponible - usando entrada de mouse")
-            # No emitir error, es un comportamiento esperado en Python 3.13+
+            self.logger.error("CRÍTICO: MediaPipe no está disponible")
+            self.logger.error("Requiere Python 3.10-3.12 con MediaPipe instalado")
+            self.error_occurred.emit("Error: MediaPipe no disponible. Use Python 3.10-3.12")
+            self.running = False
+            return
         
         while self.running:
             ret, frame = self.cap.read()
@@ -148,6 +154,13 @@ class VideoThread(QThread):
                                     stroke = stroke_accumulator.get_stroke()
                                     if stroke:
                                         self.drawing_strokes.append(stroke)
+                                        self.strokes_since_last_prediction += 1
+                                        
+                                        # Predicción automática después de cada trazo
+                                        if self.auto_predict_enabled and self.strokes_since_last_prediction >= 1:
+                                            self.predict_drawing()
+                                            self.strokes_since_last_prediction = 0
+                                    
                                     stroke_accumulator.reset()
                                     self.last_index_pos = None
                     except Exception as e:
@@ -156,6 +169,13 @@ class VideoThread(QThread):
                 # Emitir trazo actual
                 if stroke_accumulator:
                     self.stroke_updated.emit(stroke_accumulator.points)
+            
+            # Predicción automática después de inactividad
+            if len(self.drawing_strokes) > 0:
+                self.frames_since_last_stroke += 1
+                if self.frames_since_last_stroke >= self.auto_predict_threshold:
+                    self.predict_drawing()
+                    self.frames_since_last_stroke = 0
             
             # Emitir frame
             self.frame_ready.emit(frame)
@@ -229,6 +249,10 @@ class VideoThread(QThread):
             label, conf, top3 = classifier.predict(normalized)
             self.prediction_ready.emit(label, conf, top3)
             
+            # Limpiar después de predicción automática
+            self.drawing_strokes = []
+            self.drawing_canvas = np.ones((256, 256), dtype=np.uint8) * 255
+            
         except Exception as e:
             self.logger.error(f"Error en predicción: {e}")
     
@@ -242,6 +266,14 @@ class VideoThread(QThread):
         if stroke_accumulator:
             stroke_accumulator.reset()
     
+    @pyqtSlot(bool)
+    def switch_mode(self, use_hand: bool):
+        """Cambia entre modo mano y modo mouse."""
+        self.use_mouse_input = not use_hand
+        self.logger.info(f"Modo cambiado a: {'MANO' if use_hand else 'MOUSE'}")
+        # Limpiar estado al cambiar de modo
+        self.clear_strokes()
+    
     @pyqtSlot(float, float, bool)
     def process_mouse_input(self, x: float, y: float, is_drawing: bool):
         """Procesa entrada del mouse para dibujo."""
@@ -253,6 +285,13 @@ class VideoThread(QThread):
                 stroke = stroke_accumulator.get_stroke()
                 if stroke:
                     self.drawing_strokes.append(stroke)
+                    self.strokes_since_last_prediction += 1
+                    
+                    # Predicción automática después de cada trazo
+                    if self.auto_predict_enabled and self.strokes_since_last_prediction >= 1:
+                        self.predict_drawing()
+                        self.strokes_since_last_prediction = 0
+                
                 stroke_accumulator.reset()
             return
         
@@ -330,16 +369,20 @@ class PictionaryLiveQt:
         try:
             components["classifier"] = SketchClassifier(
                 self.ia_dir, self.logger, 
-                demo_mode=MODEL_CONFIG["demo_mode"], 
+                demo_mode=False,  # FORZAR modelo real
                 config=MODEL_CONFIG
             )
         except Exception as e:
             self.logger.error(f"Error inicializando SketchClassifier: {e}")
-            components["classifier"] = SketchClassifier(
-                self.ia_dir, self.logger, 
-                demo_mode=True, 
-                config=MODEL_CONFIG
-            )
+            # Intentar de nuevo sin demo mode
+            try:
+                components["classifier"] = SketchClassifier(
+                    self.ia_dir, self.logger, 
+                    demo_mode=False,
+                    config=MODEL_CONFIG
+                )
+            except:
+                raise RuntimeError(f"No se pudo cargar el modelo: {e}")
         
         try:
             input_shape = components["classifier"].get_input_shape() if components["classifier"] else [28, 28, 1]
@@ -359,8 +402,8 @@ class PictionaryLiveQt:
         self.video_thread.error_occurred.connect(self._handle_error)
         
         # Conectar señales de UI a acciones del thread
-        self.ui.predict_requested.connect(self.video_thread.predict_drawing)
         self.ui.clear_requested.connect(self.video_thread.clear_strokes)
+        self.ui.mode_switched.connect(self.video_thread.switch_mode)
         
         # Conectar señal del mouse para modo fallback
         self.ui.video_widget.mouse_draw.connect(self.video_thread.process_mouse_input)
@@ -377,14 +420,12 @@ class PictionaryLiveQt:
         if self.debug:
             self.logger.info("Iniciando aplicación PyQt6")
         
-        # Mostrar UI
+        # Mostrar UI en modo mano (predeterminado)
         self.ui.show()
-        
-        # Verificar modo de entrada y actualizar UI
-        if not self.components.get("hand_detector") or \
-           not hasattr(self.components["hand_detector"], 'hands_detector') or \
-           self.components["hand_detector"].hands_detector is None:
-            self.ui.set_state("🖊️ MODO MOUSE", "#ffa000")
+        self.ui.set_state("✋ MODO MANO", "#64ff64")
+        self.ui.current_mode = "hand"
+        self.ui.mode_button.setText("🖱️ CAMBIAR A MOUSE")
+        self.ui.instructions.setText("Q = Salir  |  ESPACIO = Limpiar  |  Predicción Automática  |  Dibuja con dedo")
         
         # Iniciar thread de video
         self.video_thread.start()

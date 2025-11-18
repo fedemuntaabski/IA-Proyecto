@@ -1,21 +1,19 @@
 # Dependencias principales para Pictionary Live
-# Python 3.10, 3.11, 3.12
+# REQUERIDO: Python 3.10, 3.11 o 3.12 (MediaPipe no funciona en 3.13+)
 # Versiones específicas compatibles para evitar conflictos
 
 # Procesamiento de imágenes y video
-numpy>=1.24.0
-opencv-python>=4.5.0
+numpy>=1.24.0,<2.0.0
+opencv-python>=4.5.0,<5.0.0
 
 # Detección de manos (CRÍTICO para la aplicación)
-# MediaPipe requiere protobuf compatible
-mediapipe>=0.10.0
+mediapipe>=0.10.0,<0.11.0
 
-# Inferencia de modelos (opcional para modo demo)
-# TensorFlow versión específica compatible
-tensorflow-cpu==2.18.0
+# Inferencia de modelos (REQUERIDO - no modo demo)
+tensorflow>=2.15.0,<2.19.0
 
-# Protobuf - versión específica compatible con TensorFlow 2.18.0 y MediaPipe
-protobuf==4.25.3
+# Protobuf compatible
+protobuf>=3.20.0,<5.0.0
 
 # Utilidades
 ndjson>=0.3.0

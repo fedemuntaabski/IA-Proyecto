@@ -16,11 +16,8 @@ except ImportError:
 REQUIRED_PACKAGES = {
     "opencv-python": ">=4.5.0",
     "numpy": ">=1.24.0",
+    "mediapipe": ">=0.10.0",  # REQUERIDO - detección de manos
 }
-
-# MediaPipe solo requerido para Python < 3.13
-if sys.version_info < (3, 13):
-    REQUIRED_PACKAGES["mediapipe"] = ">=0.10.0"
 
 OPTIONAL_PACKAGES = {
     "tensorflow": ">=2.17.0",  # Para inferencia real, compatible con protobuf
@@ -28,20 +25,23 @@ OPTIONAL_PACKAGES = {
 
 
 def check_python_version():
-    """Verifica que se está usando Python 3.10+"""
+    """Verifica que se está usando Python 3.10-3.12 (REQUERIDO para MediaPipe)"""
     if sys.version_info < (3, 10):
-        print(f"ERROR: Python 3.10+ requerido. Version actual: {sys.version}")
+        print(f"ERROR: Python 3.10+ requerido. Versión actual: {sys.version}")
+        return False
+    
+    if sys.version_info >= (3, 13):
+        print("ERROR CRÍTICO: Python 3.13+ NO es compatible con MediaPipe")
+        print("       Esta aplicación REQUIERE detección de manos con MediaPipe")
+        print("       Por favor instale Python 3.10, 3.11 o 3.12")
+        print("\nPara instalar Python 3.12:")
+        print("  1. Descargue desde https://www.python.org/downloads/")
+        print("  2. Instale Python 3.12.x")
+        print("  3. Ejecute: py -3.12 main.py")
         return False
     
     version_str = f"{sys.version_info.major}.{sys.version_info.minor}"
-    print(f"OK: Python {version_str} detectado")
-    
-    # Advertir sobre MediaPipe en Python 3.13+
-    if sys.version_info >= (3, 13):
-        print("AVISO: MediaPipe no es compatible con Python 3.13+")
-        print("       Para funcionalidad completa, use Python 3.10-3.12")
-        print("       La aplicación funcionará en modo limitado sin detección de manos")
-    
+    print(f"✓ Python {version_str} detectado (Compatible con MediaPipe)")
     return True
 
 
@@ -222,13 +222,11 @@ def main():
         else:
             print(f"  AVISO: {package_name} no disponible (modo demo)")
     
-    # Verificar MediaPipe específicamente
-    if sys.version_info >= (3, 13):
-        print("  AVISO: mediapipe no disponible en Python 3.13+ (detección de manos limitada)")
-    elif check_package("mediapipe"):
-        print("  OK: mediapipe disponible (detección de manos activada)")
+    # Verificar MediaPipe (CRÍTICO)
+    if check_package("mediapipe"):
+        print("  ✓ mediapipe disponible (detección de manos activada)")
     else:
-        print("  AVISO: mediapipe no disponible (detección de manos limitada)")
+        print("  ✗ ERROR: mediapipe no disponible - funcionalidad crítica")
     
     print("\n" + "=" * 70)
     print("[OK] Verificación completada correctamente")

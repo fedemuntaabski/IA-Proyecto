@@ -187,6 +187,52 @@ QPushButton#nextButton:pressed {
     background-color: #ff9000;
 }
 
+QPushButton#modeButton {
+    background-color: #ffa000;
+    color: #0a1428;
+    border: none;
+    border-radius: 10px;
+    padding: 15px;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+QPushButton#modeButton:hover {
+    background-color: #ffb000;
+}
+
+QPushButton#modeButton:pressed {
+    background-color: #ff9000;
+}
+
+QPushButton#modeButton:disabled {
+    background-color: #555555;
+    color: #888888;
+}
+
+/* ========== BOTÓN DE CAMBIO DE MODO ========== */
+QPushButton#modeButton {
+    background-color: #192540;
+    color: #00ffff;
+    border: 2px solid #00ffff;
+    border-radius: 10px;
+    padding: 15px 25px;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+QPushButton#modeButton:hover {
+    background-color: #2a3550;
+    border-color: #64ff64;
+    color: #64ff64;
+}
+
+QPushButton#modeButton:pressed {
+    background-color: #0a1428;
+    border-color: #ffa000;
+    color: #ffa000;
+}
+
 /* ========== SEPARADORES ========== */
 QFrame#separator {
     background-color: #ffa000;
