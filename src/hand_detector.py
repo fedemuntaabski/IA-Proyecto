@@ -214,24 +214,39 @@ class HandDetector:
         Retorna True si la mayoría de las puntas de los dedos (index, middle, ring, pinky)
         están plegadas respecto a sus articulaciones PIP.
         """
-        if not self.hand_landmarks or len(self.hand_landmarks) < 21:
+        try:
+            if not self.hand_landmarks or len(self.hand_landmarks) < 21:
+                return False
+
+            # Índices de landmarks
+            tips = [8, 12, 16, 20]
+            pips = [6, 10, 14, 18]
+
+            folded = 0
+            for tip_idx, pip_idx in zip(tips, pips):
+                try:
+                    if tip_idx >= len(self.hand_landmarks) or pip_idx >= len(self.hand_landmarks):
+                        continue
+                    
+                    tip = self.hand_landmarks[tip_idx]
+                    pip = self.hand_landmarks[pip_idx]
+                    
+                    # Validar que sean tuplas con al menos 2 elementos
+                    if not isinstance(tip, (tuple, list)) or not isinstance(pip, (tuple, list)):
+                        continue
+                    if len(tip) < 2 or len(pip) < 2:
+                        continue
+                    
+                    # Si la punta está más cerca del centro de la palma (mayor y en coordenada normalizada)
+                    # en la mayoría de las orientaciones tip.y > pip.y suele indicar dedo plegado
+                    if tip[1] > pip[1]:
+                        folded += 1
+                except (IndexError, TypeError, ValueError) as e:
+                    self.logger.debug(f"Error checking finger {tip_idx}: {e}")
+                    continue
+
+            # Considerar puño si 3 o más dedos plegados
+            return folded >= 3
+        except Exception as e:
+            self.logger.error(f"Unexpected error in is_fist(): {e}", exc_info=True)
             return False
-
-        # Índices de landmarks
-        tips = [8, 12, 16, 20]
-        pips = [6, 10, 14, 18]
-
-        folded = 0
-        for tip_idx, pip_idx in zip(tips, pips):
-            tip = self.hand_landmarks[tip_idx]
-            pip = self.hand_landmarks[pip_idx]
-            # Si la punta está más cerca del centro de la palma (mayor y en coordenada normalizada)
-            # en la mayoría de las orientaciones tip.y > pip.y suele indicar dedo plegado (dependiendo de la orientación de la mano)
-            try:
-                if tip[1] > pip[1]:
-                    folded += 1
-            except Exception:
-                continue
-
-        # Considerar puño si 3 o más dedos plegados
-        return folded >= 3

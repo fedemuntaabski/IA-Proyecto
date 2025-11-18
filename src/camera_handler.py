@@ -204,17 +204,23 @@ class CameraHandler(QThread):
                 # Get index finger position (normalized 0-1)
                 index_pos = self.hand_detector.get_index_finger_position()
                 
-                # Check if fist is closed
-                is_fist = self.hand_detector.is_fist() if hasattr(self.hand_detector, 'is_fist') else False
-                
                 if index_pos:
+                    # Check if fist is closed
+                    try:
+                        is_fist = self.hand_detector.is_fist() if hasattr(self.hand_detector, 'is_fist') else False
+                    except Exception as fist_err:
+                        self.logger.warning(f"Error checking fist: {fist_err}")
+                        is_fist = False
+                    
                     self._handle_drawing_point(index_pos, is_fist)
             else:
                 # No hand detected - reset state
                 self._reset_drawing_state()
         
         except Exception as e:
-            self.logger.warning(f"Hand detection error: {e}")
+            self.logger.error(f"Hand detection error: {e}", exc_info=True)
+            # Reset state on error to prevent stuck state
+            self._reset_drawing_state()
         
         return frame
     
@@ -226,33 +232,38 @@ class CameraHandler(QThread):
             pos: Normalized position (x, y) in range [0, 1]
             is_fist: Whether hand is closed (ends stroke)
         """
-        x, y = pos
-        
-        # Convert to pixel coordinates
-        px = int(x * self.width)
-        py = int(y * self.height)
-        current_point = (px, py)
-        
-        if is_fist:
-            # Fist closed - end current stroke
-            self.drawing_point.emit(x, y, False)
-            self._reset_drawing_state()
-        else:
-            # Drawing - emit point and draw line
-            self.drawing_point.emit(x, y, True)
+        try:
+            x, y = pos
             
-            if self.last_point is not None:
-                # Draw line on overlay
-                cv2.line(
-                    self.overlay,
-                    self.last_point,
-                    current_point,
-                    (0, 255, 0, 255),  # Green with full opacity
-                    8,
-                    cv2.LINE_AA
-                )
-            
-            self.last_point = current_point
+            if is_fist:
+                # Fist closed - end current stroke
+                # Emit (0, 0) to signal stroke end without confusion
+                self.drawing_point.emit(0.0, 0.0, False)
+                self._reset_drawing_state()
+                self.logger.debug("Fist detected - stroke ended")
+            else:
+                # Drawing - emit point and draw line
+                self.drawing_point.emit(x, y, True)
+                
+                # Convert to pixel coordinates
+                px = int(x * self.width)
+                py = int(y * self.height)
+                current_point = (px, py)
+                
+                if self.last_point is not None:
+                    # Draw line on overlay
+                    cv2.line(
+                        self.overlay,
+                        self.last_point,
+                        current_point,
+                        (0, 255, 0, 255),  # Green with full opacity
+                        8,
+                        cv2.LINE_AA
+                    )
+                
+                self.last_point = current_point
+        except Exception as e:
+            self.logger.error(f"Error handling drawing point: {e}", exc_info=True)
     
     def process_mouse_point(self, x: float, y: float, is_drawing: bool):
         """

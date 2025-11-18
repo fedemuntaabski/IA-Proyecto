@@ -8,7 +8,7 @@ import sys
 import logging
 from typing import Optional, List, Tuple
 from PyQt6.QtWidgets import QApplication
-from PyQt6.QtCore import pyqtSlot, QObject
+from PyQt6.QtCore import pyqtSlot, QObject, QMutex, Qt
 
 from camera_handler import CameraHandler
 from drawing_canvas import DrawingCanvas
@@ -58,6 +58,10 @@ class PictionaryApp(QObject):
         self.hand_detector = self._init_hand_detector()
         self.classifier = self._init_classifier()
         self.ui = PictionaryUIQt(UI_CONFIG)
+        
+        # Thread safety for model predictions
+        self.prediction_mutex = QMutex()
+        self.is_predicting = False
         
         # Connect components
         self._connect_components()
@@ -138,14 +142,14 @@ class PictionaryApp(QObject):
         if self.hand_detector:
             self.camera.set_hand_detector(self.hand_detector)
         
-        # Camera -> UI
-        self.camera.frame_ready.connect(self.ui.update_frame)
-        self.camera.hand_detected.connect(self.ui.update_hand_detected)
-        self.camera.error_occurred.connect(self._handle_error)
-        self.camera.camera_ready.connect(self._on_camera_ready)
+        # Camera -> UI (use QueuedConnection for thread safety)
+        self.camera.frame_ready.connect(self.ui.update_frame, Qt.ConnectionType.QueuedConnection)
+        self.camera.hand_detected.connect(self.ui.update_hand_detected, Qt.ConnectionType.QueuedConnection)
+        self.camera.error_occurred.connect(self._handle_error, Qt.ConnectionType.QueuedConnection)
+        self.camera.camera_ready.connect(self._on_camera_ready, Qt.ConnectionType.QueuedConnection)
         
-        # Camera -> Canvas (drawing points)
-        self.camera.drawing_point.connect(self._on_drawing_point)
+        # Camera -> Canvas (drawing points) - CRITICAL: QueuedConnection for thread safety
+        self.camera.drawing_point.connect(self._on_drawing_point, Qt.ConnectionType.QueuedConnection)
         
         # UI -> Camera (mouse input)
         self.ui.video_widget.mouse_draw.connect(self.camera.process_mouse_point)
@@ -171,32 +175,59 @@ class PictionaryApp(QObject):
             y: Normalized y coordinate
             is_drawing: Whether actively drawing
         """
-        # Add to canvas
-        self.canvas.add_point(x, y, is_drawing)
-        
-        # Predict if stroke ended and canvas has content
-        if not is_drawing and not self.canvas.is_empty():
-            self._predict_drawing()
+        try:
+            # Add to canvas
+            self.canvas.add_point(x, y, is_drawing)
+            
+            # Predict if stroke ended and canvas has content
+            if not is_drawing and not self.canvas.is_empty():
+                self._predict_drawing()
+        except Exception as e:
+            self.logger.error(f"Error handling drawing point: {e}", exc_info=True)
     
     def _predict_drawing(self):
-        """Run prediction on current canvas."""
-        if not self.classifier:
-            return
-        
-        # Get preprocessed image
-        img = self.canvas.get_preprocessed_for_model()
-        if img is None:
-            return
-        
+        """Run prediction on current canvas with thread safety."""
         try:
-            # Predict
-            label, confidence, top3 = self.classifier.predict(img)
+            if not self.classifier:
+                self.logger.warning("Classifier not available for prediction")
+                return
             
-            # Update UI
-            self.ui.update_prediction(label, confidence, top3)
+            # Prevent concurrent predictions (TensorFlow is NOT thread-safe!)
+            if not self.prediction_mutex.tryLock():
+                self.logger.warning("Prediction already in progress, skipping")
+                return
+            
+            try:
+                if self.is_predicting:
+                    self.logger.warning("Prediction flag is set, skipping")
+                    return
+                
+                self.is_predicting = True
+                
+                # Get preprocessed image
+                img = self.canvas.get_preprocessed_for_model()
+                if img is None:
+                    self.logger.debug("No valid image for prediction")
+                    return
+                
+                # Predict (with mutex locked)
+                label, confidence, top3 = self.classifier.predict(img)
+                
+                # Update UI
+                self.ui.update_prediction(label, confidence, top3)
+                self.logger.debug(f"Prediction: {label} ({confidence:.2f})")
+                
+            finally:
+                self.is_predicting = False
+                self.prediction_mutex.unlock()
             
         except Exception as e:
-            self.logger.error(f"Prediction error: {e}")
+            self.logger.error(f"Prediction error: {e}", exc_info=True)
+            # Don't crash, just log the error
+            # Ensure mutex is unlocked even on error
+            if self.prediction_mutex.tryLock():
+                self.prediction_mutex.unlock()
+            self.is_predicting = False
     
     @pyqtSlot()
     def _clear_all(self):

@@ -24,7 +24,7 @@ check_dependencies()
 
 
 def main():
-    """Main function - launches PyQt6 application with clean camera integration."""
+    """Main function - launches PyQt6 application with simplified drawing system."""
     parser = argparse.ArgumentParser(
         description="Pictionary Live - Draw in the air with AI",
         formatter_class=argparse.RawDescriptionHelpFormatter
@@ -40,8 +40,8 @@ def main():
     args = parser.parse_args()
 
     try:
-        # Import clean integration layer
-        from app_integration import PictionaryApp
+        # Import simplified application
+        from app import PictionaryApp
         
         # Create and run application
         app = PictionaryApp(
