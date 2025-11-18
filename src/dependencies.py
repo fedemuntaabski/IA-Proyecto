@@ -16,8 +16,11 @@ except ImportError:
 REQUIRED_PACKAGES = {
     "opencv-python": ">=4.5.0",
     "numpy": ">=1.24.0",
-    "mediapipe": ">=0.10.0",
 }
+
+# MediaPipe solo requerido para Python < 3.13
+if sys.version_info < (3, 13):
+    REQUIRED_PACKAGES["mediapipe"] = ">=0.10.0"
 
 OPTIONAL_PACKAGES = {
     "tensorflow": ">=2.17.0",  # Para inferencia real, compatible con protobuf
@@ -29,7 +32,16 @@ def check_python_version():
     if sys.version_info < (3, 10):
         print(f"ERROR: Python 3.10+ requerido. Version actual: {sys.version}")
         return False
-    print(f"OK: Python {sys.version_info.major}.{sys.version_info.minor} detectado")
+    
+    version_str = f"{sys.version_info.major}.{sys.version_info.minor}"
+    print(f"OK: Python {version_str} detectado")
+    
+    # Advertir sobre MediaPipe en Python 3.13+
+    if sys.version_info >= (3, 13):
+        print("AVISO: MediaPipe no es compatible con Python 3.13+")
+        print("       Para funcionalidad completa, use Python 3.10-3.12")
+        print("       La aplicación funcionará en modo limitado sin detección de manos")
+    
     return True
 
 
@@ -147,10 +159,21 @@ def validate_compatibility():
         print(f"  OK: protobuf {protobuf_version} instalado")
         
         # Verificar combinaciones críticas
-        if check_package("tensorflow") and check_package("mediapipe"):
+        tf_available = check_package("tensorflow")
+        mp_available = check_package("mediapipe")
+        
+        if tf_available and mp_available:
             tf_version = get_package_version("tensorflow")
             mp_version = get_package_version("mediapipe")
             print(f"  OK: TensorFlow {tf_version} + MediaPipe {mp_version} + protobuf {protobuf_version} disponibles")
+        elif tf_available and not mp_available:
+            tf_version = get_package_version("tensorflow")
+            print(f"  OK: TensorFlow {tf_version} + protobuf {protobuf_version} disponibles (MediaPipe no disponible)")
+        elif not tf_available and mp_available:
+            mp_version = get_package_version("mediapipe")
+            print(f"  OK: MediaPipe {mp_version} + protobuf {protobuf_version} disponibles (TensorFlow no disponible)")
+        else:
+            print(f"  AVISO: Solo protobuf {protobuf_version} disponible (modo limitado)")
         
         return True
     except Exception as e:
@@ -198,6 +221,14 @@ def main():
             print(f"  OK: {package_name} disponible (inferencia real activada)")
         else:
             print(f"  AVISO: {package_name} no disponible (modo demo)")
+    
+    # Verificar MediaPipe específicamente
+    if sys.version_info >= (3, 13):
+        print("  AVISO: mediapipe no disponible en Python 3.13+ (detección de manos limitada)")
+    elif check_package("mediapipe"):
+        print("  OK: mediapipe disponible (detección de manos activada)")
+    else:
+        print("  AVISO: mediapipe no disponible (detección de manos limitada)")
     
     print("\n" + "=" * 70)
     print("[OK] Verificación completada correctamente")

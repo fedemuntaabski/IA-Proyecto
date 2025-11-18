@@ -1,0 +1,259 @@
+/*
+styles_cyberpunk.qss - Estilos Cyberpunk para Pictionary Live
+
+Tema moderno con colores neón inspirado en la UI original.
+Compatible con PyQt6.
+*/
+
+/* ========== GLOBAL ========== */
+QMainWindow {
+    background-color: #0a1428;
+    color: #ebebeb;
+    font-family: "Segoe UI", Arial, sans-serif;
+}
+
+QWidget {
+    background-color: transparent;
+    color: #ebebeb;
+}
+
+/* ========== FRAMES Y CONTENEDORES ========== */
+QFrame#headerFrame {
+    background-color: #192540;
+    border-radius: 10px;
+    border: 2px solid #00ffff;
+    padding: 15px;
+}
+
+QFrame#cameraFrame {
+    background-color: #192540;
+    border-radius: 10px;
+    border: 2px solid #00ffff;
+    padding: 5px;
+}
+
+QFrame#infoFrame {
+    background-color: #192540;
+    border-radius: 10px;
+    border: 2px solid #ffa000;
+    padding: 15px;
+}
+
+QFrame#footer {
+    background-color: #192540;
+    border-radius: 8px;
+    padding: 10px;
+}
+
+/* ========== LABELS ========== */
+QLabel#titleLabel {
+    color: #00ffff;
+    font-size: 36px;
+    font-weight: bold;
+    background: transparent;
+}
+
+QLabel#scoreLabel {
+    color: #64ff64;
+    font-size: 14px;
+    font-weight: bold;
+    background: transparent;
+}
+
+QLabel#wordLabel {
+    color: #ffa000;
+    font-size: 48px;
+    font-weight: bold;
+    background: transparent;
+}
+
+QLabel#predictionLabel {
+    color: #ebebeb;
+    font-size: 24px;
+    font-weight: bold;
+    background: transparent;
+}
+
+QLabel#predictionLabelCorrect {
+    color: #64ff64;
+    font-size: 24px;
+    font-weight: bold;
+    background: transparent;
+}
+
+QLabel#confidenceLabel {
+    color: #b4b4be;
+    font-size: 16px;
+    background: transparent;
+}
+
+QLabel#stateLabel {
+    color: #b4b4be;
+    font-size: 14px;
+    background: transparent;
+}
+
+QLabel#predictionTitle {
+    color: #00ffff;
+    font-size: 18px;
+    font-weight: bold;
+    background: transparent;
+}
+
+QLabel#top3Item {
+    color: #b4b4be;
+    font-size: 14px;
+    background: transparent;
+}
+
+QLabel#statusLabel {
+    color: #b4b4be;
+    font-size: 13px;
+    background: transparent;
+}
+
+QLabel#instructions {
+    color: #b4b4be;
+    font-size: 12px;
+    background: transparent;
+}
+
+QLabel#mainTitle {
+    color: #00ffff;
+    font-size: 28px;
+    font-weight: bold;
+    background: transparent;
+}
+
+QLabel#stateIndicator {
+    color: #64ff64;
+    font-size: 14px;
+    font-weight: bold;
+    background: transparent;
+}
+
+/* ========== BOTONES ========== */
+QPushButton {
+    background-color: #192540;
+    color: #ebebeb;
+    border: 2px solid #00ffff;
+    border-radius: 8px;
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+QPushButton:hover {
+    background-color: #2a3550;
+    border-color: #00ffff;
+}
+
+QPushButton:pressed {
+    background-color: #0a1428;
+    border-color: #ffa000;
+}
+
+QPushButton#clearButton {
+    background-color: #ff6400;
+    color: #0a1428;
+    border: none;
+    border-radius: 8px;
+    padding: 12px 24px;
+    font-weight: bold;
+}
+
+QPushButton#clearButton:hover {
+    background-color: #ff7400;
+}
+
+QPushButton#clearButton:pressed {
+    background-color: #ff5400;
+}
+
+QPushButton#nextButton {
+    background-color: #ffa000;
+    color: #0a1428;
+    border: none;
+    border-radius: 8px;
+    padding: 12px 24px;
+    font-weight: bold;
+}
+
+QPushButton#nextButton:hover {
+    background-color: #ffb000;
+}
+
+QPushButton#nextButton:pressed {
+    background-color: #ff9000;
+}
+
+/* ========== SEPARADORES ========== */
+QFrame#separator {
+    background-color: #ffa000;
+    max-height: 2px;
+    min-height: 2px;
+    border: none;
+}
+
+/* ========== PREDICTION CARD ========== */
+PredictionCard {
+    background-color: #192540;
+    border-radius: 12px;
+    border: 2px solid #00ffff;
+}
+
+/* ========== STATUS BAR ========== */
+StatusBar {
+    background-color: #192540;
+    border-radius: 8px;
+    padding: 10px;
+}
+
+/* ========== SCROLLBARS (si se usan) ========== */
+QScrollBar:vertical {
+    background-color: #0a1428;
+    width: 12px;
+    border-radius: 6px;
+}
+
+QScrollBar::handle:vertical {
+    background-color: #00ffff;
+    border-radius: 6px;
+    min-height: 20px;
+}
+
+QScrollBar::handle:vertical:hover {
+    background-color: #ffa000;
+}
+
+QScrollBar:horizontal {
+    background-color: #0a1428;
+    height: 12px;
+    border-radius: 6px;
+}
+
+QScrollBar::handle:horizontal {
+    background-color: #00ffff;
+    border-radius: 6px;
+    min-width: 20px;
+}
+
+QScrollBar::handle:horizontal:hover {
+    background-color: #ffa000;
+}
+
+/* ========== TOOLTIPS ========== */
+QToolTip {
+    background-color: #192540;
+    color: #ebebeb;
+    border: 2px solid #00ffff;
+    border-radius: 5px;
+    padding: 5px;
+    font-size: 12px;
+}
+
+/* ========== ANIMACIONES Y EFECTOS ========== */
+* {
+    selection-background-color: #00ffff;
+    selection-color: #0a1428;
+}

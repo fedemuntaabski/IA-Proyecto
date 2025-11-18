@@ -1,0 +1,457 @@
+"""
+ui_pyqt.py - Interfaz de usuario moderna con PyQt6
+
+UI principal para Pictionary Live usando PyQt6 con diseño cyberpunk moderno.
+Mantiene toda la funcionalidad de la UI original con overlays mejorados.
+"""
+
+import time
+import numpy as np
+from typing import List, Tuple, Optional, Dict, Any
+from PyQt6.QtWidgets import (
+    QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel, 
+    QPushButton, QFrame, QGraphicsDropShadowEffect
+)
+from PyQt6.QtCore import Qt, QTimer, pyqtSignal, QSize
+from PyQt6.QtGui import QImage, QPixmap, QPainter, QPen, QColor, QFont, QPainterPath
+import cv2
+
+
+# Paleta Cyberpunk (compatible con la original)
+COLORS = {
+    "bg_panel": QColor(10, 20, 40),
+    "bg_card": QColor(25, 45, 60),
+    "accent": QColor(255, 255, 0),
+    "accent2": QColor(255, 160, 0),
+    "success": QColor(100, 255, 100),
+    "text_main": QColor(235, 235, 235),
+    "text_dim": QColor(180, 180, 190),
+    "warning": QColor(0, 100, 255),
+}
+
+
+class VideoWidget(QLabel):
+    """Widget personalizado para mostrar video con overlays."""
+    
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setMinimumSize(640, 480)
+        self.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.setStyleSheet("background-color: #0a1428; border-radius: 10px;")
+        self.current_frame = None
+        self.stroke_points = []
+        
+    def set_frame(self, frame: np.ndarray):
+        """Actualiza el frame mostrado."""
+        self.current_frame = frame
+        self.update()
+    
+    def set_stroke_points(self, points: List[Tuple[float, float]]):
+        """Establece los puntos del trazo actual."""
+        self.stroke_points = points
+        self.update()
+    
+    def paintEvent(self, event):
+        """Dibuja el frame y overlays."""
+        super().paintEvent(event)
+        
+        if self.current_frame is None:
+            return
+        
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+        
+        # Convertir frame a QPixmap
+        h, w, ch = self.current_frame.shape
+        bytes_per_line = ch * w
+        rgb_frame = cv2.cvtColor(self.current_frame, cv2.COLOR_BGR2RGB)
+        q_image = QImage(rgb_frame.data, w, h, bytes_per_line, QImage.Format.Format_RGB888)
+        
+        # Escalar para ajustar al widget
+        scaled_pixmap = QPixmap.fromImage(q_image).scaled(
+            self.size(), 
+            Qt.AspectRatioMode.KeepAspectRatio,
+            Qt.TransformationMode.SmoothTransformation
+        )
+        
+        # Centrar y dibujar frame
+        x_offset = (self.width() - scaled_pixmap.width()) // 2
+        y_offset = (self.height() - scaled_pixmap.height()) // 2
+        painter.drawPixmap(x_offset, y_offset, scaled_pixmap)
+        
+        # Dibujar trazos si existen
+        if self.stroke_points and len(self.stroke_points) >= 2:
+            self._draw_strokes(painter, x_offset, y_offset, scaled_pixmap.width(), scaled_pixmap.height())
+    
+    def _draw_strokes(self, painter: QPainter, x_offset: int, y_offset: int, w: int, h: int):
+        """Dibuja los trazos del usuario."""
+        # Líneas principales (gruesas)
+        pen_main = QPen(COLORS["accent"], 4, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap)
+        painter.setPen(pen_main)
+        
+        path = QPainterPath()
+        first_point = True
+        for px, py in self.stroke_points:
+            x = int(px * w) + x_offset
+            y = int(py * h) + y_offset
+            if first_point:
+                path.moveTo(x, y)
+                first_point = False
+            else:
+                path.lineTo(x, y)
+        
+        painter.drawPath(path)
+        
+        # Glow sutil
+        pen_glow = QPen(COLORS["accent2"], 2, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap)
+        painter.setPen(pen_glow)
+        painter.drawPath(path)
+        
+        # Punto final
+        if self.stroke_points:
+            fx, fy = self.stroke_points[-1]
+            fx = int(fx * w) + x_offset
+            fy = int(fy * h) + y_offset
+            painter.setBrush(COLORS["accent"])
+            painter.setPen(Qt.PenStyle.NoPen)
+            painter.drawEllipse(fx - 5, fy - 5, 10, 10)
+
+
+class PredictionCard(QFrame):
+    """Tarjeta moderna para mostrar predicciones."""
+    
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setMinimumWidth(300)
+        self.setMaximumWidth(400)
+        self._setup_ui()
+        
+    def _setup_ui(self):
+        """Configura la UI de la tarjeta."""
+        layout = QVBoxLayout()
+        layout.setContentsMargins(20, 20, 20, 20)
+        layout.setSpacing(15)
+        
+        # Título
+        title = QLabel("PREDICCIÓN")
+        title.setObjectName("predictionTitle")
+        title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(title)
+        
+        # Separador
+        separator = QFrame()
+        separator.setFrameShape(QFrame.Shape.HLine)
+        separator.setObjectName("separator")
+        layout.addWidget(separator)
+        
+        # Etiqueta principal
+        self.label_text = QLabel("--")
+        self.label_text.setObjectName("predictionLabel")
+        self.label_text.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.label_text.setWordWrap(True)
+        layout.addWidget(self.label_text)
+        
+        # Confianza
+        self.confidence_text = QLabel("")
+        self.confidence_text.setObjectName("confidenceText")
+        self.confidence_text.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(self.confidence_text)
+        
+        # Top-3 (placeholder, se llenará dinámicamente)
+        self.top3_container = QWidget()
+        self.top3_layout = QVBoxLayout()
+        self.top3_container.setLayout(self.top3_layout)
+        layout.addWidget(self.top3_container)
+        
+        layout.addStretch()
+        self.setLayout(layout)
+        
+        # Efecto de sombra/glow
+        shadow = QGraphicsDropShadowEffect()
+        shadow.setBlurRadius(20)
+        shadow.setColor(QColor(0, 255, 255, 100))
+        shadow.setOffset(0, 0)
+        self.setGraphicsEffect(shadow)
+    
+    def update_prediction(self, label: str, confidence: float, top3: List[Tuple[str, float]]):
+        """Actualiza la predicción mostrada."""
+        self.label_text.setText(label.upper())
+        self.confidence_text.setText(f"{confidence*100:.1f}%")
+        
+        # Limpiar top3 anterior
+        while self.top3_layout.count():
+            item = self.top3_layout.takeAt(0)
+            if item.widget():
+                item.widget().deleteLater()
+        
+        # Agregar nuevos top3
+        for lbl, conf in top3[:3]:
+            item_label = QLabel(f"• {lbl}: {conf*100:.1f}%")
+            item_label.setObjectName("top3Item")
+            self.top3_layout.addWidget(item_label)
+    
+    def clear(self):
+        """Limpia la predicción."""
+        self.label_text.setText("--")
+        self.confidence_text.setText("")
+        while self.top3_layout.count():
+            item = self.top3_layout.takeAt(0)
+            if item.widget():
+                item.widget().deleteLater()
+
+
+class StatusBar(QFrame):
+    """Barra de estado moderna con información del sistema."""
+    
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self._setup_ui()
+        
+    def _setup_ui(self):
+        """Configura la UI de la barra de estado."""
+        layout = QHBoxLayout()
+        layout.setContentsMargins(15, 10, 15, 10)
+        
+        # FPS
+        self.fps_label = QLabel("FPS: 0.0")
+        self.fps_label.setObjectName("statusLabel")
+        layout.addWidget(self.fps_label)
+        
+        layout.addStretch()
+        
+        # Estado de mano
+        self.hand_label = QLabel("Mano: NO")
+        self.hand_label.setObjectName("statusLabel")
+        layout.addWidget(self.hand_label)
+        
+        layout.addStretch()
+        
+        # Puntos de trazo
+        self.stroke_label = QLabel("Puntos: 0")
+        self.stroke_label.setObjectName("statusLabel")
+        layout.addWidget(self.stroke_label)
+        
+        self.setLayout(layout)
+    
+    def update_fps(self, fps: float):
+        """Actualiza FPS."""
+        self.fps_label.setText(f"FPS: {fps:.1f}")
+    
+    def update_hand(self, detected: bool):
+        """Actualiza estado de mano."""
+        self.hand_label.setText(f"Mano: {'SÍ' if detected else 'NO'}")
+        if detected:
+            self.hand_label.setStyleSheet("color: #64ff64;")
+        else:
+            self.hand_label.setStyleSheet("color: #b4b4be;")
+    
+    def update_stroke(self, points: int):
+        """Actualiza puntos de trazo."""
+        self.stroke_label.setText(f"Puntos: {points}")
+
+
+class PictionaryUIQt(QMainWindow):
+    """Ventana principal de Pictionary Live con PyQt6."""
+    
+    # Señales para comunicación thread-safe
+    frame_ready = pyqtSignal(np.ndarray)
+    prediction_ready = pyqtSignal(str, float, list)
+    
+    def __init__(self, config: Dict[str, Any]):
+        super().__init__()
+        self.config = config
+        self.frame_count = 0
+        self.last_time = time.time()
+        self.fps = 0.0
+        self.last_prediction = None
+        
+        self._setup_window()
+        self._setup_ui()
+        self._connect_signals()
+        self._load_styles()
+        
+        # Timer para FPS (cada 500ms)
+        self.fps_timer = QTimer()
+        self.fps_timer.timeout.connect(self._update_fps_display)
+        self.fps_timer.start(500)
+    
+    def _setup_window(self):
+        """Configura la ventana principal."""
+        self.setWindowTitle("PICTIONARY LIVE - UI Moderna")
+        self.setMinimumSize(1280, 720)
+        
+        # Aplicar color de fondo
+        self.setStyleSheet(f"background-color: {COLORS['bg_panel'].name()};")
+    
+    def _setup_ui(self):
+        """Configura la interfaz de usuario."""
+        central_widget = QWidget()
+        self.setCentralWidget(central_widget)
+        
+        # Layout principal
+        main_layout = QVBoxLayout()
+        main_layout.setContentsMargins(10, 10, 10, 10)
+        main_layout.setSpacing(10)
+        
+        # Header
+        header = self._create_header()
+        main_layout.addWidget(header)
+        
+        # Contenedor de video y predicción
+        content_layout = QHBoxLayout()
+        content_layout.setSpacing(15)
+        
+        # Video
+        self.video_widget = VideoWidget()
+        content_layout.addWidget(self.video_widget, stretch=3)
+        
+        # Panel lateral (predicción + controles)
+        side_panel = self._create_side_panel()
+        content_layout.addWidget(side_panel, stretch=1)
+        
+        main_layout.addLayout(content_layout)
+        
+        # Barra de estado
+        self.status_bar = StatusBar()
+        main_layout.addWidget(self.status_bar)
+        
+        # Footer con controles
+        footer = self._create_footer()
+        main_layout.addWidget(footer)
+        
+        central_widget.setLayout(main_layout)
+    
+    def _create_header(self) -> QWidget:
+        """Crea el encabezado."""
+        header = QFrame()
+        header.setObjectName("header")
+        header.setMinimumHeight(80)
+        
+        layout = QHBoxLayout()
+        layout.setContentsMargins(20, 15, 20, 15)
+        
+        # Título
+        title = QLabel("🎮 PICTIONARY LIVE")
+        title.setObjectName("mainTitle")
+        font = QFont("Segoe UI", 28, QFont.Weight.Bold)
+        title.setFont(font)
+        layout.addWidget(title)
+        
+        layout.addStretch()
+        
+        # Indicador de estado
+        self.state_indicator = QLabel("🟢 LISTO")
+        self.state_indicator.setObjectName("stateIndicator")
+        font = QFont("Segoe UI", 14, QFont.Weight.Bold)
+        self.state_indicator.setFont(font)
+        layout.addWidget(self.state_indicator)
+        
+        header.setLayout(layout)
+        return header
+    
+    def _create_side_panel(self) -> QWidget:
+        """Crea el panel lateral con predicción y controles."""
+        panel = QFrame()
+        panel.setObjectName("sidePanel")
+        
+        layout = QVBoxLayout()
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(15)
+        
+        # Tarjeta de predicción
+        self.prediction_card = PredictionCard()
+        layout.addWidget(self.prediction_card)
+        
+        layout.addStretch()
+        
+        panel.setLayout(layout)
+        return panel
+    
+    def _create_footer(self) -> QWidget:
+        """Crea el footer con instrucciones."""
+        footer = QFrame()
+        footer.setObjectName("footer")
+        
+        layout = QHBoxLayout()
+        layout.setContentsMargins(15, 10, 15, 10)
+        
+        instructions = QLabel("Q = Salir  |  S = Guardar  |  ENTER = Predecir  |  C = Guardar ejemplo")
+        instructions.setObjectName("instructions")
+        instructions.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(instructions)
+        
+        footer.setLayout(layout)
+        return footer
+    
+    def _connect_signals(self):
+        """Conecta las señales."""
+        self.frame_ready.connect(self._on_frame_ready)
+        self.prediction_ready.connect(self._on_prediction_ready)
+    
+    def _load_styles(self):
+        """Carga los estilos QSS optimizados."""
+        styles = """
+            #mainTitle { color: #00ffff; background: transparent; }
+            #stateIndicator { color: #64ff64; background: transparent; }
+            #header { background-color: #192540; border-radius: 10px; }
+            #sidePanel { background-color: transparent; }
+            PredictionCard { background-color: #192540; border-radius: 12px; border: 2px solid #00ffff; }
+            #predictionTitle { color: #00ffff; font-size: 18px; font-weight: bold; }
+            #predictionLabel { color: #64ff64; font-size: 32px; font-weight: bold; }
+            #confidenceText { color: #ebebeb; font-size: 20px; }
+            #top3Item { color: #b4b4be; font-size: 14px; }
+            #separator { background-color: #ffa000; max-height: 2px; }
+            StatusBar { background-color: #192540; border-radius: 8px; }
+            #statusLabel { color: #b4b4be; font-size: 13px; }
+            #footer { background-color: #192540; border-radius: 8px; }
+            #instructions { color: #b4b4be; font-size: 12px; }
+        """
+        self.setStyleSheet(self.styleSheet() + styles)
+    
+    def _update_fps_display(self):
+        """Actualiza el display de FPS."""
+        current_time = time.time()
+        if current_time - self.last_time >= 0.5:
+            elapsed = max(current_time - self.last_time, 1e-3)
+            self.fps = self.frame_count / elapsed
+            self.frame_count = 0
+            self.last_time = current_time
+            self.status_bar.update_fps(self.fps)
+    
+    def _on_frame_ready(self, frame: np.ndarray):
+        """Maneja frames nuevos (thread-safe)."""
+        self.video_widget.set_frame(frame)
+        self.frame_count += 1
+    
+    def _on_prediction_ready(self, label: str, confidence: float, top3: list):
+        """Maneja predicciones nuevas (thread-safe)."""
+        self.last_prediction = (label, confidence, top3)
+        self.prediction_card.update_prediction(label, confidence, top3)
+    
+    def update_frame(self, frame: np.ndarray):
+        """Actualiza el frame (llamar desde thread de video)."""
+        self.frame_ready.emit(frame)
+    
+    def update_prediction(self, label: str, confidence: float, top3: List[Tuple[str, float]]):
+        """Actualiza la predicción (llamar desde thread de procesamiento)."""
+        self.prediction_ready.emit(label, confidence, top3)
+    
+    def update_hand_detected(self, detected: bool):
+        """Actualiza el estado de detección de mano."""
+        self.status_bar.update_hand(detected)
+    
+    def update_stroke_points(self, points: List[Tuple[float, float]]):
+        """Actualiza los puntos del trazo."""
+        self.status_bar.update_stroke(len(points))
+        self.video_widget.set_stroke_points(points)
+    
+    def set_state(self, state: str, color: str = "#64ff64"):
+        """Establece el estado mostrado."""
+        self.state_indicator.setText(state)
+        self.state_indicator.setStyleSheet(f"color: {color};")
+    
+    def keyPressEvent(self, event):
+        """Maneja eventos de teclado."""
+        # Las teclas se manejarán en el controlador principal (app.py)
+        # pero podemos emitir señales si es necesario
+        super().keyPressEvent(event)

@@ -2,28 +2,54 @@
 
 Aplicación Python interactiva para jugar **Pictionary en vivo** usando detección de gestos con las manos y clasificación de sketches con IA.
 
+## 🎉 Nueva Interfaz PyQt6 Moderna
+
+La aplicación ahora cuenta con una **interfaz gráfica profesional con PyQt6**:
+- Diseño moderno y responsivo
+- Mejor rendimiento (30-60 FPS)
+- Tema cyberpunk personalizable
+- Widgets interactivos avanzados
+
+Ver [README_PYQT6.md](README_PYQT6.md) para documentación completa.
+
 ## Características
 
-- 🎮 **Modo de Juego Interactivo**: Interfaz Tkinter con predicción de palabras aleatorias
+- 🎮 **UI PyQt6 Moderna**: Interfaz profesional con alto rendimiento
 - 🎥 Captura en tiempo real desde cámara web
 - ✋ Detección de manos con MediaPipe
 - ✍️ Acumulación de trazos en el aire
 - 🤖 Clasificación de sketches con TensorFlow/Keras
-- 📊 Visualización de predicciones en pantalla
+- 📊 Visualización de predicciones en tiempo real
 - 🎨 Múltiples temas (Cyberpunk, Light, Dark)
 - 🏆 Sistema de puntuación y rachas
 
+## 🚀 Inicio Rápido
+
+```bash
+# Iniciar la aplicación (instala dependencias automáticamente)
+python main.py
+
+# Con opciones personalizadas
+python main.py --camera 1 --theme dark --debug
+```
+
 ## Requisitos
 
-- Python 3.8+
+- Python 3.10, 3.11 o 3.12
+- PyQt6 >= 6.5.0 (se instala automáticamente)
 - Dependencias: `opencv-python`, `tensorflow`, `mediapipe`, `numpy`
-- Carpeta `IA/` con `model_info.json`, modelo `.keras` o `.h5`, y datos opcionales
+- Carpeta `IA/` con `model_info.json`, modelo `.keras` o `.h5`
 
 ## Instalación
 
-1. Clona o descarga el repositorio
-2. Crea entorno virtual: `python -m venv venv` y activa
-3. Instala dependencias: `pip install -r src/requirements.txt`
+```bash
+# Clonar el repositorio
+git clone https://github.com/fedemuntaabski/IA-Proyecto.git
+cd IA-Proyecto
+
+# Las dependencias se instalan automáticamente en la primera ejecución
+python main.py
+```
 
 ## Configuración
 

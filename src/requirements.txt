@@ -26,11 +26,10 @@ pyyaml>=6.0.0
 pytest>=7.0.0
 pytest-mock>=3.10.0
 
-# Modo Juego con Tkinter
-pillow>=9.0.0  # Para ImageTk (visualización de frames en Tkinter)
-# Nota: Tkinter viene incluido en Python en la mayoría de distribuciones
-# En Linux: sudo apt-get install python3-tk
-# En macOS: brew install python-tk
+# Modo Juego con PyQt6 (UI Moderna)
+pillow>=9.0.0  # Para procesamiento de imágenes
+PyQt6>=6.5.0  # Framework UI moderno para interfaces de escritorio
+PyQt6-Qt6>=6.5.0  # Bindings de Qt6
 
 # NOTAS DE INSTALACIÓN:
 # 1. Usar Python 3.10, 3.11 o 3.12
