@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-main.py - Punto de entrada principal para Pictionary Live
+main.py - Entry point for Pictionary Live
 
-Lanza la aplicación con interfaz PyQt6 moderna.
+Clean architecture with camera integration for hand and mouse modes.
 """
 
 import os
-# Reducir logs de TensorFlow y deshabilitar GPU
+# Reduce TensorFlow logs and disable GPU
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 
@@ -15,39 +15,36 @@ import sys
 import argparse
 from pathlib import Path
 
-# Añadir src al path
+# Add src to path
 sys.path.insert(0, str(Path(__file__).parent / "src"))
 
-# Verificar e instalar dependencias (silencioso)
+# Verify and install dependencies (silent)
 from dependencies import main as check_dependencies
 check_dependencies()
 
 
 def main():
-    """Función principal - lanza directamente PyQt6."""
+    """Main function - launches PyQt6 application with clean camera integration."""
     parser = argparse.ArgumentParser(
-        description="Pictionary Live - Dibuja en el aire con IA",
+        description="Pictionary Live - Draw in the air with AI",
         formatter_class=argparse.RawDescriptionHelpFormatter
     )
 
     parser.add_argument("--ia-dir", type=str, default="./IA", 
-                       help="Ruta a la carpeta con el modelo")
+                       help="Path to model directory")
     parser.add_argument("--camera", type=int, default=0, 
-                       help="ID de cámara (default: 0)")
+                       help="Camera ID (default: 0)")
     parser.add_argument("--debug", action="store_true", 
-                       help="Habilitar logging detallado")
-    parser.add_argument("--theme", type=str, 
-                       choices=["cyberpunk", "light", "dark"], 
-                       default="cyberpunk",
-                       help="Tema de colores (default: cyberpunk)")
+                       help="Enable debug logging")
 
     args = parser.parse_args()
 
     try:
-        from app_pyqt import PictionaryLiveQt
+        # Import clean integration layer
+        from app_integration import PictionaryApp
         
-        # Crear y ejecutar aplicación PyQt6
-        app = PictionaryLiveQt(
+        # Create and run application
+        app = PictionaryApp(
             ia_dir=args.ia_dir,
             camera_id=args.camera,
             debug=args.debug
@@ -57,13 +54,13 @@ def main():
         
     except ImportError as e:
         print(f"Error: {e}", file=sys.stderr)
-        print("Instala PyQt6: pip install PyQt6>=6.5.0")
+        print("Install dependencies: pip install -r src/requirements.txt")
         sys.exit(1)
     except KeyboardInterrupt:
-        print("\nAplicación finalizada")
+        print("\nApplication terminated")
         sys.exit(0)
     except Exception as e:
-        print(f"Error inesperado: {e}", file=sys.stderr)
+        print(f"Unexpected error: {e}", file=sys.stderr)
         if args.debug:
             import traceback
             traceback.print_exc()

@@ -1,19 +1,19 @@
 # Dependencias principales para Pictionary Live
 # REQUERIDO: Python 3.10, 3.11 o 3.12 (MediaPipe no funciona en 3.13+)
-# Versiones específicas compatibles para evitar conflictos
+# Versiones especificas compatibles para evitar conflictos
 
-# Procesamiento de imágenes y video
+# Procesamiento de imagenes y video
 numpy>=1.24.0,<2.0.0
 opencv-python>=4.5.0,<5.0.0
 
-# Detección de manos (CRÍTICO para la aplicación)
+# Deteccion de manos (CRITICO para la aplicacion)
 mediapipe>=0.10.0,<0.11.0
 
 # Inferencia de modelos (REQUERIDO - no modo demo)
 tensorflow>=2.15.0,<2.19.0
 
 # Protobuf compatible
-protobuf>=3.20.0,<5.0.0
+protobuf>=3.20.0,<7.0.0
 
 # Utilidades
 ndjson>=0.3.0
@@ -25,15 +25,15 @@ pytest>=7.0.0
 pytest-mock>=3.10.0
 
 # Modo Juego con PyQt6 (UI Moderna)
-pillow>=9.0.0  # Para procesamiento de imágenes
+pillow>=9.0.0  # Para procesamiento de imagenes
 PyQt6>=6.5.0  # Framework UI moderno para interfaces de escritorio
 PyQt6-Qt6>=6.5.0  # Bindings de Qt6
 
-# NOTAS DE INSTALACIÓN:
+# NOTAS DE INSTALACION:
 # 1. Usar Python 3.10, 3.11 o 3.12
-# 2. En Windows, podría necesitar Visual C++ redistributable
-# 3. El archivo main.py instala dependencias automáticamente
-# 4. MediaPipe está optimizado para CPU (mejor performance que GPU en este caso)
-# 5. Versiones específicas para evitar conflictos con protobuf (4.25.3 funciona con TF 2.18.0 y MediaPipe)
-# 6. Para el modo juego, asegurar que Tkinter esté instalado (generalmente viene con Python)
+# 2. En Windows, podria necesitar Visual C++ redistributable
+# 3. El archivo main.py instala dependencias automaticamente
+# 4. MediaPipe esta optimizado para CPU (mejor performance que GPU en este caso)
+# 5. Versiones especificas para evitar conflictos con protobuf (4.25.3 funciona con TF 2.18.0 y MediaPipe)
+# 6. Para el modo juego, asegurar que Tkinter este instalado (generalmente viene con Python)
 
