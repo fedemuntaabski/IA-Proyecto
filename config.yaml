@@ -25,20 +25,17 @@ camera:
   flip_horizontal: true
 
 # ============================================================================
-# CONFIGURACIÓN DE TRAZO
+# CONFIGURACIÓN DE TRAZO (NO USADA - La implementación actual usa simple_drawing.py)
 # ============================================================================
-stroke:
-  pause_threshold_ms: 400
-  velocity_threshold: 0.005
-  min_points: 8
-  max_stroke_age_ms: 15000
-  min_stroke_length: 0.05  # Longitud mínima normalizada para considerar válido
-  # Requerir N frames consecutivos de baja velocidad antes de cerrar el trazo
-  low_vel_consecutive: 4
-  # Permite agregar puntos con desplazamiento pequeño aún si la velocidad medida es baja
-  allow_low_velocity_append: true
-  # Umbral mínimo de desplazamiento (coordenadas normalizadas) para contar como movimiento
-  min_movement_delta: 0.002
+# stroke:
+#   pause_threshold_ms: 400
+#   velocity_threshold: 0.005
+#   min_points: 8
+#   max_stroke_age_ms: 15000
+#   min_stroke_length: 0.05
+#   low_vel_consecutive: 4
+#   allow_low_velocity_append: true
+#   min_movement_delta: 0.002
 
 # ============================================================================
 # CONFIGURACIÓN DE MODELO
@@ -52,18 +49,17 @@ model:
   use_ensemble: 1
 
 # ============================================================================
-# CONFIGURACIÓN DE PREPROCESAMIENTO
+# CONFIGURACIÓN DE PREPROCESAMIENTO (NO USADA - La implementación actual usa simple_drawing.py)
 # ============================================================================
-preprocessing:
-  scale_factor: 0.8  # Factor de escala para ocupar el canvas (0.8 = 80%)
-  min_stroke_length: 0.05  # Longitud mínima normalizada del trazo
-  min_points: 5  # Mínimo número de puntos para considerar válido
-  blur_kernel: 3  # Tamaño del kernel de blur (3x3)
-  blur_sigma: 0.5  # Sigma para Gaussian blur
-  thickness_base: 2  # Grosor base de línea
-  thickness_max: 4  # Grosor máximo variable
-  # Aplicar thinning/esqueletización para normalizar el grosor de la línea
-  skeletonize: false
+# preprocessing:
+#   scale_factor: 0.8
+#   min_stroke_length: 0.05
+#   min_points: 5
+#   blur_kernel: 3
+#   blur_sigma: 0.5
+#   thickness_base: 2
+#   thickness_max: 4
+#   skeletonize: false
 
 # ============================================================================
 # CONFIGURACIÓN DE UI

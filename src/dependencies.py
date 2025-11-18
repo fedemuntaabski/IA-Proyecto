@@ -41,7 +41,7 @@ def check_python_version():
         return False
     
     version_str = f"{sys.version_info.major}.{sys.version_info.minor}"
-    print(f"✓ Python {version_str} detectado (Compatible con MediaPipe)")
+    print(f"OK: Python {version_str} detectado (Compatible con MediaPipe)")
     return True
 
 
@@ -224,9 +224,9 @@ def main():
     
     # Verificar MediaPipe (CRÍTICO)
     if check_package("mediapipe"):
-        print("  ✓ mediapipe disponible (detección de manos activada)")
+        print("  OK: mediapipe disponible (deteccion de manos activada)")
     else:
-        print("  ✗ ERROR: mediapipe no disponible - funcionalidad crítica")
+        print("  ERROR: mediapipe no disponible - funcionalidad critica")
     
     print("\n" + "=" * 70)
     print("[OK] Verificación completada correctamente")
