@@ -73,7 +73,9 @@ class VideoThread(QThread):
         self.cap = cv2.VideoCapture(self.camera_id)
         
         if not self.cap.isOpened():
-            self.error_occurred.emit("No se pudo abrir la cámara")
+            self.error_occurred.emit("No se pudo abrir la cámara - ejecutando sin video")
+            self.logger.warning("Cámara no disponible - continuando sin video")
+            # No salir, continuar sin video
             return
         
         # Configurar cámara
@@ -95,6 +97,11 @@ class VideoThread(QThread):
             return
         
         while self.running:
+            # Si no hay cámara, mostrar mensaje y continuar con UI
+            if not self.cap or not self.cap.isOpened():
+                time.sleep(1)
+                continue
+                
             ret, frame = self.cap.read()
             if not ret:
                 time.sleep(0.1)
@@ -316,7 +323,7 @@ class VideoThread(QThread):
     def process_mouse_input(self, x: float, y: float, is_drawing: bool):
         """Procesa entrada del mouse para dibujo."""
         if not is_drawing:
-            # Fin de trazo - SOLO guardar, NO predecir
+            # Fin de trazo - guardar y predecir
             self.last_index_pos = None
             self.last_canvas_pos = None
             stroke_accumulator = self.components.get("stroke_accumulator")
@@ -326,6 +333,10 @@ class VideoThread(QThread):
                     self.drawing_strokes.append(stroke)
                 
                 stroke_accumulator.reset()
+            
+            # Predecir si hay suficiente contenido dibujado
+            if np.sum(self.drawing_canvas < 250) > 30:
+                self.predict_drawing()
             return
         
         # Calcular posiciones en frame (640x480) y en canvas (256x256)
@@ -448,6 +459,13 @@ class PictionaryLiveQt:
                 demo_mode=False,  # FORZAR modelo real
                 config=MODEL_CONFIG
             )
+            # FORZAR carga del modelo
+            if components["classifier"]:
+                self.logger.info("Cargando modelo de ML...")
+                if components["classifier"].load_model():
+                    self.logger.info("Modelo de ML cargado exitosamente")
+                else:
+                    self.logger.warning("No se pudo cargar el modelo de ML")
         except Exception as e:
             self.logger.error(f"Error inicializando SketchClassifier: {e}")
             # Intentar de nuevo sin demo mode
@@ -457,6 +475,9 @@ class PictionaryLiveQt:
                     demo_mode=False,
                     config=MODEL_CONFIG
                 )
+                # FORZAR carga del modelo
+                if components["classifier"]:
+                    components["classifier"].load_model()
             except:
                 raise RuntimeError(f"No se pudo cargar el modelo: {e}")
         
@@ -482,7 +503,7 @@ class PictionaryLiveQt:
         self.ui.mode_switched.connect(self.video_thread.switch_mode)
         
         # Conectar selección de nuevo objetivo
-        self.ui.select_new_target = self._select_random_target
+        self.ui.set_select_new_target_func(self._select_random_target)
         
         # Conectar señal del mouse para modo fallback
         self.ui.video_widget.mouse_draw.connect(self.video_thread.process_mouse_input)
@@ -499,21 +520,48 @@ class PictionaryLiveQt:
         if self.debug:
             self.logger.info("Iniciando aplicación PyQt6")
         
-        # Mostrar UI en modo mano (predeterminado)
-        self.ui.show()
-        self.ui.set_state("✋ MODO MANO", "#64ff64")
-        self.ui.current_mode = "hand"
-        self.ui.mode_button.setText("🖱️ CAMBIAR A MOUSE")
-        self.ui.instructions.setText("Q = Salir  |  C = Limpiar  |  S = Siguiente  |  R = Reiniciar")
-        
-        # Iniciar thread de video
-        self.video_thread.start()
-        
-        # Ejecutar aplicación
-        exit_code = self.app.exec()
+        try:
+            # Mostrar UI en modo mano (predeterminado)
+            if self.debug:
+                self.logger.info("Mostrando UI...")
+            self.ui.show()
+            self.ui.set_state("✋ MODO MANO", "#64ff64")
+            self.ui.current_mode = "hand"
+            self.ui.mode_button.setText("🖱️ CAMBIAR A MOUSE")
+            self.ui.instructions.setText("Q = Salir  |  C = Limpiar  |  S = Siguiente  |  R = Reiniciar")
+            
+            # Asegurar que el objetivo esté establecido
+            self._select_random_target()
+            
+            # Iniciar timer del juego
+            if self.debug:
+                self.logger.info("Iniciando timer del juego...")
+            self.ui.reset_timer()
+            
+            # Iniciar thread de video
+            if self.debug:
+                self.logger.info("Iniciando thread de video...")
+            self.video_thread.start()
+            
+            # Ejecutar aplicación
+            if self.debug:
+                self.logger.info("Ejecutando aplicación Qt...")
+            exit_code = self.app.exec()
+            
+        except Exception as e:
+            self.logger.error(f"Error en ejecución de la aplicación: {e}")
+            if self.debug:
+                import traceback
+                traceback.print_exc()
+            exit_code = 1
         
         # Limpiar
-        self.video_thread.stop()
+        try:
+            if self.debug:
+                self.logger.info("Deteniendo thread de video...")
+            self.video_thread.stop()
+        except:
+            pass
         
         if self.debug:
             self.logger.info("Aplicación cerrada")

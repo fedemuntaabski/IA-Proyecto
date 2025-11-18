@@ -204,16 +204,36 @@ class GameCard(QFrame):
         self.target_label.setObjectName("targetLabel")
         self.target_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.target_label.setWordWrap(True)
-        self.target_label.setStyleSheet("color: #ffff00; font-size: 32px; font-weight: bold; padding: 15px;")
+        self.target_label.setMinimumHeight(60)
+        self.target_label.setStyleSheet("""
+            QLabel#targetLabel {
+                color: #ffff00;
+                font-size: 28px;
+                font-weight: bold;
+                background-color: transparent;
+                padding: 15px;
+            }
+        """)
         layout.addWidget(self.target_label)
         
         # Timer
         timer_container = QFrame()
         timer_container.setObjectName("timerContainer")
+        timer_container.setStyleSheet("""
+            QFrame#timerContainer {
+                background-color: #0a1428;
+                border-radius: 8px;
+                border: 2px solid #00ffff;
+                padding: 10px;
+                margin: 5px 0px;
+            }
+        """)
         timer_layout = QVBoxLayout()
+        timer_layout.setContentsMargins(10, 10, 10, 10)
         timer_title = QLabel("⏱️ TIEMPO")
         timer_title.setObjectName("timerTitle")
         timer_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        timer_title.setStyleSheet("color: #00ffff; font-size: 14px; font-weight: bold;")
         timer_layout.addWidget(timer_title)
         
         self.timer_label = QLabel("02:00")
@@ -227,10 +247,21 @@ class GameCard(QFrame):
         # Puntaje
         score_container = QFrame()
         score_container.setObjectName("scoreContainer")
+        score_container.setStyleSheet("""
+            QFrame#scoreContainer {
+                background-color: #0a1428;
+                border-radius: 8px;
+                border: 2px solid #64ff64;
+                padding: 10px;
+                margin: 5px 0px;
+            }
+        """)
         score_layout = QVBoxLayout()
+        score_layout.setContentsMargins(10, 10, 10, 10)
         score_title = QLabel("🏆 PUNTAJE")
         score_title.setObjectName("scoreTitle")
         score_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        score_title.setStyleSheet("color: #64ff64; font-size: 14px; font-weight: bold;")
         score_layout.addWidget(score_title)
         
         self.score_label = QLabel("0")
@@ -263,11 +294,11 @@ class GameCard(QFrame):
         
         # Cambiar color según tiempo restante
         if seconds <= 30:
-            self.timer_label.setStyleSheet("color: #ff6400; font-size: 36px; font-weight: bold;")
+            self.timer_label.setStyleSheet("color: #ff6400;")
         elif seconds <= 60:
-            self.timer_label.setStyleSheet("color: #ffa000; font-size: 36px; font-weight: bold;")
+            self.timer_label.setStyleSheet("color: #ffa000;")
         else:
-            self.timer_label.setStyleSheet("color: #00ffff; font-size: 36px; font-weight: bold;")
+            self.timer_label.setStyleSheet("color: #00ffff;")
     
     def update_score(self, score: int):
         """Actualiza el puntaje."""
@@ -442,15 +473,19 @@ class PictionaryUIQt(QMainWindow):
         self.fps_timer.timeout.connect(self._update_fps_display)
         self.fps_timer.start(500)
         
-        # Timer del juego (cada 1 segundo)
+        # Timer del juego (cada 1 segundo) - INICIAR después de mostrar UI
         self.game_timer = QTimer()
         self.game_timer.timeout.connect(self._update_game_timer)
-        self.game_timer.start(1000)
     
     def _setup_window(self):
         """Configura la ventana principal."""
-        self.setWindowTitle("PICTIONARY LIVE - UI Moderna")
-        self.setMinimumSize(1280, 720)
+        window_name = self.config.get('window_name', 'Pictionary Live - UI Moderna')
+        window_width = self.config.get('window_width', 1280)
+        window_height = self.config.get('window_height', 720)
+        
+        self.setWindowTitle(window_name)
+        self.setMinimumSize(window_width, window_height)
+        self.resize(window_width, window_height)
         
         # Aplicar color de fondo
         self.setStyleSheet(f"background-color: {COLORS['bg_panel'].name()};")
@@ -696,8 +731,13 @@ class PictionaryUIQt(QMainWindow):
     
     def select_new_target(self):
         """Selecciona un nuevo objetivo aleatorio."""
-        # Esta función será conectada desde app_pyqt.py con la lista de labels
-        pass
+        # Esta función será asignada desde app_pyqt.py con la lista de labels
+        if hasattr(self, '_select_new_target_func') and self._select_new_target_func:
+            self._select_new_target_func()
+    
+    def set_select_new_target_func(self, func):
+        """Asigna la función para seleccionar nuevo objetivo."""
+        self._select_new_target_func = func
     
     def set_target(self, target: str):
         """Establece el objetivo actual."""

@@ -63,7 +63,7 @@ def main():
         print("\nAplicación finalizada")
         sys.exit(0)
     except Exception as e:
-        print(f"Error: {e}", file=sys.stderr)
+        print(f"Error inesperado: {e}", file=sys.stderr)
         if args.debug:
             import traceback
             traceback.print_exc()
