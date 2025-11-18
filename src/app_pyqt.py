@@ -49,6 +49,13 @@ class VideoThread(QThread):
         self.drawing_strokes = []
         self.hand_in_fist = False
         
+        # Canvas de dibujo (256x256 blanco para acumular trazos negros de 8px)
+        self.drawing_canvas = np.ones((256, 256), dtype=np.uint8) * 255
+        self.last_index_pos = None
+        
+        # Modo de entrada (hand/mouse)
+        self.use_mouse_input = False
+        
     def run(self):
         """Loop principal de captura de video."""
         self.running = True
@@ -68,6 +75,12 @@ class VideoThread(QThread):
         preprocessor = self.components.get("preprocessor")
         classifier = self.components.get("classifier")
         
+        # Verificar si el detector de manos está disponible
+        if hand_detector is None or not hasattr(hand_detector, 'hands_detector') or hand_detector.hands_detector is None:
+            self.use_mouse_input = True
+            self.logger.warning("MediaPipe no disponible - usando entrada de mouse")
+            # No emitir error, es un comportamiento esperado en Python 3.13+
+        
         while self.running:
             ret, frame = self.cap.read()
             if not ret:
@@ -77,12 +90,13 @@ class VideoThread(QThread):
             # Voltear frame (espejo)
             frame = cv2.flip(frame, 1)
             
-            # Detectar mano
-            hand_landmarks = None
-            hand_velocity = 0.0
-            is_fist = False
-            
-            if hand_detector:
+            # Modo con detección de manos
+            if not self.use_mouse_input and hand_detector:
+                # Detectar mano
+                hand_landmarks = None
+                hand_velocity = 0.0
+                is_fist = False
+                
                 try:
                     detection = hand_detector.detect(frame)
                     hand_landmarks = detection["hand_landmarks"]
@@ -98,38 +112,50 @@ class VideoThread(QThread):
                     self.hand_detected.emit(hand_landmarks is not None)
                 except Exception as e:
                     self.logger.warning(f"Error en detección: {e}")
-            
-            # Procesar trazo
-            if hand_landmarks and stroke_accumulator:
-                try:
-                    index_pos = hand_detector.get_index_finger_position()
-                    if index_pos:
-                        if is_fist:
-                            if stroke_accumulator.stroke_active:
-                                stroke = stroke_accumulator.get_stroke()
-                                if stroke:
-                                    self.drawing_strokes.append(stroke)
-                                stroke_accumulator.reset()
-                            self.hand_in_fist = True
-                        else:
-                            if self.hand_in_fist:
-                                self.hand_in_fist = False
-                            
-                            stroke_complete = stroke_accumulator.add_point(
-                                index_pos[0], index_pos[1], hand_velocity
-                            )
-                            
-                            if stroke_complete:
-                                stroke = stroke_accumulator.get_stroke()
-                                if stroke:
-                                    self.drawing_strokes.append(stroke)
-                                stroke_accumulator.reset()
-                except Exception as e:
-                    self.logger.warning(f"Error procesando trazo: {e}")
-            
-            # Emitir trazo actual
-            if stroke_accumulator:
-                self.stroke_updated.emit(stroke_accumulator.points)
+                
+                # Procesar trazo
+                if hand_landmarks and stroke_accumulator:
+                    try:
+                        index_pos = hand_detector.get_index_finger_position()
+                        if index_pos:
+                            if is_fist:
+                                # Puño cerrado: finalizar trazo
+                                if stroke_accumulator.stroke_active:
+                                    stroke = stroke_accumulator.get_stroke()
+                                    if stroke:
+                                        self.drawing_strokes.append(stroke)
+                                    stroke_accumulator.reset()
+                                self.hand_in_fist = True
+                                self.last_index_pos = None
+                            else:
+                                if self.hand_in_fist:
+                                    self.hand_in_fist = False
+                                
+                                # Dibujar línea negra de 8px en el canvas
+                                px = int(index_pos[0] * 255)
+                                py = int(index_pos[1] * 255)
+                                
+                                if self.last_index_pos is not None:
+                                    cv2.line(self.drawing_canvas, self.last_index_pos, (px, py), 0, 8, cv2.LINE_AA)
+                                
+                                self.last_index_pos = (px, py)
+                                
+                                stroke_complete = stroke_accumulator.add_point(
+                                    index_pos[0], index_pos[1], hand_velocity
+                                )
+                                
+                                if stroke_complete:
+                                    stroke = stroke_accumulator.get_stroke()
+                                    if stroke:
+                                        self.drawing_strokes.append(stroke)
+                                    stroke_accumulator.reset()
+                                    self.last_index_pos = None
+                    except Exception as e:
+                        self.logger.warning(f"Error procesando trazo: {e}")
+                
+                # Emitir trazo actual
+                if stroke_accumulator:
+                    self.stroke_updated.emit(stroke_accumulator.points)
             
             # Emitir frame
             self.frame_ready.emit(frame)
@@ -145,44 +171,105 @@ class VideoThread(QThread):
         self.running = False
         self.wait()
     
+    @pyqtSlot()
     def predict_drawing(self):
-        """Realiza predicción del dibujo actual."""
-        preprocessor = self.components.get("preprocessor")
+        """Realiza predicción del dibujo actual usando el canvas."""
         classifier = self.components.get("classifier")
-        stroke_accumulator = self.components.get("stroke_accumulator")
         
-        if not (preprocessor and classifier):
+        if not classifier:
             return
         
         try:
-            # Añadir trazo activo
-            if stroke_accumulator:
-                stroke = stroke_accumulator.get_stroke()
-                if stroke:
-                    self.drawing_strokes.append(stroke)
-                    stroke_accumulator.reset()
+            # Verificar que hay contenido dibujado
+            if np.sum(self.drawing_canvas < 250) == 0:
+                self.logger.warning("Canvas vacío, nada que predecir")
+                return
             
-            # Combinar trazos
-            combined = []
-            for s in self.drawing_strokes:
-                combined.extend(s)
+            # Preprocesar el canvas para el modelo
+            # El canvas ya tiene líneas negras (0) sobre fondo blanco (255)
+            # Necesitamos convertirlo al formato del modelo
             
-            if combined:
-                drawing = preprocessor.preprocess(combined)
-                label, conf, top3 = classifier.predict(drawing)
-                self.prediction_ready.emit(label, conf, top3)
-                
-                # Limpiar
-                self.drawing_strokes = []
+            # 1. Calcular bounding box del contenido
+            binary = cv2.threshold(self.drawing_canvas, 127, 255, cv2.THRESH_BINARY_INV)[1]
+            coords = cv2.findNonZero(binary)
+            
+            if coords is None:
+                self.logger.warning("No se encontró contenido en el canvas")
+                return
+            
+            x, y, w, h = cv2.boundingRect(coords)
+            
+            # 2. Agregar padding del 12%
+            max_dim = max(w, h)
+            pad = int(max_dim * 0.12)
+            x = max(0, x - pad)
+            y = max(0, y - pad)
+            w = min(256 - x, w + 2 * pad)
+            h = min(256 - y, h + 2 * pad)
+            
+            # 3. Recortar región de interés
+            roi = self.drawing_canvas[y:y+h, x:x+w]
+            
+            # 4. Centrar en canvas cuadrado
+            max_dim = max(w, h)
+            square_canvas = np.ones((max_dim, max_dim), dtype=np.uint8) * 255
+            offset_x = (max_dim - w) // 2
+            offset_y = (max_dim - h) // 2
+            square_canvas[offset_y:offset_y+h, offset_x:offset_x+w] = roi
+            
+            # 5. Redimensionar a 28x28
+            resized = cv2.resize(square_canvas, (28, 28), interpolation=cv2.INTER_LANCZOS4)
+            
+            # 6. Normalizar e invertir (blanco sobre negro)
+            normalized = resized.astype(np.float32) / 255.0
+            normalized = 1.0 - normalized  # Invertir
+            normalized = np.expand_dims(normalized, axis=-1)  # Agregar canal
+            
+            # Predecir
+            label, conf, top3 = classifier.predict(normalized)
+            self.prediction_ready.emit(label, conf, top3)
+            
         except Exception as e:
             self.logger.error(f"Error en predicción: {e}")
     
+    @pyqtSlot()
     def clear_strokes(self):
-        """Limpia los trazos."""
+        """Limpia los trazos y el canvas."""
         self.drawing_strokes = []
+        self.drawing_canvas = np.ones((256, 256), dtype=np.uint8) * 255  # Resetear a blanco
+        self.last_index_pos = None
         stroke_accumulator = self.components.get("stroke_accumulator")
         if stroke_accumulator:
             stroke_accumulator.reset()
+    
+    @pyqtSlot(float, float, bool)
+    def process_mouse_input(self, x: float, y: float, is_drawing: bool):
+        """Procesa entrada del mouse para dibujo."""
+        if not is_drawing:
+            # Fin de trazo
+            self.last_index_pos = None
+            stroke_accumulator = self.components.get("stroke_accumulator")
+            if stroke_accumulator and stroke_accumulator.stroke_active:
+                stroke = stroke_accumulator.get_stroke()
+                if stroke:
+                    self.drawing_strokes.append(stroke)
+                stroke_accumulator.reset()
+            return
+        
+        # Dibujar en el canvas
+        px = int(x * 255)
+        py = int(y * 255)
+        
+        if self.last_index_pos is not None:
+            cv2.line(self.drawing_canvas, self.last_index_pos, (px, py), 0, 8, cv2.LINE_AA)
+        
+        self.last_index_pos = (px, py)
+        
+        # Agregar punto al acumulador
+        stroke_accumulator = self.components.get("stroke_accumulator")
+        if stroke_accumulator:
+            stroke_accumulator.add_point(x, y, 0.05)  # Velocidad constante para mouse
+            self.stroke_updated.emit(stroke_accumulator.points)
 
 
 class PictionaryLiveQt:
@@ -270,11 +357,20 @@ class PictionaryLiveQt:
         self.video_thread.stroke_updated.connect(self.ui.update_stroke_points)
         self.video_thread.prediction_ready.connect(self.ui.update_prediction)
         self.video_thread.error_occurred.connect(self._handle_error)
+        
+        # Conectar señales de UI a acciones del thread
+        self.ui.predict_requested.connect(self.video_thread.predict_drawing)
+        self.ui.clear_requested.connect(self.video_thread.clear_strokes)
+        
+        # Conectar señal del mouse para modo fallback
+        self.ui.video_widget.mouse_draw.connect(self.video_thread.process_mouse_input)
     
     def _handle_error(self, error: str):
         """Maneja errores del thread."""
         self.logger.error(f"Error del thread: {error}")
-        self.ui.set_state(f"❌ Error: {error}", "#ff6400")
+        # Solo actualizar estado en la UI si es un error real
+        if "Error" in error or "error" in error:
+            self.ui.set_state(f"Error: {error}", "#ff6400")
     
     def run(self):
         """Ejecuta la aplicación."""
@@ -283,6 +379,12 @@ class PictionaryLiveQt:
         
         # Mostrar UI
         self.ui.show()
+        
+        # Verificar modo de entrada y actualizar UI
+        if not self.components.get("hand_detector") or \
+           not hasattr(self.components["hand_detector"], 'hands_detector') or \
+           self.components["hand_detector"].hands_detector is None:
+            self.ui.set_state("🖊️ MODO MOUSE", "#ffa000")
         
         # Iniciar thread de video
         self.video_thread.start()

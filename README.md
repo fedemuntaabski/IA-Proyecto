@@ -35,10 +35,14 @@ python main.py --camera 1 --theme dark --debug
 
 ## Requisitos
 
-- Python 3.10, 3.11 o 3.12
+- Python 3.10, 3.11 o 3.12 (recomendado para detección de manos)
+- Python 3.13+ soportado con **modo mouse** (MediaPipe no compatible)
 - PyQt6 >= 6.5.0 (se instala automáticamente)
-- Dependencias: `opencv-python`, `tensorflow`, `mediapipe`, `numpy`
+- Dependencias: `opencv-python`, `tensorflow`, `numpy`
+- Opcional: `mediapipe` (solo Python 3.10-3.12 para detección de manos)
 - Carpeta `IA/` con `model_info.json`, modelo `.keras` o `.h5`
+
+**Nota**: Si usas Python 3.13+, la aplicación funcionará en **modo mouse** donde dibujas con el ratón en lugar de usar gestos de mano.
 
 ## Instalación
 
@@ -123,9 +127,20 @@ python main.py --debug           # Logging detallado
 ```
 
 ### Controles del juego
+
+**Con detección de manos** (Python 3.10-3.12 + MediaPipe):
 - Dibuja en el aire con el dedo índice
+- Cierra el puño para finalizar un trazo
 - `Enter` — Predecir dibujo
-- `Escape` — Salir del juego
+- `Espacio` — Limpiar canvas
+- `Q` — Salir
+
+**Modo Mouse** (Python 3.13+ o sin MediaPipe):
+- Click izquierdo y arrastra para dibujar
+- Suelta el botón para finalizar un trazo
+- `Enter` — Predecir dibujo
+- `Espacio` — Limpiar canvas
+- `Q` — Salir
 
 ## Troubleshooting
 

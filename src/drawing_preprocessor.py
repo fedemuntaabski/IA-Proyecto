@@ -26,7 +26,7 @@ class DrawingPreprocessor:
         # Configuración optimizada pero fiel al entrenamiento
         config = config or {}
         self.intermediate_size = 256  # Exacto como entrenamiento
-        self.line_width = config.get('line_width', 6)  # Más grueso para mejor captura
+        self.line_width = config.get('line_width', 8)  # 8px como el canvas de dibujo
         self.min_points_per_stroke = 2
         self.padding_percent = config.get('padding_percent', 0.12)
         self.use_antialiasing = config.get('use_antialiasing', True)

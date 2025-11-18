@@ -196,14 +196,14 @@ QFrame#separator {
 }
 
 /* ========== PREDICTION CARD ========== */
-PredictionCard {
+QFrame#predictionCard {
     background-color: #192540;
     border-radius: 12px;
     border: 2px solid #00ffff;
 }
 
 /* ========== STATUS BAR ========== */
-StatusBar {
+QFrame#statusBar {
     background-color: #192540;
     border-radius: 8px;
     padding: 10px;

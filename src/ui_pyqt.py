@@ -7,6 +7,7 @@ Mantiene toda la funcionalidad de la UI original con overlays mejorados.
 
 import time
 import numpy as np
+from pathlib import Path
 from typing import List, Tuple, Optional, Dict, Any
 from PyQt6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel, 
@@ -33,6 +34,9 @@ COLORS = {
 class VideoWidget(QLabel):
     """Widget personalizado para mostrar video con overlays."""
     
+    # Señal para emitir puntos del mouse
+    mouse_draw = pyqtSignal(float, float, bool)  # (x, y, is_drawing)
+    
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setMinimumSize(640, 480)
@@ -40,6 +44,8 @@ class VideoWidget(QLabel):
         self.setStyleSheet("background-color: #0a1428; border-radius: 10px;")
         self.current_frame = None
         self.stroke_points = []
+        self.mouse_drawing = False
+        self.setMouseTracking(True)  # Habilitar tracking del mouse
         
     def set_frame(self, frame: np.ndarray):
         """Actualiza el frame mostrado."""
@@ -50,6 +56,59 @@ class VideoWidget(QLabel):
         """Establece los puntos del trazo actual."""
         self.stroke_points = points
         self.update()
+    
+    def mousePressEvent(self, event):
+        """Maneja el evento de presionar el mouse."""
+        if event.button() == Qt.MouseButton.LeftButton:
+            self.mouse_drawing = True
+            self._emit_mouse_position(event.position())
+        super().mousePressEvent(event)
+    
+    def mouseMoveEvent(self, event):
+        """Maneja el movimiento del mouse."""
+        if self.mouse_drawing:
+            self._emit_mouse_position(event.position())
+        super().mouseMoveEvent(event)
+    
+    def mouseReleaseEvent(self, event):
+        """Maneja el evento de soltar el mouse."""
+        if event.button() == Qt.MouseButton.LeftButton:
+            self.mouse_drawing = False
+            self.mouse_draw.emit(0.0, 0.0, False)  # Señal de fin de trazo
+        super().mouseReleaseEvent(event)
+    
+    def _emit_mouse_position(self, pos):
+        """Emite la posición del mouse normalizada."""
+        # Calcular posición en el frame (normalizada 0-1)
+        if self.current_frame is None:
+            return
+        
+        # Obtener dimensiones del frame escalado
+        h, w = self.current_frame.shape[:2]
+        aspect = w / h
+        widget_aspect = self.width() / self.height()
+        
+        if widget_aspect > aspect:
+            # Widget más ancho que el frame
+            scaled_h = self.height()
+            scaled_w = int(scaled_h * aspect)
+        else:
+            # Widget más alto que el frame
+            scaled_w = self.width()
+            scaled_h = int(scaled_w / aspect)
+        
+        x_offset = (self.width() - scaled_w) // 2
+        y_offset = (self.height() - scaled_h) // 2
+        
+        # Convertir a coordenadas del frame
+        x = pos.x() - x_offset
+        y = pos.y() - y_offset
+        
+        # Normalizar a [0, 1]
+        if 0 <= x <= scaled_w and 0 <= y <= scaled_h:
+            norm_x = x / scaled_w
+            norm_y = y / scaled_h
+            self.mouse_draw.emit(norm_x, norm_y, True)
     
     def paintEvent(self, event):
         """Dibuja el frame y overlays."""
@@ -84,9 +143,9 @@ class VideoWidget(QLabel):
             self._draw_strokes(painter, x_offset, y_offset, scaled_pixmap.width(), scaled_pixmap.height())
     
     def _draw_strokes(self, painter: QPainter, x_offset: int, y_offset: int, w: int, h: int):
-        """Dibuja los trazos del usuario."""
-        # Líneas principales (gruesas)
-        pen_main = QPen(COLORS["accent"], 4, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap)
+        """Dibuja los trazos del usuario como línea negra de 8px."""
+        # Línea negra de 8px (como se dibuja en el canvas)
+        pen_main = QPen(QColor(0, 0, 0), 8, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap)
         painter.setPen(pen_main)
         
         path = QPainterPath()
@@ -102,19 +161,14 @@ class VideoWidget(QLabel):
         
         painter.drawPath(path)
         
-        # Glow sutil
-        pen_glow = QPen(COLORS["accent2"], 2, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap)
-        painter.setPen(pen_glow)
-        painter.drawPath(path)
-        
-        # Punto final
+        # Punto final en rojo para indicar posición actual del dedo
         if self.stroke_points:
             fx, fy = self.stroke_points[-1]
             fx = int(fx * w) + x_offset
             fy = int(fy * h) + y_offset
-            painter.setBrush(COLORS["accent"])
+            painter.setBrush(QColor(255, 0, 0))
             painter.setPen(Qt.PenStyle.NoPen)
-            painter.drawEllipse(fx - 5, fy - 5, 10, 10)
+            painter.drawEllipse(fx - 6, fy - 6, 12, 12)
 
 
 class PredictionCard(QFrame):
@@ -122,6 +176,7 @@ class PredictionCard(QFrame):
     
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.setObjectName("predictionCard")
         self.setMinimumWidth(300)
         self.setMaximumWidth(400)
         self._setup_ui()
@@ -205,6 +260,7 @@ class StatusBar(QFrame):
     
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.setObjectName("statusBar")
         self._setup_ui()
         
     def _setup_ui(self):
@@ -256,6 +312,8 @@ class PictionaryUIQt(QMainWindow):
     # Señales para comunicación thread-safe
     frame_ready = pyqtSignal(np.ndarray)
     prediction_ready = pyqtSignal(str, float, list)
+    predict_requested = pyqtSignal()  # Nueva señal para solicitar predicción
+    clear_requested = pyqtSignal()    # Nueva señal para solicitar limpieza
     
     def __init__(self, config: Dict[str, Any]):
         super().__init__()
@@ -375,10 +433,10 @@ class PictionaryUIQt(QMainWindow):
         layout = QHBoxLayout()
         layout.setContentsMargins(15, 10, 15, 10)
         
-        instructions = QLabel("Q = Salir  |  S = Guardar  |  ENTER = Predecir  |  C = Guardar ejemplo")
-        instructions.setObjectName("instructions")
-        instructions.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        layout.addWidget(instructions)
+        self.instructions = QLabel("Q = Salir  |  ESPACIO = Limpiar  |  ENTER = Predecir  |  Click y arrastra para dibujar")
+        self.instructions.setObjectName("instructions")
+        self.instructions.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(self.instructions)
         
         footer.setLayout(layout)
         return footer
@@ -390,23 +448,34 @@ class PictionaryUIQt(QMainWindow):
     
     def _load_styles(self):
         """Carga los estilos QSS optimizados."""
-        styles = """
-            #mainTitle { color: #00ffff; background: transparent; }
-            #stateIndicator { color: #64ff64; background: transparent; }
-            #header { background-color: #192540; border-radius: 10px; }
-            #sidePanel { background-color: transparent; }
-            PredictionCard { background-color: #192540; border-radius: 12px; border: 2px solid #00ffff; }
-            #predictionTitle { color: #00ffff; font-size: 18px; font-weight: bold; }
-            #predictionLabel { color: #64ff64; font-size: 32px; font-weight: bold; }
-            #confidenceText { color: #ebebeb; font-size: 20px; }
-            #top3Item { color: #b4b4be; font-size: 14px; }
-            #separator { background-color: #ffa000; max-height: 2px; }
-            StatusBar { background-color: #192540; border-radius: 8px; }
-            #statusLabel { color: #b4b4be; font-size: 13px; }
-            #footer { background-color: #192540; border-radius: 8px; }
-            #instructions { color: #b4b4be; font-size: 12px; }
-        """
-        self.setStyleSheet(self.styleSheet() + styles)
+        try:
+            # Intentar cargar el archivo QSS externo
+            qss_file = Path(__file__).parent / "styles_cyberpunk.qss"
+            if qss_file.exists():
+                with open(qss_file, 'r', encoding='utf-8') as f:
+                    styles = f.read()
+                self.setStyleSheet(styles)
+            else:
+                # Fallback a estilos inline
+                styles = """
+                    QMainWindow { background-color: #0a1428; color: #ebebeb; }
+                    #mainTitle { color: #00ffff; background: transparent; }
+                    #stateIndicator { color: #64ff64; background: transparent; }
+                    #header { background-color: #192540; border-radius: 10px; }
+                    #sidePanel { background-color: transparent; }
+                    #predictionTitle { color: #00ffff; font-size: 18px; font-weight: bold; }
+                    #predictionLabel { color: #64ff64; font-size: 32px; font-weight: bold; }
+                    #confidenceText { color: #ebebeb; font-size: 20px; }
+                    #top3Item { color: #b4b4be; font-size: 14px; }
+                    #separator { background-color: #ffa000; max-height: 2px; }
+                    #statusLabel { color: #b4b4be; font-size: 13px; }
+                    #footer { background-color: #192540; border-radius: 8px; }
+                    #instructions { color: #b4b4be; font-size: 12px; }
+                """
+                self.setStyleSheet(styles)
+        except Exception as e:
+            # Si falla la carga de estilos, continuar sin ellos
+            print(f"Warning: No se pudieron cargar los estilos: {e}")
     
     def _update_fps_display(self):
         """Actualiza el display de FPS."""
@@ -452,6 +521,17 @@ class PictionaryUIQt(QMainWindow):
     
     def keyPressEvent(self, event):
         """Maneja eventos de teclado."""
-        # Las teclas se manejarán en el controlador principal (app.py)
-        # pero podemos emitir señales si es necesario
-        super().keyPressEvent(event)
+        key = event.key()
+        
+        if key == Qt.Key.Key_Q:
+            # Salir
+            self.close()
+        elif key == Qt.Key.Key_Return or key == Qt.Key.Key_Enter:
+            # Predecir
+            self.predict_requested.emit()
+        elif key == Qt.Key.Key_Space:
+            # Limpiar
+            self.clear_requested.emit()
+            self.prediction_card.clear()
+        else:
+            super().keyPressEvent(event)
