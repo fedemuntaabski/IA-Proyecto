@@ -11,9 +11,9 @@ from pathlib import Path
 from typing import List, Tuple, Optional, Dict, Any
 from PyQt6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel, 
-    QPushButton, QFrame, QGraphicsDropShadowEffect, QMessageBox
+    QPushButton, QFrame, QGraphicsDropShadowEffect, QMessageBox, QSizePolicy
 )
-from PyQt6.QtCore import Qt, QTimer, pyqtSignal, QSize
+from PyQt6.QtCore import Qt, QTimer, pyqtSignal, QSize, QEvent
 from PyQt6.QtGui import QImage, QPixmap, QPainter, QPen, QColor, QFont, QPainterPath, QScreen
 import cv2
 
@@ -910,6 +910,38 @@ class PictionaryUIQt(QMainWindow):
         else:
             # Exit the application
             self.close()
+    
+    def keyPressEvent(self, event):
+        """Handle keyboard shortcuts."""
+        # Don't process keys if game is paused
+        if self.game_paused:
+            return
+            
+        key = event.key()
+        
+        if key == Qt.Key.Key_Return or key == Qt.Key.Key_Enter:
+            # Enter - Make prediction
+            self.predict_requested.emit()
+        elif key == Qt.Key.Key_Space or key == Qt.Key.Key_C:
+            # Space/C - Clear canvas
+            self.clear_requested.emit()
+        elif key == Qt.Key.Key_Q:
+            # Q - Quit application
+            self.close()
+        elif key == Qt.Key.Key_Period:
+            # Period (.) - Toggle debug guide
+            self.video_widget.show_debug_guide = not self.video_widget.show_debug_guide
+            self.video_widget.update()  # Force repaint
+        elif key == Qt.Key.Key_S:
+            # S - Next target
+            self.select_new_target()
+        elif key == Qt.Key.Key_R:
+            # R - Reset game
+            self.reset_timer()
+            self.reset_score()
+            self.clear_requested.emit()
+            self.prediction_card.clear()
+            self.select_new_target()
     
     def eventFilter(self, obj, event):
         """Handle window resize events to ensure critical elements are visible."""
