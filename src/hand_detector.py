@@ -61,6 +61,17 @@ class HandDetector:
             self.logger.warning(f"Error inicializando MediaPipe: {e}")
             self.hands_detector = None
     
+    def _extract_confidence(self, handedness) -> float:
+        """Extract confidence score from handedness object."""
+        try:
+            if hasattr(handedness, 'score'):
+                return handedness.score
+            elif hasattr(handedness, 'classification'):
+                return handedness.classification.score
+            return 0.8  # Default confidence
+        except (AttributeError, IndexError):
+            return 0.8
+    
     def detect(self, frame: np.ndarray) -> Dict[str, Any]:
         """
         Detecta manos en el frame.
@@ -109,20 +120,9 @@ class HandDetector:
                     for lm in raw_landmarks
                 ]
                 
-                # Usar confianza de detección
+                # Extract hand confidence
                 if results.multi_handedness and len(results.multi_handedness) > 0:
-                    try:
-                        # Intentar acceso directo (versiones antiguas)
-                        if hasattr(results.multi_handedness[0], 'score'):
-                            hand_confidence = results.multi_handedness[0].score
-                        # Intentar acceso anidado (versiones nuevas)
-                        elif hasattr(results.multi_handedness[0], 'classification'):
-                            hand_confidence = results.multi_handedness[0].classification.score
-                        else:
-                            hand_confidence = 0.0
-                    except (AttributeError, IndexError) as e:
-                        self.logger.warning(f"No se pudo obtener confianza de mano: {e}")
-                        hand_confidence = 0.0
+                    hand_confidence = self._extract_confidence(results.multi_handedness[0])
                 
                 # Calcular velocidad del dedo índice (punto 8)
                 if len(hand_landmarks) > 8:
@@ -207,46 +207,33 @@ class HandDetector:
         if self.hand_landmarks and len(self.hand_landmarks) > 8:
             return self.hand_landmarks[8]
         return None
+    
+    def _is_valid_landmark(self, landmark, min_length: int = 2) -> bool:
+        """Check if landmark is valid tuple/list with required length."""
+        return isinstance(landmark, (tuple, list)) and len(landmark) >= min_length
 
     def is_fist(self) -> bool:
         """
-        Heurística simple para detectar puño cerrado usando landmarks.
-        Retorna True si la mayoría de las puntas de los dedos (index, middle, ring, pinky)
-        están plegadas respecto a sus articulaciones PIP.
+        Detect closed fist using landmark positions.
+        Returns True if 3+ fingers are folded.
         """
-        try:
-            if not self.hand_landmarks or len(self.hand_landmarks) < 21:
-                return False
-
-            # Índices de landmarks
-            tips = [8, 12, 16, 20]
-            pips = [6, 10, 14, 18]
-
-            folded = 0
-            for tip_idx, pip_idx in zip(tips, pips):
-                try:
-                    if tip_idx >= len(self.hand_landmarks) or pip_idx >= len(self.hand_landmarks):
-                        continue
-                    
-                    tip = self.hand_landmarks[tip_idx]
-                    pip = self.hand_landmarks[pip_idx]
-                    
-                    # Validar que sean tuplas con al menos 2 elementos
-                    if not isinstance(tip, (tuple, list)) or not isinstance(pip, (tuple, list)):
-                        continue
-                    if len(tip) < 2 or len(pip) < 2:
-                        continue
-                    
-                    # Si la punta está más cerca del centro de la palma (mayor y en coordenada normalizada)
-                    # en la mayoría de las orientaciones tip.y > pip.y suele indicar dedo plegado
-                    if tip[1] > pip[1]:
-                        folded += 1
-                except (IndexError, TypeError, ValueError) as e:
-                    self.logger.debug(f"Error checking finger {tip_idx}: {e}")
-                    continue
-
-            # Considerar puño si 3 o más dedos plegados
-            return folded >= 3
-        except Exception as e:
-            self.logger.error(f"Unexpected error in is_fist(): {e}", exc_info=True)
+        if not self.hand_landmarks or len(self.hand_landmarks) < 21:
             return False
+
+        # Finger tip and PIP joint indices
+        fingers = [(8, 6), (12, 10), (16, 14), (20, 18)]  # (tip, pip) pairs
+        folded_count = 0
+
+        for tip_idx, pip_idx in fingers:
+            if tip_idx >= len(self.hand_landmarks) or pip_idx >= len(self.hand_landmarks):
+                continue
+            
+            tip = self.hand_landmarks[tip_idx]
+            pip = self.hand_landmarks[pip_idx]
+            
+            if self._is_valid_landmark(tip) and self._is_valid_landmark(pip):
+                # Folded if tip is below PIP joint
+                if tip[1] > pip[1]:
+                    folded_count += 1
+
+        return folded_count >= 3

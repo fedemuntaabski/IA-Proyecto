@@ -147,5 +147,15 @@ class CameraCapture(QThread):
         """Stop the camera capture thread."""
         self.logger.info("Stopping camera...")
         self.running = False
-        self.wait()  # Wait for thread to finish
+        self.wait(5000)  # Wait max 5 seconds for thread
+        self._cleanup()
         self.logger.info("Camera stopped")
+    
+    def _cleanup(self) -> None:
+        """Clean up camera resources."""
+        if self.cap:
+            try:
+                self.cap.release()
+                self.cap = None
+            except Exception as e:
+                self.logger.warning(f"Error releasing camera: {e}")

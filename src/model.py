@@ -141,75 +141,65 @@ class SketchClassifier:
             return False
     
     def _load_model(self) -> bool:
-        """Carga el modelo Keras con optimizaciones de rendimiento."""
-        # Asegurar que TensorFlow esté disponible
+        """Load Keras model with performance optimizations."""
         if not _ensure_tensorflow():
             self.logger.info("TensorFlow no disponible, usando modo demo")
             return False
         
-        # Configurar dispositivo
         device = self._get_device()
         self.logger.info(f"Usando dispositivo para inferencia: {device}")
         
-        # Priorizar modelo H5 que sabemos que funciona
-        model_paths = [
+        model_paths = self._get_model_paths()
+        
+        for model_path in model_paths:
+            if model_path.exists() and self._try_load_single_model(model_path):
+                return True
+        
+        self.logger.warning("No se pudo cargar ningún modelo, usando predicciones demo")
+        return False
+    
+    def _get_model_paths(self) -> list:
+        """Get prioritized list of model paths to try."""
+        paths = [
             self.ia_dir / "sketch_classifier_model.h5",
             self.ia_dir / "sketch_classifier_model.keras",
         ]
-        
-        # Agregar modelos cuantizados si están habilitados
         if self.use_quantized:
-            model_paths.extend([
+            paths.extend([
                 self.ia_dir / "sketch_classifier_model_quantized.tflite",
                 self.ia_dir / "sketch_classifier_model_quantized.keras",
                 self.ia_dir / "sketch_classifier_model_quantized.h5",
             ])
-        
-        for model_path in model_paths:
-            if model_path.exists():
-                try:
-                    self.logger.info(f"Intentando cargar modelo: {model_path.name}")
-                    
-                    if model_path.suffix == ".tflite":
-                        # Modelo cuantizado TFLite
-                        self.model = self._load_tflite_model(model_path, device)
-                    else:
-                        # Modelo Keras normal - usar CPU para evitar problemas de GPU
-                        with tf.device('/CPU:0'):  # Forzar CPU para estabilidad
-                            try:
-                                # Intentar con keras primero
-                                if keras:
-                                    self.model = keras.models.load_model(model_path, compile=False)
-                                else:
-                                    self.model = tf.keras.models.load_model(model_path, compile=False)
-                                
-                                # Recompilar el modelo para asegurar compatibilidad
-                                self.model.compile(
-                                    optimizer='adam',
-                                    loss='categorical_crossentropy',
-                                    metrics=['accuracy']
-                                )
-                                
-                            except Exception as load_error:
-                                self.logger.warning(f"Error específico al cargar {model_path.name}: {load_error}")
-                                # Intentar sin compile=False
-                                if keras:
-                                    self.model = keras.models.load_model(model_path)
-                                else:
-                                    self.model = tf.keras.models.load_model(model_path)
-                    
-                    model_type = "cuantizado (TFLite)" if "quantized" in model_path.name else "normal"
-                    self.logger.info(f"MODELO {model_type.upper()} CARGADO EXITOSAMENTE: {model_path.name}")
-                    self.logger.info(f"   Forma de entrada: {self.model.input_shape}")
-                    return True
-                    
-                except Exception as e:
-                    self.logger.warning(f"Error al cargar {model_path.name}: {e}")
-                    self.logger.warning(f"   Tipo de error: {type(e).__name__}")
-                    continue
-        
-        self.logger.warning("No se pudo cargar ningún modelo, usando predicciones demo")
-        return False
+        return paths
+    
+    def _try_load_single_model(self, model_path: Path) -> bool:
+        """Try to load a single model file."""
+        try:
+            self.logger.info(f"Intentando cargar modelo: {model_path.name}")
+            
+            if model_path.suffix == ".tflite":
+                self.model = self._load_tflite_model(model_path, "/CPU:0")
+            else:
+                self.model = self._load_keras_model(model_path)
+            
+            model_type = "cuantizado" if "quantized" in model_path.name else "normal"
+            self.logger.info(f"Modelo {model_type} cargado: {model_path.name}")
+            return True
+        except Exception as e:
+            self.logger.warning(f"Error al cargar {model_path.name}: {type(e).__name__}")
+            return False
+    
+    def _load_keras_model(self, model_path: Path):
+        """Load Keras/H5 model with CPU device."""
+        with tf.device('/CPU:0'):
+            try:
+                loader = keras.models if keras else tf.keras.models
+                model = loader.load_model(model_path, compile=False)
+                model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+                return model
+            except Exception:
+                # Fallback without compile=False
+                return loader.load_model(model_path)
     
     def _get_device(self) -> str:
         """Determina el dispositivo óptimo para inferencia."""

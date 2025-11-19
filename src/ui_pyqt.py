@@ -177,7 +177,7 @@ class VideoWidget(QLabel):
             painter.drawEllipse(fx - 6, fy - 6, 12, 12)
     
     def _draw_debug_guide(self, painter: QPainter, x_offset: int, y_offset: int, w: int, h: int):
-        """Draws a dotted gray box showing the optimal drawing area for model prediction."""
+        """Draws a light blue box showing the optimal drawing area for model prediction."""
         # Draw a centered square showing the 28x28 prediction area
         # Add 12% padding as done in preprocessing
         padding_percent = 0.12
@@ -189,15 +189,15 @@ class VideoWidget(QLabel):
         guide_x = x_offset + (w - optimal_size) // 2
         guide_y = y_offset + (h - optimal_size) // 2
         
-        # Draw dotted gray rectangle
-        pen = QPen(QColor(128, 128, 128, 180), 3, Qt.PenStyle.DashLine)
+        # Draw light blue rectangle (cyan/sky blue for better visibility)
+        pen = QPen(QColor(100, 200, 255, 200), 3, Qt.PenStyle.DashLine)
         painter.setPen(pen)
         painter.setBrush(Qt.BrushStyle.NoBrush)
         painter.drawRect(guide_x, guide_y, optimal_size, optimal_size)
         
-        # Draw corner markers
+        # Draw corner markers in brighter cyan
         marker_len = 20
-        pen_marker = QPen(QColor(128, 128, 128, 220), 4, Qt.PenStyle.SolidLine)
+        pen_marker = QPen(QColor(80, 180, 255, 240), 4, Qt.PenStyle.SolidLine)
         painter.setPen(pen_marker)
         
         # Top-left
@@ -216,8 +216,8 @@ class VideoWidget(QLabel):
         painter.drawLine(guide_x + optimal_size, guide_y + optimal_size, guide_x + optimal_size - marker_len, guide_y + optimal_size)
         painter.drawLine(guide_x + optimal_size, guide_y + optimal_size, guide_x + optimal_size, guide_y + optimal_size - marker_len)
         
-        # Add text hint
-        painter.setPen(QColor(128, 128, 128, 200))
+        # Add text hint in light blue
+        painter.setPen(QColor(100, 200, 255, 220))
         painter.setFont(QFont("Segoe UI", 10))
         painter.drawText(guide_x + 10, guide_y - 10, "Optimal Drawing Area")
 
@@ -515,6 +515,7 @@ class PictionaryUIQt(QMainWindow):
     clear_requested = pyqtSignal()
     mode_switched = pyqtSignal(bool)  # True=mano, False=mouse
     timer_expired = pyqtSignal()
+    trace_prediction_requested = pyqtSignal()  # New signal for P key
     
     def __init__(self, config: Dict[str, Any]):
         super().__init__()
@@ -533,6 +534,10 @@ class PictionaryUIQt(QMainWindow):
         self.score = 0
         self.time_remaining = 120  # 2 minutos
         self.game_paused = False
+        
+        # Labels for examples viewer
+        self.available_labels = []
+        self.examples_viewer = None
         
         self._setup_window()
         self._setup_ui()
@@ -694,7 +699,7 @@ class PictionaryUIQt(QMainWindow):
         layout = QHBoxLayout()
         layout.setContentsMargins(15, 10, 15, 10)
         
-        self.instructions = QLabel("Q = Salir  |  C = Limpiar  |  S = Siguiente  |  R = Reiniciar  |  . = Guía de Dibujo")
+        self.instructions = QLabel("Q = Salir  |  C = Limpiar  |  S = Siguiente  |  R = Reiniciar  |  . = Guía  |  E = Ejemplos  |  P = Ver Predicción")
         self.instructions.setObjectName("instructions")
         self.instructions.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(self.instructions)
@@ -708,46 +713,47 @@ class PictionaryUIQt(QMainWindow):
         self.prediction_ready.connect(self._on_prediction_ready)
     
     def _load_styles(self):
-        """Carga los estilos QSS optimizados."""
+        """Load QSS styles with fallback to minimal embedded styles."""
         try:
-            # Intentar cargar el archivo QSS externo
+            # Try loading external QSS file
             qss_file = Path(__file__).parent / "styles_cyberpunk.qss"
             if qss_file.exists():
                 with open(qss_file, 'r', encoding='utf-8') as f:
-                    styles = f.read()
-                self.setStyleSheet(styles)
-            else:
-                # Fallback a estilos inline
-                styles = """
-                    QMainWindow { background-color: #0a1428; color: #ebebeb; }
-                    #mainTitle { color: #00ffff; background: transparent; }
-                    #stateIndicator { color: #64ff64; background: transparent; }
-                    #header { background-color: #192540; border-radius: 10px; }
-                    #sidePanel { background-color: transparent; }
-                    #predictionTitle { color: #00ffff; font-size: 18px; font-weight: bold; }
-                    #predictionLabel { color: #64ff64; font-size: 32px; font-weight: bold; }
-                    #confidenceText { color: #ebebeb; font-size: 20px; }
-                    #top3Item { color: #b4b4be; font-size: 14px; }
-                    #separator { background-color: #ffa000; max-height: 2px; }
-                    #statusLabel { color: #b4b4be; font-size: 13px; }
-                    #footer { background-color: #192540; border-radius: 8px; }
-                    #instructions { color: #b4b4be; font-size: 12px; }
-                    #modeButton { 
-                        background-color: #ffa000; 
-                        color: #0a1428; 
-                        font-size: 16px; 
-                        font-weight: bold; 
-                        border: none; 
-                        border-radius: 10px; 
-                        padding: 15px; 
-                    }
-                    #modeButton:hover { background-color: #ffb000; }
-                    #modeButton:pressed { background-color: #ff9000; }
-                """
-                self.setStyleSheet(styles)
+                    self.setStyleSheet(f.read())
+                return
         except Exception as e:
-            # Si falla la carga de estilos, continuar sin ellos
-            print(f"Warning: No se pudieron cargar los estilos: {e}")
+            self.logger.warning(f"Could not load external styles: {e}")
+        
+        # Fallback to embedded minimal styles
+        self.setStyleSheet(self._get_fallback_styles())
+    
+    def _get_fallback_styles(self) -> str:
+        """Get minimal fallback styles."""
+        return """
+            QMainWindow { background-color: #0a1428; color: #ebebeb; }
+            #mainTitle { color: #00ffff; }
+            #stateIndicator { color: #64ff64; }
+            #header { background-color: #192540; border-radius: 10px; }
+            #predictionTitle { color: #00ffff; font-size: 18px; font-weight: bold; }
+            #predictionLabel { color: #64ff64; font-size: 32px; font-weight: bold; }
+            #confidenceText { color: #ebebeb; font-size: 20px; }
+            #top3Item { color: #b4b4be; font-size: 14px; }
+            #separator { background-color: #ffa000; max-height: 2px; }
+            #statusLabel { color: #b4b4be; font-size: 13px; }
+            #footer { background-color: #192540; border-radius: 8px; }
+            #instructions { color: #b4b4be; font-size: 12px; }
+            #modeButton { 
+                background-color: #ffa000; 
+                color: #0a1428; 
+                font-size: 16px; 
+                font-weight: bold; 
+                border: none; 
+                border-radius: 10px; 
+                padding: 15px; 
+            }
+            #modeButton:hover { background-color: #ffb000; }
+            #modeButton:pressed { background-color: #ff9000; }
+        """
     
     def _update_fps_display(self):
         """Actualiza el display de FPS."""
@@ -804,17 +810,17 @@ class PictionaryUIQt(QMainWindow):
         """Cambia entre modo mano y modo mouse."""
         if self.current_mode == "hand":
             self.current_mode = "mouse"
-            self.mode_button.setText("✋ CAMBIAR A MANO")
+            self.mode_button.setText("☕ CAMBIAR A MANO")
             self.state_indicator.setText("🖱️ MODO MOUSE")
             self.state_indicator.setStyleSheet("color: #ffa000;")
-            self.instructions.setText("Q = Salir  |  C = Limpiar  |  S = Siguiente  |  R = Reiniciar  |  . = Guía de Dibujo")
+            self.instructions.setText("Q = Salir  |  C = Limpiar  |  S = Siguiente  |  R = Reiniciar  |  . = Guía  |  E = Ejemplos  |  P = Ver Predicción")
             self.mode_switched.emit(False)  # False = mouse
         else:
             self.current_mode = "hand"
             self.mode_button.setText("🖱️ CAMBIAR A MOUSE")
-            self.state_indicator.setText("✋ MODO MANO")
+            self.state_indicator.setText("☕ MODO MANO")
             self.state_indicator.setStyleSheet("color: #64ff64;")
-            self.instructions.setText("Q = Salir  |  C = Limpiar  |  S = Siguiente  |  R = Reiniciar  |  . = Guía de Dibujo")
+            self.instructions.setText("Q = Salir  |  C = Limpiar  |  S = Siguiente  |  R = Reiniciar  |  . = Guía  |  E = Ejemplos  |  P = Ver Predicción")
             self.mode_switched.emit(True)  # True = hand
     
     def _update_game_timer(self):
@@ -920,8 +926,12 @@ class PictionaryUIQt(QMainWindow):
         key = event.key()
         
         if key == Qt.Key.Key_Return or key == Qt.Key.Key_Enter:
-            # Enter - Make prediction
-            self.predict_requested.emit()
+            # Enter - Make prediction (silent, no trace)
+            # Note: Actual prediction is triggered automatically
+            pass
+        elif key == Qt.Key.Key_P:
+            # P - Prediction tracer (slow visualization)
+            self.trace_prediction_requested.emit()
         elif key == Qt.Key.Key_Space or key == Qt.Key.Key_C:
             # Space/C - Clear canvas
             self.clear_requested.emit()
@@ -942,6 +952,33 @@ class PictionaryUIQt(QMainWindow):
             self.clear_requested.emit()
             self.prediction_card.clear()
             self.select_new_target()
+        elif key == Qt.Key.Key_E:
+            # E - Show examples viewer
+            self._show_examples_viewer()
+    
+    def set_available_labels(self, labels: list):
+        """Set available labels for examples viewer."""
+        self.available_labels = labels
+    
+    def _show_examples_viewer(self):
+        """Show the examples viewer dialog."""
+        if not self.available_labels:
+            self.logger.warning("No labels available for examples viewer")
+            return
+        
+        try:
+            from examples_viewer import ExamplesViewer
+            
+            # Create or show existing viewer
+            if self.examples_viewer is None:
+                self.examples_viewer = ExamplesViewer(self.available_labels, self)
+            
+            self.examples_viewer.show()
+            self.examples_viewer.raise_()
+            self.examples_viewer.activateWindow()
+            
+        except Exception as e:
+            self.logger.error(f"Error showing examples viewer: {e}")
     
     def eventFilter(self, obj, event):
         """Handle window resize events to ensure critical elements are visible."""

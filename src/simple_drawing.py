@@ -168,70 +168,66 @@ class SimpleDrawing:
             Preprocessed numpy array or None if no drawing
         """
         with self._lock:
-            if len(self.saved_strokes) == 0:
+            if not self.saved_strokes:
                 return None
             
             try:
-                # Create high-res canvas for rendering
-                canvas_size = 256
-                canvas = np.ones((canvas_size, canvas_size), dtype=np.uint8) * 255  # White
-                
-                # Render all saved strokes in black
-                for stroke in self.saved_strokes:
-                    if len(stroke) < 2:
-                        continue
-                    
-                    # Convert to pixel coordinates
-                    pixel_points = [
-                        (int(x * canvas_size), int(y * canvas_size)) 
-                        for x, y in stroke
-                    ]
-                    
-                    # Draw stroke
-                    for i in range(len(pixel_points) - 1):
-                        cv2.line(canvas, pixel_points[i], pixel_points[i + 1], 
-                                0, self.line_thickness, cv2.LINE_AA)
-                
-                # Check if anything was drawn
-                if np.sum(canvas < 250) < 30:
+                canvas = self._render_to_canvas()
+                if canvas is None:
                     return None
                 
-                # Find bounding box and crop
-                binary = cv2.threshold(canvas, 127, 255, cv2.THRESH_BINARY_INV)[1]
-                coords = cv2.findNonZero(binary)
-                
-                if coords is None:
-                    return None
-                
-                x, y, w, h = cv2.boundingRect(coords)
-                
-                # Add 12% padding
-                max_dim = max(w, h)
-                pad = int(max_dim * 0.12)
-                x = max(0, x - pad)
-                y = max(0, y - pad)
-                w = min(canvas_size - x, w + 2 * pad)
-                h = min(canvas_size - y, h + 2 * pad)
-                
-                # Extract ROI
-                roi = canvas[y:y+h, x:x+w]
-                
-                # Center in square
-                max_dim = max(w, h)
-                square = np.ones((max_dim, max_dim), dtype=np.uint8) * 255
-                offset_x = (max_dim - w) // 2
-                offset_y = (max_dim - h) // 2
-                square[offset_y:offset_y+h, offset_x:offset_x+w] = roi
-                
-                # Resize to 28x28
-                resized = cv2.resize(square, (28, 28), interpolation=cv2.INTER_LANCZOS4)
-                
-                # Normalize and invert (white on black for model)
-                normalized = resized.astype(np.float32) / 255.0
-                normalized = 1.0 - normalized  # Invert to white on black
-                normalized = np.expand_dims(normalized, axis=-1)  # Add channel
-                
-                return normalized
+                # Process canvas to model input
+                return self._process_canvas_to_model_input(canvas)
                 
             except Exception:
                 return None
+    
+    def _render_to_canvas(self, canvas_size: int = 256) -> Optional[np.ndarray]:
+        """Render strokes to high-res canvas."""
+        canvas = np.ones((canvas_size, canvas_size), dtype=np.uint8) * 255
+        
+        for stroke in self.saved_strokes:
+            if len(stroke) < 2:
+                continue
+            
+            pixel_points = [(int(x * canvas_size), int(y * canvas_size)) for x, y in stroke]
+            
+            for i in range(len(pixel_points) - 1):
+                cv2.line(canvas, pixel_points[i], pixel_points[i + 1], 
+                        0, self.line_thickness, cv2.LINE_AA)
+        
+        # Validate drawing
+        if np.sum(canvas < 250) < 30:
+            return None
+        
+        return canvas
+    
+    def _process_canvas_to_model_input(self, canvas: np.ndarray) -> Optional[np.ndarray]:
+        """Process canvas to 28x28 model input."""
+        # Find and crop content
+        binary = cv2.threshold(canvas, 127, 255, cv2.THRESH_BINARY_INV)[1]
+        coords = cv2.findNonZero(binary)
+        
+        if coords is None:
+            return None
+        
+        x, y, w, h = cv2.boundingRect(coords)
+        
+        # Add padding (12%)
+        pad = int(max(w, h) * 0.12)
+        x, y = max(0, x - pad), max(0, y - pad)
+        w = min(canvas.shape[1] - x, w + 2 * pad)
+        h = min(canvas.shape[0] - y, h + 2 * pad)
+        
+        # Extract and center ROI
+        roi = canvas[y:y+h, x:x+w]
+        max_dim = max(w, h)
+        square = np.ones((max_dim, max_dim), dtype=np.uint8) * 255
+        offset_x, offset_y = (max_dim - w) // 2, (max_dim - h) // 2
+        square[offset_y:offset_y+h, offset_x:offset_x+w] = roi
+        
+        # Resize and normalize
+        resized = cv2.resize(square, (28, 28), interpolation=cv2.INTER_LANCZOS4)
+        normalized = 1.0 - (resized.astype(np.float32) / 255.0)
+        
+        return np.expand_dims(normalized, axis=-1)

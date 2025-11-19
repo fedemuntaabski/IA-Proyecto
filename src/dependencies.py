@@ -47,34 +47,30 @@ def check_python_version():
 
 def check_package(package_name: str, version_spec: str = None) -> bool:
     """
-    Verifica si un paquete está instalado.
+    Verify if a package is installed.
     
     Args:
-        package_name: Nombre del paquete pip
-        version_spec: Especificación de versión (opcional, solo informativo)
+        package_name: Package name
+        version_spec: Version spec (optional, informational only)
     
     Returns:
-        True si está instalado
+        True if installed
     """
     try:
         module = __import__(package_name.replace("-", "_"))
-        if hasattr(module, '__version__'):
-            version_str = module.__version__
-            print(f"  OK: {package_name}: {version_str}")
-            return True
-        else:
-            print(f"  OK: {package_name}: instalado (version desconocida)")
-            return True
+        version_str = getattr(module, '__version__', 'unknown')
+        print(f"  OK: {package_name}: {version_str}")
+        return True
     except ImportError:
         return False
     except Exception as e:
-        # Manejar errores de importación como AttributeError en TensorFlow
+        # Handle import errors (e.g., TensorFlow AttributeError)
         print(f"  AVISO: {package_name}: error al importar ({e}), asumiendo instalado")
         return True
 
 
 def get_package_version(package_name: str) -> str:
-    """Obtiene la versión de un paquete instalado usando pip show."""
+    """Get installed package version using pip show."""
     try:
         result = subprocess.run([sys.executable, "-m", "pip", "show", package_name], 
                               capture_output=True, text=True, timeout=10)
@@ -82,9 +78,9 @@ def get_package_version(package_name: str) -> str:
             for line in result.stdout.split('\n'):
                 if line.startswith('Version:'):
                     return line.split(':')[1].strip()
-        return "desconocida"
+        return "unknown"
     except Exception:
-        return "desconocida"
+        return "unknown"
 
 
 def install_packages(packages: dict, upgrade: bool = False):
@@ -135,50 +131,25 @@ def install_from_requirements():
         return False
 
 
-def get_package_version(package_name: str) -> str:
-    """Obtiene la versión de un paquete instalado usando pip show."""
-    try:
-        result = subprocess.run([sys.executable, "-m", "pip", "show", package_name], 
-                              capture_output=True, text=True, timeout=10)
-        if result.returncode == 0:
-            for line in result.stdout.split('\n'):
-                if line.startswith('Version:'):
-                    return line.split(':')[1].strip()
-        return "desconocida"
-    except Exception:
-        return "desconocida"
-
-
 def validate_compatibility():
-    """Valida compatibilidad entre paquetes críticos (protobuf con TF/MP)."""
+    """Validate compatibility between critical packages."""
     print("\n[VALIDACION] Verificando compatibilidad de versiones...")
     
     try:
-        # Verificar protobuf
-        protobuf_version = get_package_version("protobuf")
-        print(f"  OK: protobuf {protobuf_version} instalado")
+        versions = {
+            "protobuf": get_package_version("protobuf"),
+            "tensorflow": get_package_version("tensorflow") if check_package("tensorflow") else None,
+            "mediapipe": get_package_version("mediapipe") if check_package("mediapipe") else None,
+        }
         
-        # Verificar combinaciones críticas
-        tf_available = check_package("tensorflow")
-        mp_available = check_package("mediapipe")
-        
-        if tf_available and mp_available:
-            tf_version = get_package_version("tensorflow")
-            mp_version = get_package_version("mediapipe")
-            print(f"  OK: TensorFlow {tf_version} + MediaPipe {mp_version} + protobuf {protobuf_version} disponibles")
-        elif tf_available and not mp_available:
-            tf_version = get_package_version("tensorflow")
-            print(f"  OK: TensorFlow {tf_version} + protobuf {protobuf_version} disponibles (MediaPipe no disponible)")
-        elif not tf_available and mp_available:
-            mp_version = get_package_version("mediapipe")
-            print(f"  OK: MediaPipe {mp_version} + protobuf {protobuf_version} disponibles (TensorFlow no disponible)")
-        else:
-            print(f"  AVISO: Solo protobuf {protobuf_version} disponible (modo limitado)")
+        # Report available packages
+        available = [f"{k} {v}" for k, v in versions.items() if v]
+        print(f"  OK: Paquetes disponibles: {', '.join(available)}")
         
         return True
     except Exception as e:
-        print(f"  AVISO: No se pudo validar compatibilidad completa: {e}")
-        return True  # No bloquear si falla la validación
+        print(f"  AVISO: Error en validación: {e}")
+        return True  # Don't block on validation failure
 
 
 def main():
