@@ -75,18 +75,10 @@ class PictionaryApp(QObject):
         self.was_fist_closed = False
         self.current_mode = "hand"  # Track current input mode
         
-        # Prediction tracer
-        from prediction_tracer import PredictionTracerDialog
-        self.tracer_dialog = PredictionTracerDialog()
-        self.trace_strokes = []  # Current trace strokes being animated
-        self.trace_label = ""
-        self.trace_progress = 0.0
+        # No prediction tracer needed
         
         # Set initial target
         self._select_random_target()
-        
-        # Pass labels to UI for examples viewer
-        self.ui.set_available_labels(self.labels)
         
         self.logger.info("Application initialized")
     
@@ -147,7 +139,6 @@ class PictionaryApp(QObject):
             (self.ui.clear_requested, self._clear_drawing, None),
             (self.ui.mode_switched, self._on_mode_switched, None),
             (self.ui.video_widget.mouse_draw, self._handle_mouse_draw, None),
-            (self.ui.trace_prediction_requested, self._trace_prediction, None),
         ]
         
         for signal, slot, connection_type in signals:
@@ -214,10 +205,6 @@ class PictionaryApp(QObject):
             # Render drawing on frame
             frame = self.drawing.render_on_frame(frame, finger_pos)
             
-            # Render trace animation if active
-            if self.tracer_dialog.is_active and self.trace_strokes:
-                frame = self._render_trace_on_frame(frame)
-            
             # Update UI
             self.ui.update_frame(frame)
             
@@ -256,96 +243,6 @@ class PictionaryApp(QObject):
                 
         except Exception as e:
             self.logger.error(f"Prediction error: {e}", exc_info=True)
-    
-    @pyqtSlot()
-    def _trace_prediction(self) -> None:
-        """Run slow-motion prediction drawing visualization."""
-        try:
-            if not self.model or not self.drawing.has_drawing():
-                self.logger.warning("No drawing to trace")
-                return
-            
-            # Get preprocessed image
-            img = self.drawing.get_preprocessed_image()
-            if img is None:
-                self.logger.warning("Could not preprocess image")
-                return
-            
-            # Predict
-            label, confidence, top3 = self.model.predict(img)
-            self.logger.info(f"Tracing prediction: {label} ({confidence:.2%})")
-            
-            # Start trace animation - draw the predicted label
-            self.tracer_dialog.start_trace(
-                label, 
-                confidence * 100,  # Convert to percentage
-                self.camera.width,
-                self.camera.height,
-                self._on_trace_drawing_update
-            )
-            
-        except Exception as e:
-            self.logger.error(f"Trace prediction error: {e}", exc_info=True)
-    
-    def _on_trace_drawing_update(self, strokes, label, progress):
-        """Handle trace animation drawing update."""
-        # Store trace data for rendering on next frame
-        self.trace_strokes = strokes
-        self.trace_label = label
-        self.trace_progress = progress
-    
-    def _render_trace_on_frame(self, frame):
-        """
-        Render trace animation strokes on frame.
-        
-        Args:
-            frame: Video frame to draw on
-            
-        Returns:
-            Frame with trace overlay
-        """
-        import cv2
-        
-        # Draw each stroke in cyan (bright and visible)
-        for stroke in self.trace_strokes:
-            if len(stroke) < 2:
-                continue
-            
-            # Draw lines connecting points
-            for i in range(len(stroke) - 1):
-                pt1 = stroke[i]
-                pt2 = stroke[i + 1]
-                cv2.line(frame, pt1, pt2, (255, 200, 0), 4)  # Cyan thick line
-        
-        # Add info overlay
-        h, w = frame.shape[:2]
-        
-        # Semi-transparent background for text
-        overlay = frame.copy()
-        cv2.rectangle(overlay, (10, 10), (w - 10, 90), (20, 30, 40), -1)
-        cv2.addWeighted(overlay, 0.7, frame, 0.3, 0, frame)
-        
-        # Title
-        cv2.putText(frame, "Drawing Prediction Tutorial", (20, 35),
-                   cv2.FONT_HERSHEY_SIMPLEX, 0.7, (100, 200, 255), 2)
-        
-        # Label
-        text = f"Drawing: {self.trace_label.upper()}"
-        cv2.putText(frame, text, (20, 65),
-                   cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 255), 2)
-        
-        # Progress bar
-        bar_width = w - 40
-        bar_height = 8
-        bar_x, bar_y = 20, 75
-        
-        cv2.rectangle(frame, (bar_x, bar_y), (bar_x + bar_width, bar_y + bar_height),
-                     (60, 60, 60), -1)
-        cv2.rectangle(frame, (bar_x, bar_y), 
-                     (bar_x + int(bar_width * self.trace_progress), bar_y + bar_height),
-                     (100, 200, 255), -1)
-        
-        return frame
     
     @pyqtSlot(bool)
     def _on_mode_switched(self, use_hand: bool) -> None:
@@ -432,7 +329,6 @@ class PictionaryApp(QObject):
         
         finally:
             self.logger.info("Cleanup...")
-            self.tracer_dialog.stop_trace()
             self.camera.stop()
         
         return exit_code

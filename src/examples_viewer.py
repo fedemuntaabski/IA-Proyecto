@@ -7,12 +7,14 @@ Shows example drawings for each label to help users understand what to draw.
 from typing import List
 import math
 import random
+import numpy as np
+import cv2
 from PyQt6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
     QScrollArea, QWidget, QGridLayout, QLineEdit
 )
 from PyQt6.QtCore import Qt, QSize
-from PyQt6.QtGui import QFont, QPixmap, QPainter, QColor, QPen
+from PyQt6.QtGui import QFont, QPixmap, QPainter, QColor, QPen, QImage
 
 
 class ExamplesViewer(QDialog):
@@ -166,102 +168,94 @@ class ExamplesViewer(QDialog):
     
     def _create_example_sketch(self, label: str) -> QLabel:
         """
-        Create sketch-like example drawing.
+        Create sketch-like example drawing that mimics how the neural network sees it.
+        
+        The model processes drawings as 28x28 grayscale images with:
+        - White background (0)
+        - Black lines (1)  
+        - Centered and normalized
         
         Args:
             label: Label name
             
         Returns:
-            Label widget with sketch
+            Label widget with sketch matching model's view
         """
-        size = 120
-        pixmap = QPixmap(size, size)
-        pixmap.fill(QColor(25, 45, 60))  # Dark background
+        # Render size matches actual model input (28x28) scaled up for visibility
+        model_size = 28
+        display_size = 120  # Scale up for display
         
-        painter = QPainter(pixmap)
-        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
-        
-        # White sketch lines (like actual drawings)
-        pen = QPen(QColor(255, 255, 255), 2)
-        painter.setPen(pen)
+        # Create canvas at model size (28x28)
+        canvas = np.ones((model_size, model_size), dtype=np.uint8) * 255  # White background
         
         # Consistent patterns based on label
         random.seed(hash(label))
-        cx, cy = size // 2, size // 2
+        cx, cy = model_size // 2, model_size // 2
         
-        # Draw category-specific sketches
+        # Draw category-specific sketches AT MODEL SCALE
         label_lower = label.lower()
         
+        # Scale factor for coordinates (everything relative to 28x28)
+        s = model_size / 28.0  # Should be 1.0, but keeps code clear
+        
+        # Draw simplified shapes that work at 28x28 resolution
         # Animals
         if 'cat' in label_lower:
-            self._draw_cat(painter, cx, cy)
+            self._draw_cat_simple(canvas, cx, cy, s)
         elif 'dog' in label_lower:
-            self._draw_dog(painter, cx, cy)
+            self._draw_dog_simple(canvas, cx, cy, s)
         elif 'bird' in label_lower:
-            self._draw_bird(painter, cx, cy)
+            self._draw_bird_simple(canvas, cx, cy, s)
         elif 'fish' in label_lower:
-            self._draw_fish(painter, cx, cy)
+            self._draw_fish_simple(canvas, cx, cy, s)
         elif 'elephant' in label_lower:
-            self._draw_elephant(painter, cx, cy)
-        elif 'butterfly' in label_lower or 'bee' in label_lower:
-            self._draw_butterfly(painter, cx, cy)
-        elif 'snake' in label_lower:
-            self._draw_snake(painter, cx, cy)
+            self._draw_elephant_simple(canvas, cx, cy, s)
         
         # Shapes and simple objects
-        elif any(w in label_lower for w in ['circle', 'ball', 'moon']):
-            painter.drawEllipse(cx - 35, cy - 35, 70, 70)
-        elif 'sun' in label_lower:
-            painter.drawEllipse(cx - 30, cy - 30, 60, 60)
-            for i in range(8):
-                a = i * 45
-                x1 = cx + 35 * math.cos(math.radians(a))
-                y1 = cy + 35 * math.sin(math.radians(a))
-                x2 = cx + 48 * math.cos(math.radians(a))
-                y2 = cy + 48 * math.sin(math.radians(a))
-                painter.drawLine(int(x1), int(y1), int(x2), int(y2))
+        elif any(w in label_lower for w in ['circle', 'ball', 'moon', 'sun']):
+            cv2.circle(canvas, (cx, cy), int(8*s), 0, 2)
         elif 'star' in label_lower:
-            self._draw_star(painter, cx, cy, 38)
+            self._draw_star_simple(canvas, cx, cy, s)
         elif 'heart' in label_lower:
-            self._draw_heart(painter, cx, cy)
-        elif any(w in label_lower for w in ['square', 'box', 'book', 'laptop', 'tv']):
-            painter.drawRect(cx - 35, cy - 28, 70, 56)
+            self._draw_heart_simple(canvas, cx, cy, s)
+        elif any(w in label_lower for w in ['square', 'box', 'book']):
+            cv2.rectangle(canvas, (int(cx-8*s), int(cy-6*s)), 
+                         (int(cx+8*s), int(cy+6*s)), 0, 2)
         
         # Vehicles
         elif 'car' in label_lower or 'truck' in label_lower:
-            self._draw_car(painter, cx, cy)
+            self._draw_car_simple(canvas, cx, cy, s)
         elif 'airplane' in label_lower or 'plane' in label_lower:
-            self._draw_airplane(painter, cx, cy)
-        elif 'bicycle' in label_lower or 'bike' in label_lower:
-            self._draw_bicycle(painter, cx, cy)
-        elif 'train' in label_lower:
-            self._draw_train(painter, cx, cy)
+            self._draw_airplane_simple(canvas, cx, cy, s)
         
         # Nature
         elif 'tree' in label_lower:
-            self._draw_tree(painter, cx, cy)
+            self._draw_tree_simple(canvas, cx, cy, s)
         elif 'flower' in label_lower:
-            self._draw_flower(painter, cx, cy)
-        elif 'cloud' in label_lower:
-            self._draw_cloud(painter, cx, cy)
+            self._draw_flower_simple(canvas, cx, cy, s)
         
         # Buildings/Structures
         elif 'house' in label_lower:
-            self._draw_house(painter, cx, cy)
+            self._draw_house_simple(canvas, cx, cy, s)
         
         # Objects
         elif 'umbrella' in label_lower:
-            self._draw_umbrella(painter, cx, cy)
-        elif 'cup' in label_lower or 'mug' in label_lower:
-            self._draw_cup(painter, cx, cy)
-        elif 'guitar' in label_lower:
-            self._draw_guitar(painter, cx, cy)
+            self._draw_umbrella_simple(canvas, cx, cy, s)
         
         else:
-            # Generic sketch
-            self._draw_generic(painter, cx, cy, label)
+            # Generic sketch - simple circle
+            cv2.circle(canvas, (cx, cy), int(7*s), 0, 2)
         
-        painter.end()
+        # Scale up to display size using NEAREST neighbor to show pixelation
+        # This helps users understand the model sees low-resolution images
+        scaled = cv2.resize(canvas, (display_size, display_size), 
+                           interpolation=cv2.INTER_NEAREST)
+        
+        # Convert to QPixmap
+        height, width = scaled.shape
+        bytes_per_line = width
+        q_image = QImage(scaled.data, width, height, bytes_per_line, QImage.Format.Format_Grayscale8)
+        pixmap = QPixmap.fromImage(q_image)
         
         label_widget = QLabel()
         label_widget.setPixmap(pixmap)
@@ -269,7 +263,143 @@ class ExamplesViewer(QDialog):
         
         return label_widget
     
-    # Drawing helper methods
+    # Simplified drawing helper methods for 28x28 resolution
+    # These are optimized to work at the model's native resolution
+    
+    def _draw_cat_simple(self, canvas, cx, cy, s):
+        """Draw simple cat face at 28x28 scale."""
+        # Head circle
+        cv2.circle(canvas, (cx, cy), int(7*s), 0, 1)
+        # Ears (triangles approximated with lines)
+        cv2.line(canvas, (int(cx-5*s), int(cy-5*s)), (int(cx-7*s), int(cy-9*s)), 0, 1)
+        cv2.line(canvas, (int(cx+5*s), int(cy-5*s)), (int(cx+7*s), int(cy-9*s)), 0, 1)
+        # Eyes
+        cv2.circle(canvas, (int(cx-3*s), int(cy-2*s)), 1, 0, -1)
+        cv2.circle(canvas, (int(cx+3*s), int(cy-2*s)), 1, 0, -1)
+    
+    def _draw_dog_simple(self, canvas, cx, cy, s):
+        """Draw simple dog at 28x28 scale."""
+        # Body ellipse
+        cv2.ellipse(canvas, (cx, int(cy+2*s)), (int(7*s), int(5*s)), 0, 0, 360, 0, 1)
+        # Head circle
+        cv2.circle(canvas, (int(cx+4*s), int(cy-3*s)), int(4*s), 0, 1)
+        # Legs
+        cv2.line(canvas, (int(cx-3*s), int(cy+7*s)), (int(cx-3*s), int(cy+11*s)), 0, 1)
+        cv2.line(canvas, (int(cx+3*s), int(cy+7*s)), (int(cx+3*s), int(cy+11*s)), 0, 1)
+    
+    def _draw_bird_simple(self, canvas, cx, cy, s):
+        """Draw simple bird at 28x28 scale."""
+        # Body
+        cv2.ellipse(canvas, (cx, cy), (int(5*s), int(4*s)), 0, 0, 360, 0, 1)
+        # Head
+        cv2.circle(canvas, (int(cx+4*s), int(cy-3*s)), int(3*s), 0, 1)
+        # Wing
+        cv2.line(canvas, (int(cx-2*s), cy), (int(cx-7*s), int(cy-2*s)), 0, 1)
+    
+    def _draw_fish_simple(self, canvas, cx, cy, s):
+        """Draw simple fish at 28x28 scale."""
+        # Body ellipse
+        cv2.ellipse(canvas, (cx, cy), (int(6*s), int(3*s)), 0, 0, 360, 0, 1)
+        # Tail triangle
+        pts = np.array([[int(cx-6*s), cy], [int(cx-9*s), int(cy-3*s)], [int(cx-9*s), int(cy+3*s)]], np.int32)
+        cv2.polylines(canvas, [pts], True, 0, 1)
+        # Eye
+        cv2.circle(canvas, (int(cx+3*s), cy), 1, 0, -1)
+    
+    def _draw_elephant_simple(self, canvas, cx, cy, s):
+        """Draw simple elephant at 28x28 scale."""
+        # Body
+        cv2.ellipse(canvas, (cx, cy), (int(7*s), int(5*s)), 0, 0, 360, 0, 1)
+        # Head
+        cv2.circle(canvas, (int(cx+5*s), int(cy-4*s)), int(4*s), 0, 1)
+        # Trunk (curved line)
+        cv2.line(canvas, (int(cx+7*s), int(cy-2*s)), (int(cx+9*s), int(cy+4*s)), 0, 1)
+        # Legs
+        cv2.line(canvas, (int(cx-3*s), int(cy+5*s)), (int(cx-3*s), int(cy+10*s)), 0, 1)
+        cv2.line(canvas, (int(cx+3*s), int(cy+5*s)), (int(cx+3*s), int(cy+10*s)), 0, 1)
+    
+    def _draw_star_simple(self, canvas, cx, cy, s):
+        """Draw 5-point star at 28x28 scale."""
+        # Simple star with 5 points
+        r = int(8*s)
+        pts = []
+        for i in range(5):
+            a = i * 144 - 90  # degrees
+            x = cx + int(r * math.cos(math.radians(a)))
+            y = cy + int(r * math.sin(math.radians(a)))
+            pts.append([x, y])
+        pts = np.array(pts, np.int32)
+        # Draw star by connecting every other point
+        for i in range(5):
+            cv2.line(canvas, tuple(pts[i]), tuple(pts[(i+2)%5]), 0, 1)
+    
+    def _draw_heart_simple(self, canvas, cx, cy, s):
+        """Draw heart at 28x28 scale."""
+        # Two circles at top
+        cv2.circle(canvas, (int(cx-3*s), int(cy-2*s)), int(3*s), 0, 1)
+        cv2.circle(canvas, (int(cx+3*s), int(cy-2*s)), int(3*s), 0, 1)
+        # V shape at bottom
+        cv2.line(canvas, (int(cx-6*s), int(cy-1*s)), (cx, int(cy+6*s)), 0, 1)
+        cv2.line(canvas, (int(cx+6*s), int(cy-1*s)), (cx, int(cy+6*s)), 0, 1)
+    
+    def _draw_car_simple(self, canvas, cx, cy, s):
+        """Draw car at 28x28 scale."""
+        # Body rectangle
+        cv2.rectangle(canvas, (int(cx-8*s), int(cy)), (int(cx+8*s), int(cy+4*s)), 0, 1)
+        # Cabin rectangle
+        cv2.rectangle(canvas, (int(cx-4*s), int(cy-3*s)), (int(cx+4*s), int(cy)), 0, 1)
+        # Wheels
+        cv2.circle(canvas, (int(cx-5*s), int(cy+4*s)), int(2*s), 0, 1)
+        cv2.circle(canvas, (int(cx+5*s), int(cy+4*s)), int(2*s), 0, 1)
+    
+    def _draw_airplane_simple(self, canvas, cx, cy, s):
+        """Draw airplane at 28x28 scale."""
+        # Fuselage (horizontal line)
+        cv2.line(canvas, (int(cx-8*s), cy), (int(cx+8*s), cy), 0, 1)
+        # Wings (cross)
+        cv2.line(canvas, (int(cx-4*s), cy), (int(cx-4*s), int(cy-6*s)), 0, 1)
+        cv2.line(canvas, (int(cx+4*s), cy), (int(cx+4*s), int(cy-6*s)), 0, 1)
+        cv2.line(canvas, (int(cx-4*s), int(cy-6*s)), (int(cx+4*s), int(cy-6*s)), 0, 1)
+    
+    def _draw_tree_simple(self, canvas, cx, cy, s):
+        """Draw tree at 28x28 scale."""
+        # Trunk
+        cv2.rectangle(canvas, (int(cx-2*s), int(cy+2*s)), (int(cx+2*s), int(cy+8*s)), 0, -1)
+        # Foliage (circle)
+        cv2.circle(canvas, (cx, int(cy-2*s)), int(6*s), 0, 1)
+    
+    def _draw_flower_simple(self, canvas, cx, cy, s):
+        """Draw flower at 28x28 scale."""
+        # Stem
+        cv2.line(canvas, (cx, int(cy+2*s)), (cx, int(cy+10*s)), 0, 1)
+        # Petals (5 small circles around center)
+        for i in range(5):
+            a = i * 72  # degrees
+            x = cx + int(4*s * math.cos(math.radians(a)))
+            y = int(cy + 4*s * math.sin(math.radians(a)))
+            cv2.circle(canvas, (x, y), int(2*s), 0, 1)
+        # Center
+        cv2.circle(canvas, (cx, cy), int(2*s), 0, -1)
+    
+    def _draw_house_simple(self, canvas, cx, cy, s):
+        """Draw house at 28x28 scale."""
+        # Walls
+        cv2.rectangle(canvas, (int(cx-6*s), int(cy)), (int(cx+6*s), int(cy+8*s)), 0, 1)
+        # Roof (triangle)
+        pts = np.array([[int(cx-7*s), int(cy)], [cx, int(cy-6*s)], [int(cx+7*s), int(cy)]], np.int32)
+        cv2.polylines(canvas, [pts], True, 0, 1)
+        # Door
+        cv2.rectangle(canvas, (int(cx-2*s), int(cy+3*s)), (int(cx+2*s), int(cy+8*s)), 0, 1)
+    
+    def _draw_umbrella_simple(self, canvas, cx, cy, s):
+        """Draw umbrella at 28x28 scale."""
+        # Canopy (arc approximated with ellipse)
+        cv2.ellipse(canvas, (cx, int(cy-2*s)), (int(8*s), int(4*s)), 0, 0, 180, 0, 1)
+        # Handle (vertical line with curve)
+        cv2.line(canvas, (cx, int(cy-2*s)), (cx, int(cy+8*s)), 0, 1)
+        cv2.ellipse(canvas, (cx, int(cy+8*s)), (int(2*s), int(2*s)), 0, 180, 360, 0, 1)
+    
+    # Old drawing methods (kept for backward compatibility but not used)
     def _draw_cat(self, p, cx, cy):
         """Draw cat face."""
         p.drawEllipse(cx - 28, cy - 23, 56, 50)

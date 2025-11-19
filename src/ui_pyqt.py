@@ -177,49 +177,101 @@ class VideoWidget(QLabel):
             painter.drawEllipse(fx - 6, fy - 6, 12, 12)
     
     def _draw_debug_guide(self, painter: QPainter, x_offset: int, y_offset: int, w: int, h: int):
-        """Draws a light blue box showing the optimal drawing area for model prediction."""
-        # Draw a centered square showing the 28x28 prediction area
-        # Add 12% padding as done in preprocessing
-        padding_percent = 0.12
+        """
+        Draws an enhanced guide showing the optimal drawing area for model prediction.
         
-        # Calculate the optimal drawing area (centered square with padding)
+        This guide helps users understand:
+        1. Where to draw for best results (centered area)
+        2. How the model sees their drawing (28x28 grid overlay)
+        3. The importance of keeping drawings centered
+        """
+        # Calculate the optimal drawing area (centered square)
+        # The model works best with centered, square compositions
         min_dim = min(w, h)
-        optimal_size = int(min_dim * (1 - 2 * padding_percent))
+        optimal_size = int(min_dim * 0.75)  # Use 75% of available space
         
         guide_x = x_offset + (w - optimal_size) // 2
         guide_y = y_offset + (h - optimal_size) // 2
         
-        # Draw light blue rectangle (cyan/sky blue for better visibility)
-        pen = QPen(QColor(100, 200, 255, 200), 3, Qt.PenStyle.DashLine)
-        painter.setPen(pen)
+        # Draw main guide rectangle (bright cyan for high visibility)
+        pen_main = QPen(QColor(0, 255, 255, 255), 4, Qt.PenStyle.SolidLine)
+        painter.setPen(pen_main)
         painter.setBrush(Qt.BrushStyle.NoBrush)
         painter.drawRect(guide_x, guide_y, optimal_size, optimal_size)
         
-        # Draw corner markers in brighter cyan
-        marker_len = 20
-        pen_marker = QPen(QColor(80, 180, 255, 240), 4, Qt.PenStyle.SolidLine)
+        # Draw corner markers (emphasized corners)
+        marker_len = 30
+        pen_marker = QPen(QColor(0, 255, 255, 255), 6, Qt.PenStyle.SolidLine)
         painter.setPen(pen_marker)
         
-        # Top-left
+        # Top-left corner
         painter.drawLine(guide_x, guide_y, guide_x + marker_len, guide_y)
         painter.drawLine(guide_x, guide_y, guide_x, guide_y + marker_len)
         
-        # Top-right
+        # Top-right corner
         painter.drawLine(guide_x + optimal_size, guide_y, guide_x + optimal_size - marker_len, guide_y)
         painter.drawLine(guide_x + optimal_size, guide_y, guide_x + optimal_size, guide_y + marker_len)
         
-        # Bottom-left
+        # Bottom-left corner
         painter.drawLine(guide_x, guide_y + optimal_size, guide_x + marker_len, guide_y + optimal_size)
         painter.drawLine(guide_x, guide_y + optimal_size, guide_x, guide_y + optimal_size - marker_len)
         
-        # Bottom-right
+        # Bottom-right corner
         painter.drawLine(guide_x + optimal_size, guide_y + optimal_size, guide_x + optimal_size - marker_len, guide_y + optimal_size)
         painter.drawLine(guide_x + optimal_size, guide_y + optimal_size, guide_x + optimal_size, guide_y + optimal_size - marker_len)
         
-        # Add text hint in light blue
-        painter.setPen(QColor(100, 200, 255, 220))
-        painter.setFont(QFont("Segoe UI", 10))
-        painter.drawText(guide_x + 10, guide_y - 10, "Optimal Drawing Area")
+        # Draw 28x28 grid overlay to show model resolution
+        pen_grid = QPen(QColor(0, 200, 255, 80), 1, Qt.PenStyle.DotLine)
+        painter.setPen(pen_grid)
+        
+        cell_size = optimal_size / 28  # 28x28 is the model's input size
+        
+        # Vertical grid lines
+        for i in range(1, 28):
+            x = guide_x + int(i * cell_size)
+            painter.drawLine(x, guide_y, x, guide_y + optimal_size)
+        
+        # Horizontal grid lines
+        for i in range(1, 28):
+            y = guide_y + int(i * cell_size)
+            painter.drawLine(guide_x, y, guide_x + optimal_size, y)
+        
+        # Draw center crosshair
+        pen_cross = QPen(QColor(255, 255, 0, 150), 2, Qt.PenStyle.DashLine)
+        painter.setPen(pen_cross)
+        center_x = guide_x + optimal_size // 2
+        center_y = guide_y + optimal_size // 2
+        painter.drawLine(guide_x, center_y, guide_x + optimal_size, center_y)
+        painter.drawLine(center_x, guide_y, center_x, guide_y + optimal_size)
+        
+        # Minimal text label at bottom only
+        text_bottom_y = guide_y + optimal_size + 22
+        if text_bottom_y < y_offset + h - 10:
+            painter.setFont(QFont("Segoe UI", 9))
+            painter.setPen(QColor(255, 255, 0, 220))
+            painter.drawText(guide_x + 10, text_bottom_y, "Press . to toggle guide")
+        
+        # Semi-transparent overlay outside the optimal area to emphasize it
+        painter.setPen(Qt.PenStyle.NoPen)
+        painter.setBrush(QColor(10, 20, 30, 40))
+        
+        # Top overlay
+        if guide_y > y_offset:
+            painter.drawRect(x_offset, y_offset, w, guide_y - y_offset)
+        
+        # Bottom overlay
+        if guide_y + optimal_size < y_offset + h:
+            painter.drawRect(x_offset, guide_y + optimal_size, w, 
+                           y_offset + h - (guide_y + optimal_size))
+        
+        # Left overlay
+        if guide_x > x_offset:
+            painter.drawRect(x_offset, guide_y, guide_x - x_offset, optimal_size)
+        
+        # Right overlay
+        if guide_x + optimal_size < x_offset + w:
+            painter.drawRect(guide_x + optimal_size, guide_y, 
+                           x_offset + w - (guide_x + optimal_size), optimal_size)
 
 
 class GameCard(QFrame):
@@ -515,7 +567,6 @@ class PictionaryUIQt(QMainWindow):
     clear_requested = pyqtSignal()
     mode_switched = pyqtSignal(bool)  # True=mano, False=mouse
     timer_expired = pyqtSignal()
-    trace_prediction_requested = pyqtSignal()  # New signal for P key
     
     def __init__(self, config: Dict[str, Any]):
         super().__init__()
@@ -534,10 +585,6 @@ class PictionaryUIQt(QMainWindow):
         self.score = 0
         self.time_remaining = 120  # 2 minutos
         self.game_paused = False
-        
-        # Labels for examples viewer
-        self.available_labels = []
-        self.examples_viewer = None
         
         self._setup_window()
         self._setup_ui()
@@ -699,7 +746,7 @@ class PictionaryUIQt(QMainWindow):
         layout = QHBoxLayout()
         layout.setContentsMargins(15, 10, 15, 10)
         
-        self.instructions = QLabel("Q = Salir  |  C = Limpiar  |  S = Siguiente  |  R = Reiniciar  |  . = Guía  |  E = Ejemplos  |  P = Ver Predicción")
+        self.instructions = QLabel("Q = Salir  |  C = Limpiar  |  S = Siguiente  |  R = Reiniciar  |  . = Guía")
         self.instructions.setObjectName("instructions")
         self.instructions.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(self.instructions)
@@ -813,14 +860,14 @@ class PictionaryUIQt(QMainWindow):
             self.mode_button.setText("☕ CAMBIAR A MANO")
             self.state_indicator.setText("🖱️ MODO MOUSE")
             self.state_indicator.setStyleSheet("color: #ffa000;")
-            self.instructions.setText("Q = Salir  |  C = Limpiar  |  S = Siguiente  |  R = Reiniciar  |  . = Guía  |  E = Ejemplos  |  P = Ver Predicción")
+            self.instructions.setText("Q = Salir  |  C = Limpiar  |  S = Siguiente  |  R = Reiniciar  |  . = Guía")
             self.mode_switched.emit(False)  # False = mouse
         else:
             self.current_mode = "hand"
             self.mode_button.setText("🖱️ CAMBIAR A MOUSE")
             self.state_indicator.setText("☕ MODO MANO")
             self.state_indicator.setStyleSheet("color: #64ff64;")
-            self.instructions.setText("Q = Salir  |  C = Limpiar  |  S = Siguiente  |  R = Reiniciar  |  . = Guía  |  E = Ejemplos  |  P = Ver Predicción")
+            self.instructions.setText("Q = Salir  |  C = Limpiar  |  S = Siguiente  |  R = Reiniciar  |  . = Guía")
             self.mode_switched.emit(True)  # True = hand
     
     def _update_game_timer(self):
@@ -929,9 +976,6 @@ class PictionaryUIQt(QMainWindow):
             # Enter - Make prediction (silent, no trace)
             # Note: Actual prediction is triggered automatically
             pass
-        elif key == Qt.Key.Key_P:
-            # P - Prediction tracer (slow visualization)
-            self.trace_prediction_requested.emit()
         elif key == Qt.Key.Key_Space or key == Qt.Key.Key_C:
             # Space/C - Clear canvas
             self.clear_requested.emit()
@@ -952,33 +996,6 @@ class PictionaryUIQt(QMainWindow):
             self.clear_requested.emit()
             self.prediction_card.clear()
             self.select_new_target()
-        elif key == Qt.Key.Key_E:
-            # E - Show examples viewer
-            self._show_examples_viewer()
-    
-    def set_available_labels(self, labels: list):
-        """Set available labels for examples viewer."""
-        self.available_labels = labels
-    
-    def _show_examples_viewer(self):
-        """Show the examples viewer dialog."""
-        if not self.available_labels:
-            self.logger.warning("No labels available for examples viewer")
-            return
-        
-        try:
-            from examples_viewer import ExamplesViewer
-            
-            # Create or show existing viewer
-            if self.examples_viewer is None:
-                self.examples_viewer = ExamplesViewer(self.available_labels, self)
-            
-            self.examples_viewer.show()
-            self.examples_viewer.raise_()
-            self.examples_viewer.activateWindow()
-            
-        except Exception as e:
-            self.logger.error(f"Error showing examples viewer: {e}")
     
     def eventFilter(self, obj, event):
         """Handle window resize events to ensure critical elements are visible."""

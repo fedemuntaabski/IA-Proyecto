@@ -49,7 +49,7 @@ class SimpleDrawing:
         
         # Visual config
         self.line_color = (0, 255, 0)  # Green (BGR)
-        self.line_thickness = 8
+        self.line_thickness = 3  # Optimal for 28x28 model (was 8)
         self.finger_indicator_color = (0, 0, 255)  # Red (BGR)
         self.finger_indicator_radius = 10
         
@@ -194,7 +194,7 @@ class SimpleDrawing:
             
             for i in range(len(pixel_points) - 1):
                 cv2.line(canvas, pixel_points[i], pixel_points[i + 1], 
-                        0, self.line_thickness, cv2.LINE_AA)
+                        0, 3, cv2.LINE_AA)  # Fixed thickness for consistent model input
         
         # Validate drawing
         if np.sum(canvas < 250) < 30:
@@ -203,7 +203,12 @@ class SimpleDrawing:
         return canvas
     
     def _process_canvas_to_model_input(self, canvas: np.ndarray) -> Optional[np.ndarray]:
-        """Process canvas to 28x28 model input."""
+        """
+        Process canvas to 28x28 model input with improved preprocessing.
+        
+        This method ensures the drawing is properly centered and normalized
+        regardless of where on the canvas it was drawn.
+        """
         # Find and crop content
         binary = cv2.threshold(canvas, 127, 255, cv2.THRESH_BINARY_INV)[1]
         coords = cv2.findNonZero(binary)
@@ -213,21 +218,42 @@ class SimpleDrawing:
         
         x, y, w, h = cv2.boundingRect(coords)
         
-        # Add padding (12%)
-        pad = int(max(w, h) * 0.12)
-        x, y = max(0, x - pad), max(0, y - pad)
-        w = min(canvas.shape[1] - x, w + 2 * pad)
-        h = min(canvas.shape[0] - y, h + 2 * pad)
-        
-        # Extract and center ROI
-        roi = canvas[y:y+h, x:x+w]
+        # Calculate padding (20% of the drawing size for better centering)
         max_dim = max(w, h)
-        square = np.ones((max_dim, max_dim), dtype=np.uint8) * 255
-        offset_x, offset_y = (max_dim - w) // 2, (max_dim - h) // 2
-        square[offset_y:offset_y+h, offset_x:offset_x+w] = roi
+        pad = int(max_dim * 0.20)
         
-        # Resize and normalize
-        resized = cv2.resize(square, (28, 28), interpolation=cv2.INTER_LANCZOS4)
+        # Apply padding with bounds checking
+        x1 = max(0, x - pad)
+        y1 = max(0, y - pad)
+        x2 = min(canvas.shape[1], x + w + pad)
+        y2 = min(canvas.shape[0], y + h + pad)
+        
+        # Extract ROI with padding
+        roi = canvas[y1:y2, x1:x2]
+        
+        # Create square canvas centered
+        roi_h, roi_w = roi.shape
+        square_size = max(roi_h, roi_w)
+        
+        # Ensure minimum size for better quality
+        square_size = max(square_size, 100)
+        
+        # Create white square canvas
+        square = np.ones((square_size, square_size), dtype=np.uint8) * 255
+        
+        # Calculate offsets to center the ROI
+        offset_x = (square_size - roi_w) // 2
+        offset_y = (square_size - roi_h) // 2
+        
+        # Paste ROI centered in square
+        square[offset_y:offset_y+roi_h, offset_x:offset_x+roi_w] = roi
+        
+        # Resize to 28x28 with high-quality interpolation
+        resized = cv2.resize(square, (28, 28), interpolation=cv2.INTER_AREA)
+        
+        # Normalize: 0=white background, 1=black lines
+        # This matches the training data format
         normalized = 1.0 - (resized.astype(np.float32) / 255.0)
         
+        # Add channel dimension
         return np.expand_dims(normalized, axis=-1)
