@@ -11,10 +11,10 @@ from pathlib import Path
 from typing import List, Tuple, Optional, Dict, Any
 from PyQt6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel, 
-    QPushButton, QFrame, QGraphicsDropShadowEffect
+    QPushButton, QFrame, QGraphicsDropShadowEffect, QMessageBox
 )
 from PyQt6.QtCore import Qt, QTimer, pyqtSignal, QSize
-from PyQt6.QtGui import QImage, QPixmap, QPainter, QPen, QColor, QFont, QPainterPath
+from PyQt6.QtGui import QImage, QPixmap, QPainter, QPen, QColor, QFont, QPainterPath, QScreen
 import cv2
 
 
@@ -45,6 +45,7 @@ class VideoWidget(QLabel):
         self.current_frame = None
         self.stroke_points = []
         self.mouse_drawing = False
+        self.show_debug_guide = False  # Debug mode for drawing guide
         self.setMouseTracking(True)  # Habilitar tracking del mouse
         
     def set_frame(self, frame: np.ndarray):
@@ -61,23 +62,24 @@ class VideoWidget(QLabel):
         """Maneja el evento de presionar el mouse."""
         if event.button() == Qt.MouseButton.LeftButton:
             self.mouse_drawing = True
-            self._emit_mouse_position(event.position())
+            self._emit_mouse_position(event.position(), is_drawing=True)
         super().mousePressEvent(event)
     
     def mouseMoveEvent(self, event):
         """Maneja el movimiento del mouse."""
-        if self.mouse_drawing:
-            self._emit_mouse_position(event.position())
+        # Only draw if left button is being held down
+        if self.mouse_drawing and (event.buttons() & Qt.MouseButton.LeftButton):
+            self._emit_mouse_position(event.position(), is_drawing=True)
         super().mouseMoveEvent(event)
     
     def mouseReleaseEvent(self, event):
         """Maneja el evento de soltar el mouse."""
-        if event.button() == Qt.MouseButton.LeftButton:
+        if event.button() == Qt.MouseButton.LeftButton and self.mouse_drawing:
             self.mouse_drawing = False
             self.mouse_draw.emit(0.0, 0.0, False)  # Señal de fin de trazo
         super().mouseReleaseEvent(event)
     
-    def _emit_mouse_position(self, pos):
+    def _emit_mouse_position(self, pos, is_drawing=True):
         """Emite la posición del mouse normalizada."""
         # Calcular posición en el frame (normalizada 0-1)
         if self.current_frame is None:
@@ -108,7 +110,7 @@ class VideoWidget(QLabel):
         if 0 <= x <= scaled_w and 0 <= y <= scaled_h:
             norm_x = x / scaled_w
             norm_y = y / scaled_h
-            self.mouse_draw.emit(norm_x, norm_y, True)
+            self.mouse_draw.emit(norm_x, norm_y, is_drawing)
     
     def paintEvent(self, event):
         """Dibuja el frame y overlays."""
@@ -137,6 +139,10 @@ class VideoWidget(QLabel):
         x_offset = (self.width() - scaled_pixmap.width()) // 2
         y_offset = (self.height() - scaled_pixmap.height()) // 2
         painter.drawPixmap(x_offset, y_offset, scaled_pixmap)
+        
+        # Draw debug guide if enabled (dotted gray box showing model input area)
+        if self.show_debug_guide:
+            self._draw_debug_guide(painter, x_offset, y_offset, scaled_pixmap.width(), scaled_pixmap.height())
         
         # Dibujar trazos si existen
         if self.stroke_points and len(self.stroke_points) >= 2:
@@ -169,6 +175,51 @@ class VideoWidget(QLabel):
             painter.setBrush(QColor(255, 0, 0))
             painter.setPen(Qt.PenStyle.NoPen)
             painter.drawEllipse(fx - 6, fy - 6, 12, 12)
+    
+    def _draw_debug_guide(self, painter: QPainter, x_offset: int, y_offset: int, w: int, h: int):
+        """Draws a dotted gray box showing the optimal drawing area for model prediction."""
+        # Draw a centered square showing the 28x28 prediction area
+        # Add 12% padding as done in preprocessing
+        padding_percent = 0.12
+        
+        # Calculate the optimal drawing area (centered square with padding)
+        min_dim = min(w, h)
+        optimal_size = int(min_dim * (1 - 2 * padding_percent))
+        
+        guide_x = x_offset + (w - optimal_size) // 2
+        guide_y = y_offset + (h - optimal_size) // 2
+        
+        # Draw dotted gray rectangle
+        pen = QPen(QColor(128, 128, 128, 180), 3, Qt.PenStyle.DashLine)
+        painter.setPen(pen)
+        painter.setBrush(Qt.BrushStyle.NoBrush)
+        painter.drawRect(guide_x, guide_y, optimal_size, optimal_size)
+        
+        # Draw corner markers
+        marker_len = 20
+        pen_marker = QPen(QColor(128, 128, 128, 220), 4, Qt.PenStyle.SolidLine)
+        painter.setPen(pen_marker)
+        
+        # Top-left
+        painter.drawLine(guide_x, guide_y, guide_x + marker_len, guide_y)
+        painter.drawLine(guide_x, guide_y, guide_x, guide_y + marker_len)
+        
+        # Top-right
+        painter.drawLine(guide_x + optimal_size, guide_y, guide_x + optimal_size - marker_len, guide_y)
+        painter.drawLine(guide_x + optimal_size, guide_y, guide_x + optimal_size, guide_y + marker_len)
+        
+        # Bottom-left
+        painter.drawLine(guide_x, guide_y + optimal_size, guide_x + marker_len, guide_y + optimal_size)
+        painter.drawLine(guide_x, guide_y + optimal_size, guide_x, guide_y + optimal_size - marker_len)
+        
+        # Bottom-right
+        painter.drawLine(guide_x + optimal_size, guide_y + optimal_size, guide_x + optimal_size - marker_len, guide_y + optimal_size)
+        painter.drawLine(guide_x + optimal_size, guide_y + optimal_size, guide_x + optimal_size, guide_y + optimal_size - marker_len)
+        
+        # Add text hint
+        painter.setPen(QColor(128, 128, 128, 200))
+        painter.setFont(QFont("Segoe UI", 10))
+        painter.drawText(guide_x + 10, guide_y - 10, "Optimal Drawing Area")
 
 
 class GameCard(QFrame):
@@ -458,10 +509,15 @@ class PictionaryUIQt(QMainWindow):
         self.fps = 0.0
         self.last_prediction = None
         
+        # Logger for debug messages
+        import logging
+        self.logger = logging.getLogger("PictionaryLive")
+        
         # Estado del juego
         self.current_target = None
         self.score = 0
         self.time_remaining = 120  # 2 minutos
+        self.game_paused = False
         
         self._setup_window()
         self._setup_ui()
@@ -478,14 +534,29 @@ class PictionaryUIQt(QMainWindow):
         self.game_timer.timeout.connect(self._update_game_timer)
     
     def _setup_window(self):
-        """Configura la ventana principal."""
+        """Configura la ventana principal con tamaño responsivo."""
         window_name = self.config.get('window_name', 'Pictionary Live - UI Moderna')
-        window_width = self.config.get('window_width', 1280)
-        window_height = self.config.get('window_height', 720)
+        
+        # Get screen geometry for responsive sizing
+        screen = QScreen.availableGeometry(self.screen())
+        screen_width = screen.width()
+        screen_height = screen.height()
+        
+        # Use 80% of screen size or configured size, whichever is smaller
+        default_width = int(screen_width * 0.8)
+        default_height = int(screen_height * 0.8)
+        
+        window_width = min(self.config.get('window_width', 1280), default_width)
+        window_height = min(self.config.get('window_height', 720), default_height)
         
         self.setWindowTitle(window_name)
-        self.setMinimumSize(window_width, window_height)
+        self.setMinimumSize(800, 600)  # Minimum usable size
         self.resize(window_width, window_height)
+        
+        # Center window on screen
+        x = (screen_width - window_width) // 2
+        y = (screen_height - window_height) // 2
+        self.move(x, y)
         
         # Aplicar color de fondo
         self.setStyleSheet(f"background-color: {COLORS['bg_panel'].name()};")
@@ -597,7 +668,7 @@ class PictionaryUIQt(QMainWindow):
         layout = QHBoxLayout()
         layout.setContentsMargins(15, 10, 15, 10)
         
-        self.instructions = QLabel("Q = Salir  |  C = Limpiar  |  S = Siguiente  |  R = Reiniciar")
+        self.instructions = QLabel("Q = Salir  |  C = Limpiar  |  S = Siguiente  |  R = Reiniciar  |  . = Guía de Dibujo")
         self.instructions.setObjectName("instructions")
         self.instructions.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(self.instructions)
@@ -710,14 +781,14 @@ class PictionaryUIQt(QMainWindow):
             self.mode_button.setText("✋ CAMBIAR A MANO")
             self.state_indicator.setText("🖱️ MODO MOUSE")
             self.state_indicator.setStyleSheet("color: #ffa000;")
-            self.instructions.setText("Q = Salir  |  C = Limpiar  |  S = Siguiente  |  R = Reiniciar")
+            self.instructions.setText("Q = Salir  |  C = Limpiar  |  S = Siguiente  |  R = Reiniciar  |  . = Guía de Dibujo")
             self.mode_switched.emit(False)  # False = mouse
         else:
             self.current_mode = "hand"
             self.mode_button.setText("🖱️ CAMBIAR A MOUSE")
             self.state_indicator.setText("✋ MODO MANO")
             self.state_indicator.setStyleSheet("color: #64ff64;")
-            self.instructions.setText("Q = Salir  |  C = Limpiar  |  S = Siguiente  |  R = Reiniciar")
+            self.instructions.setText("Q = Salir  |  C = Limpiar  |  S = Siguiente  |  R = Reiniciar  |  . = Guía de Dibujo")
             self.mode_switched.emit(True)  # True = hand
     
     def _update_game_timer(self):
@@ -727,7 +798,7 @@ class PictionaryUIQt(QMainWindow):
             self.game_card.update_timer(self.time_remaining)
         else:
             self.game_timer.stop()
-            self.timer_expired.emit()
+            self._show_game_over_dialog()
     
     def select_new_target(self):
         """Selecciona un nuevo objetivo aleatorio."""
@@ -756,6 +827,64 @@ class PictionaryUIQt(QMainWindow):
         self.score = 0
         self.game_card.update_score(self.score)
     
+    def _show_game_over_dialog(self):
+        """Shows game over dialog with score and options to restart or exit."""
+        # Pause the game - emit signal to pause camera
+        self.game_paused = True
+        
+        msg_box = QMessageBox(self)
+        msg_box.setWindowTitle("⏰ Time's Up!")
+        msg_box.setText(f"<h2>Game Over!</h2><p style='font-size: 16px;'>Your final score: <b style='color: #64ff64; font-size: 24px;'>{self.score}</b></p>")
+        msg_box.setInformativeText("What would you like to do?")
+        
+        # Custom buttons
+        restart_btn = msg_box.addButton("🔄 Restart Game", QMessageBox.ButtonRole.AcceptRole)
+        exit_btn = msg_box.addButton("❌ Exit", QMessageBox.ButtonRole.RejectRole)
+        
+        # Style the message box
+        msg_box.setStyleSheet("""
+            QMessageBox {
+                background-color: #192540;
+                color: #ebebeb;
+            }
+            QMessageBox QLabel {
+                color: #ebebeb;
+                min-width: 300px;
+            }
+            QPushButton {
+                background-color: #ffa000;
+                color: #0a1428;
+                font-size: 14px;
+                font-weight: bold;
+                border: none;
+                border-radius: 5px;
+                padding: 10px 20px;
+                min-width: 120px;
+            }
+            QPushButton:hover {
+                background-color: #ffb000;
+            }
+            QPushButton:pressed {
+                background-color: #ff9000;
+            }
+        """)
+        
+        msg_box.exec()
+        
+        # Check which button was clicked
+        if msg_box.clickedButton() == restart_btn:
+            # Resume the game
+            self.game_paused = False
+            # Restart the game
+            self.reset_timer()
+            self.reset_score()
+            self.clear_requested.emit()
+            self.prediction_card.clear()
+            self.select_new_target()
+        else:
+            # Exit the application
+            self.close()
+    
     def keyPressEvent(self, event):
         """Maneja eventos de teclado."""
         key = event.key()
@@ -777,5 +906,11 @@ class PictionaryUIQt(QMainWindow):
             self.clear_requested.emit()
             self.prediction_card.clear()
             self.select_new_target()
+        elif key == Qt.Key.Key_Period:
+            # . = Toggle debug mode (show drawing guide)
+            self.video_widget.show_debug_guide = not self.video_widget.show_debug_guide
+            self.video_widget.update()
+            mode = "ON" if self.video_widget.show_debug_guide else "OFF"
+            self.logger.info(f"Debug guide: {mode}")
         else:
             super().keyPressEvent(event)

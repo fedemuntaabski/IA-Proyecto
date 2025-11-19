@@ -73,6 +73,7 @@ class PictionaryApp(QObject):
         
         # State tracking
         self.was_fist_closed = False
+        self.current_mode = "hand"  # Track current input mode
         
         # Set initial target
         self._select_random_target()
@@ -135,6 +136,10 @@ class PictionaryApp(QObject):
         # UI signals
         self.ui.clear_requested.connect(self._clear_drawing)
         self.ui.set_select_new_target_func(self._select_random_target)
+        self.ui.mode_switched.connect(self._on_mode_switched)
+        
+        # Mouse drawing signal
+        self.ui.video_widget.mouse_draw.connect(self._handle_mouse_draw)
         
         self.logger.info("Signals connected")
     
@@ -147,41 +152,48 @@ class PictionaryApp(QObject):
             frame: BGR video frame from camera
         """
         try:
-            # Detect hand
-            detection = self.hand_detector.detect(frame)
-            hand_landmarks = detection.get("hand_landmarks")
+            # Don't process if game is paused
+            if self.ui.game_paused:
+                self.ui.update_frame(frame)
+                return
             
             finger_pos = None
             
-            if hand_landmarks:
-                # Draw hand landmarks
-                frame = self.hand_detector.draw_hand_landmarks(frame)
+            # Only process hand input in hand mode
+            if self.current_mode == "hand":
+                # Detect hand
+                detection = self.hand_detector.detect(frame)
+                hand_landmarks = detection.get("hand_landmarks")
                 
-                # Get finger position
-                finger_pos = self.hand_detector.get_index_finger_position()
-                
-                # Check if fist
-                is_fist = self._check_fist_safely()
-                
-                if finger_pos and not is_fist:
-                    # Drawing: add point
-                    self.drawing.add_point(finger_pos[0], finger_pos[1])
-                    self.was_fist_closed = False
+                if hand_landmarks:
+                    # Draw hand landmarks
+                    frame = self.hand_detector.draw_hand_landmarks(frame)
                     
-                elif is_fist and not self.was_fist_closed:
-                    # Fist closed: save stroke
-                    if self.drawing.save_current_stroke():
-                        count = self.drawing.get_stroke_count()
-                        self.logger.info(f"Stroke saved! Total: {count}")
+                    # Get finger position
+                    finger_pos = self.hand_detector.get_index_finger_position()
+                    
+                    # Check if fist
+                    is_fist = self._check_fist_safely()
+                    
+                    if finger_pos and not is_fist:
+                        # Drawing: add point
+                        self.drawing.add_point(finger_pos[0], finger_pos[1])
+                        self.was_fist_closed = False
                         
-                        # Auto-predict
-                        self._predict_drawing()
-                    
-                    self.was_fist_closed = True
-                    
-                elif not is_fist and self.was_fist_closed:
-                    # Fist opened: reset flag
-                    self.was_fist_closed = False
+                    elif is_fist and not self.was_fist_closed:
+                        # Fist closed: save stroke
+                        if self.drawing.save_current_stroke():
+                            count = self.drawing.get_stroke_count()
+                            self.logger.info(f"Stroke saved! Total: {count}")
+                            
+                            # Auto-predict
+                            self._predict_drawing()
+                        
+                        self.was_fist_closed = True
+                        
+                    elif not is_fist and self.was_fist_closed:
+                        # Fist opened: reset flag
+                        self.was_fist_closed = False
             
             # Render drawing on frame
             frame = self.drawing.render_on_frame(frame, finger_pos)
@@ -224,11 +236,40 @@ class PictionaryApp(QObject):
         except Exception as e:
             self.logger.error(f"Prediction error: {e}", exc_info=True)
     
+    @pyqtSlot(bool)
+    def _on_mode_switched(self, use_hand: bool) -> None:
+        """Handle mode switch between hand and mouse."""
+        self.current_mode = "hand" if use_hand else "mouse"
+        self.logger.info(f"Mode switched to: {self.current_mode}")
+        # Clear drawing when switching modes
+        self._clear_drawing()
+    
     @pyqtSlot()
     def _clear_drawing(self) -> None:
         """Clear all drawings."""
         self.drawing.clear_all()
         self.logger.info("Drawing cleared")
+    
+    @pyqtSlot(float, float, bool)
+    def _handle_mouse_draw(self, x: float, y: float, is_drawing: bool) -> None:
+        """Handle mouse drawing input (only in mouse mode)."""
+        # Don't process if game is paused
+        if self.ui.game_paused:
+            return
+            
+        # Only process mouse input in mouse mode
+        if self.current_mode != "mouse":
+            return
+            
+        if is_drawing:
+            # Add point while drawing
+            self.drawing.add_point(x, y)
+        else:
+            # Mouse released - save stroke and predict
+            if self.drawing.save_current_stroke():
+                count = self.drawing.get_stroke_count()
+                self.logger.info(f"Mouse stroke saved! Total: {count}")
+                self._predict_drawing()
     
     @pyqtSlot()
     def _on_camera_ready(self) -> None:
