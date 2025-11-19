@@ -228,15 +228,16 @@ class GameCard(QFrame):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setObjectName("gameCard")
-        self.setMinimumWidth(300)
-        self.setMaximumWidth(400)
+        self.setMinimumWidth(280)  # Reduced from 300
+        self.setMaximumWidth(350)  # Reduced from 400
+        self.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.MinimumExpanding)
         self._setup_ui()
     
     def _setup_ui(self):
         """Configura la UI de la tarjeta de juego."""
         layout = QVBoxLayout()
-        layout.setContentsMargins(20, 20, 20, 20)
-        layout.setSpacing(15)
+        layout.setContentsMargins(15, 15, 15, 15)  # Reduced margins
+        layout.setSpacing(10)  # Reduced spacing
         
         # Título
         title = QLabel("🎯 OBJETIVO")
@@ -255,80 +256,89 @@ class GameCard(QFrame):
         self.target_label.setObjectName("targetLabel")
         self.target_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.target_label.setWordWrap(True)
-        self.target_label.setMinimumHeight(60)
+        self.target_label.setMinimumHeight(50)  # Reduced from 60
+        self.target_label.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Fixed)
         self.target_label.setStyleSheet("""
             QLabel#targetLabel {
                 color: #ffff00;
-                font-size: 28px;
+                font-size: 24px;  /* Reduced from 28px */
                 font-weight: bold;
                 background-color: transparent;
-                padding: 15px;
+                padding: 10px;  /* Reduced from 15px */
             }
         """)
         layout.addWidget(self.target_label)
         
+        # Timer y Score en fila horizontal para ahorrar espacio vertical
+        stats_layout = QHBoxLayout()
+        stats_layout.setSpacing(10)
+        
         # Timer
         timer_container = QFrame()
         timer_container.setObjectName("timerContainer")
+        timer_container.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
         timer_container.setStyleSheet("""
             QFrame#timerContainer {
                 background-color: #0a1428;
-                border-radius: 8px;
+                border-radius: 6px;  /* Reduced from 8px */
                 border: 2px solid #00ffff;
-                padding: 10px;
-                margin: 5px 0px;
+                padding: 8px;  /* Reduced from 10px */
+                margin: 0px;
             }
         """)
         timer_layout = QVBoxLayout()
-        timer_layout.setContentsMargins(10, 10, 10, 10)
+        timer_layout.setContentsMargins(8, 8, 8, 8)  # Reduced margins
         timer_title = QLabel("⏱️ TIEMPO")
         timer_title.setObjectName("timerTitle")
         timer_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        timer_title.setStyleSheet("color: #00ffff; font-size: 14px; font-weight: bold;")
+        timer_title.setStyleSheet("color: #00ffff; font-size: 12px; font-weight: bold;")  # Reduced font
         timer_layout.addWidget(timer_title)
         
         self.timer_label = QLabel("02:00")
         self.timer_label.setObjectName("timerLabel")
         self.timer_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.timer_label.setStyleSheet("color: #00ffff; font-size: 36px; font-weight: bold;")
+        self.timer_label.setStyleSheet("color: #00ffff; font-size: 28px; font-weight: bold;")  # Reduced from 36px
         timer_layout.addWidget(self.timer_label)
         timer_container.setLayout(timer_layout)
-        layout.addWidget(timer_container)
+        stats_layout.addWidget(timer_container)
         
         # Puntaje
         score_container = QFrame()
         score_container.setObjectName("scoreContainer")
+        score_container.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
         score_container.setStyleSheet("""
             QFrame#scoreContainer {
                 background-color: #0a1428;
-                border-radius: 8px;
+                border-radius: 6px;  /* Reduced from 8px */
                 border: 2px solid #64ff64;
-                padding: 10px;
-                margin: 5px 0px;
+                padding: 8px;  /* Reduced from 10px */
+                margin: 0px;
             }
         """)
         score_layout = QVBoxLayout()
-        score_layout.setContentsMargins(10, 10, 10, 10)
+        score_layout.setContentsMargins(8, 8, 8, 8)  # Reduced margins
         score_title = QLabel("🏆 PUNTAJE")
         score_title.setObjectName("scoreTitle")
         score_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        score_title.setStyleSheet("color: #64ff64; font-size: 14px; font-weight: bold;")
+        score_title.setStyleSheet("color: #64ff64; font-size: 12px; font-weight: bold;")  # Reduced font
         score_layout.addWidget(score_title)
         
         self.score_label = QLabel("0")
         self.score_label.setObjectName("scoreLabel")
         self.score_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.score_label.setStyleSheet("color: #64ff64; font-size: 48px; font-weight: bold;")
+        self.score_label.setStyleSheet("color: #64ff64; font-size: 36px; font-weight: bold;")  # Reduced from 48px
         score_layout.addWidget(self.score_label)
         score_container.setLayout(score_layout)
-        layout.addWidget(score_container)
+        stats_layout.addWidget(score_container)
         
-        layout.addStretch()
+        layout.addLayout(stats_layout)
+        
+        # No stretch to keep compact
         self.setLayout(layout)
         
         # Efecto de sombra/glow
         shadow = QGraphicsDropShadowEffect()
-        shadow.setBlurRadius(20)
+        shadow.setBlurRadius(15)  # Reduced from 20
         shadow.setColor(QColor(0, 255, 255, 100))
         shadow.setOffset(0, 0)
         self.setGraphicsEffect(shadow)
@@ -362,15 +372,16 @@ class PredictionCard(QFrame):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setObjectName("predictionCard")
-        self.setMinimumWidth(300)
-        self.setMaximumWidth(400)
+        self.setMinimumWidth(280)  # Reduced from default
+        self.setMaximumWidth(350)  # Reduced from default
+        self.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Expanding)
         self._setup_ui()
         
     def _setup_ui(self):
         """Configura la UI de la tarjeta."""
         layout = QVBoxLayout()
-        layout.setContentsMargins(20, 20, 20, 20)
-        layout.setSpacing(15)
+        layout.setContentsMargins(15, 15, 15, 15)  # Reduced margins
+        layout.setSpacing(8)  # Reduced spacing
         
         # Título
         title = QLabel("PREDICCIÓN")
@@ -389,26 +400,30 @@ class PredictionCard(QFrame):
         self.label_text.setObjectName("predictionLabel")
         self.label_text.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.label_text.setWordWrap(True)
+        self.label_text.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Fixed)
+        self.label_text.setMinimumHeight(40)  # Set minimum height
         layout.addWidget(self.label_text)
         
         # Confianza
         self.confidence_text = QLabel("")
         self.confidence_text.setObjectName("confidenceText")
         self.confidence_text.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.confidence_text.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Fixed)
         layout.addWidget(self.confidence_text)
         
         # Top-3 (placeholder, se llenará dinámicamente)
         self.top3_container = QWidget()
         self.top3_layout = QVBoxLayout()
+        self.top3_layout.setSpacing(2)  # Reduced spacing
         self.top3_container.setLayout(self.top3_layout)
+        self.top3_container.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Expanding)
         layout.addWidget(self.top3_container)
         
-        layout.addStretch()
         self.setLayout(layout)
         
         # Efecto de sombra/glow
         shadow = QGraphicsDropShadowEffect()
-        shadow.setBlurRadius(20)
+        shadow.setBlurRadius(15)  # Reduced from 20
         shadow.setColor(QColor(0, 255, 255, 100))
         shadow.setOffset(0, 0)
         self.setGraphicsEffect(shadow)
@@ -532,6 +547,9 @@ class PictionaryUIQt(QMainWindow):
         # Timer del juego (cada 1 segundo) - INICIAR después de mostrar UI
         self.game_timer = QTimer()
         self.game_timer.timeout.connect(self._update_game_timer)
+        
+        # Connect resize event to ensure visibility
+        self.installEventFilter(self)
     
     def _setup_window(self):
         """Configura la ventana principal con tamaño responsivo."""
@@ -542,15 +560,15 @@ class PictionaryUIQt(QMainWindow):
         screen_width = screen.width()
         screen_height = screen.height()
         
-        # Use 80% of screen size or configured size, whichever is smaller
-        default_width = int(screen_width * 0.8)
-        default_height = int(screen_height * 0.8)
+        # Use 90% of screen size for better visibility on small screens
+        default_width = int(screen_width * 0.9)
+        default_height = int(screen_height * 0.9)
         
-        window_width = min(self.config.get('window_width', 1280), default_width)
-        window_height = min(self.config.get('window_height', 720), default_height)
+        window_width = min(self.config.get('window_width', 1400), default_width)
+        window_height = min(self.config.get('window_height', 800), default_height)
         
         self.setWindowTitle(window_name)
-        self.setMinimumSize(800, 600)  # Minimum usable size
+        self.setMinimumSize(1000, 700)  # Increased minimum size for better visibility
         self.resize(window_width, window_height)
         
         # Center window on screen
@@ -568,8 +586,8 @@ class PictionaryUIQt(QMainWindow):
         
         # Layout principal
         main_layout = QVBoxLayout()
-        main_layout.setContentsMargins(10, 10, 10, 10)
-        main_layout.setSpacing(10)
+        main_layout.setContentsMargins(8, 8, 8, 8)  # Reduced margins
+        main_layout.setSpacing(8)  # Reduced spacing
         
         # Header
         header = self._create_header()
@@ -577,24 +595,28 @@ class PictionaryUIQt(QMainWindow):
         
         # Contenedor de video y predicción
         content_layout = QHBoxLayout()
-        content_layout.setSpacing(15)
+        content_layout.setSpacing(12)  # Reduced spacing
         
-        # Video
+        # Video - Priority component, gets more space
         self.video_widget = VideoWidget()
+        self.video_widget.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         content_layout.addWidget(self.video_widget, stretch=3)
         
-        # Panel lateral (predicción + controles)
+        # Panel lateral (predicción + controles) - Can shrink if needed
         side_panel = self._create_side_panel()
+        side_panel.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Expanding)
         content_layout.addWidget(side_panel, stretch=1)
         
-        main_layout.addLayout(content_layout)
+        main_layout.addLayout(content_layout, stretch=1)  # Allow content to expand
         
-        # Barra de estado
+        # Barra de estado - Can be compressed
         self.status_bar = StatusBar()
+        self.status_bar.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Fixed)
         main_layout.addWidget(self.status_bar)
         
-        # Footer con controles
+        # Footer con controles - Fixed height
         footer = self._create_footer()
+        footer.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Fixed)
         main_layout.addWidget(footer)
         
         central_widget.setLayout(main_layout)
@@ -634,20 +656,23 @@ class PictionaryUIQt(QMainWindow):
         
         layout = QVBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(15)
+        layout.setSpacing(10)  # Reduced spacing for better space usage
         
-        # Tarjeta de juego (objetivo, timer, puntaje)
+        # Tarjeta de juego (objetivo, timer, puntaje) - PRIORITY: Always visible
         self.game_card = GameCard()
+        self.game_card.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Minimum)  # Allow shrinking
         layout.addWidget(self.game_card)
         
-        # Tarjeta de predicción
+        # Tarjeta de predicción - Can be compressed if needed
         self.prediction_card = PredictionCard()
+        self.prediction_card.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Expanding)
         layout.addWidget(self.prediction_card)
         
-        # Botón de cambio de modo
+        # Botón de cambio de modo - Compact
         self.mode_button = QPushButton("🖱️ CAMBIAR A MOUSE")
         self.mode_button.setObjectName("modeButton")
-        self.mode_button.setMinimumHeight(50)
+        self.mode_button.setMinimumHeight(40)  # Reduced from 50
+        self.mode_button.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Fixed)
         self.mode_button.clicked.connect(self._toggle_mode)
         self.mode_button.setToolTip("Alternar entre detección de manos y dibujo con mouse")
         layout.addWidget(self.mode_button)
@@ -655,7 +680,8 @@ class PictionaryUIQt(QMainWindow):
         # Estado del modo actual
         self.current_mode = "hand"  # Por defecto modo mano
         
-        layout.addStretch()
+        # Minimal stretch to push everything up
+        layout.addStretch(1)
         
         panel.setLayout(layout)
         return panel
@@ -885,32 +911,17 @@ class PictionaryUIQt(QMainWindow):
             # Exit the application
             self.close()
     
-    def keyPressEvent(self, event):
-        """Maneja eventos de teclado."""
-        key = event.key()
-        
-        if key == Qt.Key.Key_Q:
-            # Salir
-            self.close()
-        elif key == Qt.Key.Key_C:
-            # C = Limpiar el tablero
-            self.clear_requested.emit()
-            self.prediction_card.clear()
-        elif key == Qt.Key.Key_S:
-            # S = Siguiente objetivo (sin limpiar)
-            self.select_new_target()
-        elif key == Qt.Key.Key_R:
-            # R = Reiniciar juego completo
-            self.reset_timer()
-            self.reset_score()
-            self.clear_requested.emit()
-            self.prediction_card.clear()
-            self.select_new_target()
-        elif key == Qt.Key.Key_Period:
-            # . = Toggle debug mode (show drawing guide)
-            self.video_widget.show_debug_guide = not self.video_widget.show_debug_guide
-            self.video_widget.update()
-            mode = "ON" if self.video_widget.show_debug_guide else "OFF"
-            self.logger.info(f"Debug guide: {mode}")
-        else:
-            super().keyPressEvent(event)
+    def eventFilter(self, obj, event):
+        """Handle window resize events to ensure critical elements are visible."""
+        if obj == self and event.type() == event.Type.Resize:
+            # Ensure minimum sizes are respected
+            min_width = 1000
+            min_height = 700
+            
+            if self.width() < min_width or self.height() < min_height:
+                # Force minimum size if too small
+                new_width = max(self.width(), min_width)
+                new_height = max(self.height(), min_height)
+                self.resize(new_width, new_height)
+                
+        return super().eventFilter(obj, event)
