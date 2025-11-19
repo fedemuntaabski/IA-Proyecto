@@ -46,6 +46,50 @@ python main.py --camera 1 --theme dark --debug
 
 ## Instalación
 
+### Método Recomendado: Entorno Virtual (venv)
+
+**Para trabajo colaborativo en Git, sigue estos pasos:**
+
+#### Windows
+
+```bash
+# 1. Clonar el repositorio
+git clone https://github.com/fedemuntaabski/IA-Proyecto.git
+cd IA-Proyecto
+
+# 2. Ejecutar el script de configuración (crea venv e instala dependencias)
+setup.bat
+
+# 3. Ejecutar la aplicación
+run.bat
+
+# Alternativamente, puedes activar el entorno manualmente:
+activate.bat
+python main.py
+```
+
+#### Linux/Mac
+
+```bash
+# 1. Clonar el repositorio
+git clone https://github.com/fedemuntaabski/IA-Proyecto.git
+cd IA-Proyecto
+
+# 2. Crear entorno virtual
+python3 -m venv venv
+
+# 3. Activar entorno virtual
+source venv/bin/activate
+
+# 4. Instalar dependencias
+pip install -r requirements.txt
+
+# 5. Ejecutar la aplicación
+python main.py
+```
+
+### Método Rápido (sin venv)
+
 ```bash
 # Clonar el repositorio
 git clone https://github.com/fedemuntaabski/IA-Proyecto.git
@@ -54,6 +98,8 @@ cd IA-Proyecto
 # Las dependencias se instalan automáticamente en la primera ejecución
 python main.py
 ```
+
+**Nota:** El entorno virtual (`venv/`) está configurado en `.gitignore` y no se compartirá en Git. Cada colaborador debe ejecutar `setup.bat` (Windows) o crear su propio entorno virtual.
 
 ## Configuración
 

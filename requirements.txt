@@ -1,0 +1,29 @@
+# Dependencias principales para Pictionary Live
+# REQUERIDO: Python 3.10, 3.11 o 3.12 (MediaPipe no funciona en 3.13+)
+# Versiones especificas compatibles para evitar conflictos
+
+# Procesamiento de imagenes y video
+numpy>=1.24.0,<2.0.0
+opencv-python>=4.5.0,<5.0.0
+
+# Deteccion de manos (CRITICO para la aplicacion)
+mediapipe>=0.10.0,<0.11.0
+
+# Inferencia de modelos (REQUERIDO - no modo demo)
+tensorflow>=2.15.0,<2.19.0
+
+# Protobuf compatible
+protobuf>=3.20.0,<7.0.0
+
+# Utilidades
+pyyaml>=6.0.0
+
+# Modo Juego con PyQt6 (UI Moderna)
+PyQt6>=6.5.0
+
+# NOTAS DE INSTALACION:
+# 1. Usar Python 3.10, 3.11 o 3.12
+# 2. En Windows, podria necesitar Visual C++ redistributable
+# 3. MediaPipe esta optimizado para CPU (mejor performance que GPU en este caso)
+# 4. Versiones especificas para evitar conflictos con protobuf
+# 5. Para el modo juego, asegurar que Tkinter este instalado (generalmente viene con Python)
