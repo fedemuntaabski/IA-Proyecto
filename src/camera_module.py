@@ -130,6 +130,20 @@ class CameraCapture(QThread):
             if self.mirror_frame:
                 frame = cv2.flip(frame, 1)
             
+            # Crop to square (1:1 ratio) by taking center portion
+            h, w = frame.shape[:2]
+            if h != w:
+                # Get the smaller dimension
+                size = min(h, w)
+                # Calculate crop offsets to center the crop
+                start_y = (h - size) // 2
+                start_x = (w - size) // 2
+                frame = frame[start_y:start_y + size, start_x:start_x + size]
+                
+                # Resize to target dimensions if needed
+                if size != self.width or size != self.height:
+                    frame = cv2.resize(frame, (self.width, self.height))
+            
             # Emit frame to main thread
             self.frame_ready.emit(frame)
             

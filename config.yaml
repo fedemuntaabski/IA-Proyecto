@@ -19,7 +19,7 @@ mediapipe:
 # ============================================================================
 camera:
   width: 640
-  height: 480
+  height: 640
   fps: 30
   buffer_size: 1
   flip_horizontal: true
@@ -67,7 +67,7 @@ model:
 ui:
   window_name: "Pictionary Live - Dibuja en el aire"
   window_width: 900  # Reducido para mejor rendimiento en pantallas pequeñas
-  window_height: 675   # Resolución aceptable y manejable
+  window_height: 900   # Ajustado para ratio 1:1 de cámara
   show_fps: true
   show_diagnostics: true
   show_top_predictions: 3

@@ -583,7 +583,7 @@ class PictionaryUIQt(QMainWindow):
         # Estado del juego
         self.current_target = None
         self.score = 0
-        self.time_remaining = 120  # 2 minutos
+        self.time_remaining = 180  # 2 minutos
         self.game_paused = False
         
         self._setup_window()
@@ -895,8 +895,8 @@ class PictionaryUIQt(QMainWindow):
         self.game_card.update_target(target)
     
     def reset_timer(self):
-        """Reinicia el timer a 2 minutos."""
-        self.time_remaining = 120
+        """Reinicia el timer a 3 minutos."""
+        self.time_remaining = 180
         self.game_card.update_timer(self.time_remaining)
         if not self.game_timer.isActive():
             self.game_timer.start(1000)

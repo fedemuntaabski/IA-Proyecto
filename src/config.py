@@ -42,7 +42,7 @@ _DEFAULTS = {
     },
     "camera": {
         "width": 640,
-        "height": 480,
+        "height": 640,
         "fps": 30,
         "buffer_size": 1,
         "flip_horizontal": True
@@ -57,7 +57,7 @@ _DEFAULTS = {
     "ui": {
         "window_name": "Pictionary Live - Dibuja en el aire",
         "window_width": 900,
-        "window_height": 675,
+        "window_height": 900,
         "show_fps": True,
         "show_diagnostics": True,
         "show_top_predictions": 3
