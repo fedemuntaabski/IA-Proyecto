@@ -124,9 +124,9 @@ class HandDetector:
                 if results.multi_handedness and len(results.multi_handedness) > 0:
                     hand_confidence = self._extract_confidence(results.multi_handedness[0])
                 
-                # Calcular velocidad del dedo índice (punto 8)
-                if len(hand_landmarks) > 8:
-                    current_pos = hand_landmarks[8]
+                # Calcular velocidad de la palma (base del dedo medio, punto 9)
+                if len(hand_landmarks) > 9:
+                    current_pos = hand_landmarks[9]
                     if self.previous_hand_pos:
                         dx = current_pos[0] - self.previous_hand_pos[0]
                         dy = current_pos[1] - self.previous_hand_pos[1]
@@ -193,19 +193,19 @@ class HandDetector:
         # Dibujar puntos
         for i, (x, y) in enumerate(self.hand_landmarks):
             px, py = int(x * w), int(y * h)
-            # Dedo índice (punto 8) en rojo brillante
-            if i == 8:
-                cv2.circle(frame, (px, py), 8, (0, 0, 255), -1)
-                cv2.circle(frame, (px, py), 10, (0, 0, 255), 2)
+            # Base del dedo medio (punto 9) en rojo brillante - centro de la palma
+            if i == 9:
+                cv2.circle(frame, (px, py), 12, (0, 0, 255), -1)
+                cv2.circle(frame, (px, py), 14, (0, 0, 255), 2)
             else:
                 cv2.circle(frame, (px, py), 4, (255, 0, 255), -1)
         
         return frame
     
     def get_index_finger_position(self) -> Optional[Tuple[float, float]]:
-        """Retorna la posición del dedo índice (punto 8)."""
-        if self.hand_landmarks and len(self.hand_landmarks) > 8:
-            return self.hand_landmarks[8]
+        """Retorna la posición del centro de la palma (base del dedo medio, punto 9)."""
+        if self.hand_landmarks and len(self.hand_landmarks) > 9:
+            return self.hand_landmarks[9]
         return None
     
     def _is_valid_landmark(self, landmark, min_length: int = 2) -> bool:
